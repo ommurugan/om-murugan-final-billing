@@ -6,20 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
-} from "recharts";
-import { 
   Download, 
   TrendingUp, 
   TrendingDown,
@@ -31,6 +17,7 @@ import {
   FileText
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import { CustomBarChart, CustomLineChart, CustomPieChart } from "@/components/Chart";
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState("30");
@@ -106,8 +93,7 @@ const Reports = () => {
     }
   ];
 
-  const exportReport = (type) => {
-    // Placeholder for export functionality
+  const exportReport = (type: string) => {
     console.log(`Exporting ${type} report...`);
   };
 
@@ -189,23 +175,15 @@ const Reports = () => {
                 <Card>
                   <CardHeader>
                     <CardTitle>Monthly Revenue Trend</CardTitle>
-                    <CardDescription>Revenue and service count over the last 6 months</CardDescription>
+                    <CardDescription>Revenue over the last 6 months</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={monthlyRevenue}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip 
-                          formatter={(value, name) => [
-                            name === 'revenue' ? `₹${value.toLocaleString()}` : value,
-                            name === 'revenue' ? 'Revenue' : 'Services'
-                          ]}
-                        />
-                        <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <CustomLineChart 
+                      data={monthlyRevenue}
+                      dataKey="revenue"
+                      xAxisKey="month"
+                      color="#3B82F6"
+                    />
                   </CardContent>
                 </Card>
 
@@ -216,24 +194,11 @@ const Reports = () => {
                     <CardDescription>Breakdown of service types this month</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={serviceTypes}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={120}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {serviceTypes.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => [`${value}%`, 'Percentage']} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <CustomPieChart 
+                      data={serviceTypes}
+                      dataKey="value"
+                      nameKey="name"
+                    />
                     <div className="grid grid-cols-2 gap-2 mt-4">
                       {serviceTypes.map((service, index) => (
                         <div key={index} className="flex items-center gap-2">
@@ -253,23 +218,15 @@ const Reports = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Weekly Performance</CardTitle>
-                  <CardDescription>Daily revenue and customer count for this week</CardDescription>
+                  <CardDescription>Daily revenue for this week</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={dailyStats}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis />
-                      <Tooltip 
-                        formatter={(value, name) => [
-                          name === 'revenue' ? `₹${value.toLocaleString()}` : value,
-                          name === 'revenue' ? 'Revenue' : 'Customers'
-                        ]}
-                      />
-                      <Bar dataKey="revenue" fill="#3B82F6" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <CustomBarChart 
+                    data={dailyStats}
+                    dataKey="revenue"
+                    xAxisKey="day"
+                    color="#3B82F6"
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -284,15 +241,13 @@ const Reports = () => {
                       <CardDescription>Detailed revenue breakdown and trends</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={monthlyRevenue}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']} />
-                          <Bar dataKey="revenue" fill="#10B981" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                      <CustomBarChart 
+                        data={monthlyRevenue}
+                        dataKey="revenue"
+                        xAxisKey="month"
+                        color="#10B981"
+                        height={400}
+                      />
                     </CardContent>
                   </Card>
                 </div>
