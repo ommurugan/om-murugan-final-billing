@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
 import InvoiceForm from "./InvoiceForm";
+import MobileInvoiceCard from "./MobileInvoiceCard";
 
 const InvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -201,15 +201,15 @@ const InvoiceManagement = () => {
 
   if (showCreateForm) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <h2 className="text-xl md:text-2xl font-bold">
             {selectedInvoice ? 'Edit Invoice' : 'Create New Invoice'}
           </h2>
           <Button variant="outline" onClick={() => {
             setShowCreateForm(false);
             setSelectedInvoice(null);
-          }}>
+          }} className="w-full sm:w-auto">
             Back to Invoices
           </Button>
         </div>
@@ -227,58 +227,58 @@ const InvoiceManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoice Management</h1>
-          <p className="text-gray-600">Create, manage, and track all your invoices</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">Invoice Management</h1>
+          <p className="text-sm md:text-base text-gray-600">Create, manage, and track all your invoices</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setShowCreateForm(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           New Invoice
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 md:pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{invoiceStats.total}</p>
-              <p className="text-sm text-gray-600">Total Invoices</p>
+              <p className="text-lg md:text-2xl font-bold text-blue-600">{invoiceStats.total}</p>
+              <p className="text-xs md:text-sm text-gray-600">Total</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 md:pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{invoiceStats.paid}</p>
-              <p className="text-sm text-gray-600">Paid</p>
+              <p className="text-lg md:text-2xl font-bold text-green-600">{invoiceStats.paid}</p>
+              <p className="text-xs md:text-sm text-gray-600">Paid</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 md:pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-600">{invoiceStats.pending}</p>
-              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-lg md:text-2xl font-bold text-yellow-600">{invoiceStats.pending}</p>
+              <p className="text-xs md:text-sm text-gray-600">Pending</p>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 md:pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{invoiceStats.overdue}</p>
-              <p className="text-sm text-gray-600">Overdue</p>
+              <p className="text-lg md:text-2xl font-bold text-red-600">{invoiceStats.overdue}</p>
+              <p className="text-xs md:text-sm text-gray-600">Overdue</p>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="col-span-2 md:col-span-1">
+          <CardContent className="pt-4 md:pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">₹{invoiceStats.totalRevenue.toLocaleString()}</p>
-              <p className="text-sm text-gray-600">Total Revenue</p>
+              <p className="text-lg md:text-2xl font-bold text-purple-600">₹{invoiceStats.totalRevenue.toLocaleString()}</p>
+              <p className="text-xs md:text-sm text-gray-600">Revenue</p>
             </div>
           </CardContent>
         </Card>
@@ -286,22 +286,22 @@ const InvoiceManagement = () => {
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input 
-                  placeholder="Search by invoice number or customer name..." 
-                  className="pl-10"
+                  placeholder="Search by invoice number or customer..." 
+                  className="pl-10 h-12 md:h-10"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="h-12 md:h-10 md:w-40">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,7 +314,7 @@ const InvoiceManagement = () => {
                 </SelectContent>
               </Select>
               <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="h-12 md:h-10 md:w-40">
                   <SelectValue placeholder="Filter by date" />
                 </SelectTrigger>
                 <SelectContent>
@@ -330,7 +330,7 @@ const InvoiceManagement = () => {
       </Card>
 
       {/* Invoices List */}
-      <Card>
+      <Card className="hidden md:block">
         <CardHeader>
           <CardTitle>Invoices ({filteredInvoices.length})</CardTitle>
           <CardDescription>Manage and track all your invoices</CardDescription>
@@ -406,6 +406,45 @@ const InvoiceManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Mobile Invoices List */}
+      <div className="md:hidden">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold">Invoices ({filteredInvoices.length})</h3>
+        </div>
+        
+        {filteredInvoices.length === 0 ? (
+          <Card>
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center">
+                <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 mb-4">No invoices found</p>
+                <Button 
+                  onClick={() => setShowCreateForm(true)} 
+                  className="bg-blue-600 hover:bg-blue-700 w-full"
+                >
+                  Create First Invoice
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredInvoices.map((invoice) => (
+              <MobileInvoiceCard
+                key={invoice.id}
+                invoice={invoice}
+                customerName={getCustomerName(invoice.customerId)}
+                vehicleInfo={getVehicleInfo(invoice.vehicleId)}
+                onEdit={handleEditInvoice}
+                onDelete={handleDeleteInvoice}
+                onPrint={handlePrintInvoice}
+                onEmail={handleEmailInvoice}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
