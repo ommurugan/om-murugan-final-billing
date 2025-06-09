@@ -86,7 +86,7 @@ export interface Invoice {
     amount: number;
   }>;
   total: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: 'draft' | 'sent' | 'paid' | 'pending' | 'overdue' | 'cancelled';
   createdAt: string;
   dueDate: string;
   paidAt?: string;
