@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,8 @@ import {
   Edit,
   Trash2,
   Car,
-  User
+  User,
+  Receipt
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { toast } from "sonner";
