@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice } from "@/types/billing";
@@ -45,10 +44,7 @@ export const useInvoices = (type?: 'gst' | 'non-gst') => {
         notes: invoice.notes,
         laborCharges: invoice.labor_charges,
         payments: [], // Will be populated separately when needed
-        kilometers: invoice.kilometers,
-        // Include the joined data for easy access
-        customers: invoice.customers,
-        vehicles: invoice.vehicles
+        kilometers: invoice.kilometers
       }));
     },
   });
