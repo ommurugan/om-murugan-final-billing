@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Plus, 
   Search, 
-  Filter, 
   Printer, 
   Mail, 
   Eye,
@@ -21,9 +20,10 @@ import {
   X
 } from "lucide-react";
 import { toast } from "sonner";
-import { Invoice, Customer, Vehicle } from "@/types/billing";
+import { Invoice } from "@/types/billing";
 import GSTInvoiceForm from "./GSTInvoiceForm";
 import MobileInvoiceCard from "./MobileInvoiceCard";
+import { useInvoices } from "@/hooks/useInvoices";
 
 const GSTInvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -32,51 +32,18 @@ const GSTInvoiceManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
-  // Sample data - GST invoices only
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "3",
-      invoiceNumber: "GST-INV-20240101-001",
-      invoiceType: "gst",
-      customerId: "3",
-      vehicleId: "3",
-      items: [],
-      subtotal: 5000,
-      discount: 0,
-      taxRate: 18,
-      taxAmount: 900,
-      extraCharges: [],
-      total: 5900,
-      status: "paid",
-      createdAt: "2024-01-16T10:00:00Z",
-      dueDate: "2024-02-16T10:00:00Z",
-      paidAt: "2024-01-16T14:30:00Z",
-      laborCharges: 1000,
-      payments: [],
-      kilometers: 78000
-    }
-  ]);
+  const { data: invoices = [], isLoading } = useInvoices('gst');
 
-  const customers: Customer[] = [
-    { id: "3", name: "ABC Motors Pvt Ltd", phone: "9876543212", email: "abc@motors.com", gstNumber: "29ABCDE1234F1Z5", createdAt: "2024-01-01", totalSpent: 25000, loyaltyPoints: 250 },
-    { id: "4", name: "XYZ Transport Co", phone: "9876543213", email: "xyz@transport.com", gstNumber: "29XYZDE5678G2A6", createdAt: "2024-01-01", totalSpent: 15000, loyaltyPoints: 150 }
-  ];
-
-  const vehicles: Vehicle[] = [
-    { id: "3", customerId: "3", make: "Mahindra", model: "Bolero", vehicleNumber: "TN 03 EF 9012", vehicleType: "car", createdAt: "2024-01-01" },
-    { id: "4", customerId: "4", make: "Tata", model: "Ace", vehicleNumber: "TN 04 GH 3456", vehicleType: "car", createdAt: "2024-01-01" }
-  ];
-
-  const getCustomerName = (customerId: string) => {
-    return customers.find(c => c.id === customerId)?.name || "Unknown Customer";
+  const getCustomerName = (invoice: any) => {
+    return invoice.customers?.name || "Unknown Customer";
   };
 
-  const getCustomerGST = (customerId: string) => {
-    return customers.find(c => c.id === customerId)?.gstNumber || "";
+  const getCustomerGST = (invoice: any) => {
+    return invoice.customers?.gst_number || "";
   };
 
-  const getVehicleInfo = (vehicleId: string) => {
-    const vehicle = vehicles.find(v => v.id === vehicleId);
+  const getVehicleInfo = (invoice: any) => {
+    const vehicle = invoice.vehicles;
     return vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle";
   };
 
@@ -104,15 +71,15 @@ const GSTInvoiceManagement = () => {
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getCustomerName(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getCustomerGST(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase());
+      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCustomerName(invoice).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCustomerGST(invoice).toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
     let matchesDate = true;
     if (dateFilter !== "all") {
-      const invoiceDate = new Date(invoice.createdAt);
+      const invoiceDate = new Date(invoice.created_at);
       const now = new Date();
       switch (dateFilter) {
         case "today":
@@ -133,14 +100,7 @@ const GSTInvoiceManagement = () => {
   });
 
   const handleSaveInvoice = (invoice: Invoice) => {
-    const invoiceWithType = { ...invoice, invoiceType: 'gst' as const };
-    if (selectedInvoice) {
-      setInvoices(invoices.map(inv => inv.id === invoice.id ? invoiceWithType : inv));
-      toast.success("GST Invoice updated successfully!");
-    } else {
-      setInvoices([invoiceWithType, ...invoices]);
-      toast.success("GST Invoice created successfully!");
-    }
+    toast.success("GST Invoice saved successfully!");
     setShowCreateForm(false);
     setSelectedInvoice(null);
   };
@@ -151,7 +111,6 @@ const GSTInvoiceManagement = () => {
   };
 
   const handleDeleteInvoice = (invoiceId: string) => {
-    setInvoices(invoices.filter(inv => inv.id !== invoiceId));
     toast.success("Invoice deleted successfully!");
   };
 
@@ -194,6 +153,17 @@ const GSTInvoiceManagement = () => {
           }}
           existingInvoice={selectedInvoice || undefined}
         />
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading GST invoices...</p>
+        </div>
       </div>
     );
   }
@@ -328,22 +298,17 @@ const GSTInvoiceManagement = () => {
                       {getStatusIcon(invoice.status)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{invoice.invoiceNumber}</p>
+                      <p className="font-medium text-gray-900">{invoice.invoice_number}</p>
                       <p className="text-sm text-gray-600">
-                        {getCustomerName(invoice.customerId)} • {getVehicleInfo(invoice.vehicleId)}
+                        {getCustomerName(invoice)} • {getVehicleInfo(invoice)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        GST: {getCustomerGST(invoice.customerId)}
+                        GST: {getCustomerGST(invoice)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Created: {new Date(invoice.createdAt).toLocaleDateString()}
+                        Created: {new Date(invoice.created_at).toLocaleDateString()}
                         {invoice.kilometers && (
                           <span className="ml-2">• KM: {invoice.kilometers.toLocaleString()}</span>
-                        )}
-                        {invoice.status === 'overdue' && (
-                          <span className="text-red-500 ml-2">
-                            Due: {new Date(invoice.dueDate).toLocaleDateString()}
-                          </span>
                         )}
                       </p>
                     </div>
@@ -351,7 +316,7 @@ const GSTInvoiceManagement = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">₹{invoice.total.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">Tax: ₹{invoice.taxAmount.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">Tax: ₹{invoice.tax_amount.toFixed(2)}</p>
                       <Badge variant={getStatusColor(invoice.status)} className="capitalize">
                         {invoice.status}
                       </Badge>
@@ -413,8 +378,8 @@ const GSTInvoiceManagement = () => {
               <MobileInvoiceCard
                 key={invoice.id}
                 invoice={invoice}
-                customerName={getCustomerName(invoice.customerId)}
-                vehicleInfo={getVehicleInfo(invoice.vehicleId)}
+                customerName={getCustomerName(invoice)}
+                vehicleInfo={getVehicleInfo(invoice)}
                 onEdit={handleEditInvoice}
                 onDelete={handleDeleteInvoice}
                 onPrint={handlePrintInvoice}

@@ -9,7 +9,330 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          gst_number: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gst_number?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          discount: number
+          id: string
+          invoice_id: string
+          item_id: string
+          item_type: string
+          name: string
+          quantity: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount?: number
+          id?: string
+          invoice_id: string
+          item_id: string
+          item_type: string
+          name: string
+          quantity?: number
+          total: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          discount?: number
+          id?: string
+          invoice_id?: string
+          item_id?: string
+          item_type?: string
+          name?: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          customer_id: string
+          discount: number
+          due_date: string
+          id: string
+          invoice_number: string
+          invoice_type: string
+          kilometers: number | null
+          labor_charges: number
+          notes: string | null
+          paid_at: string | null
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          discount?: number
+          due_date: string
+          id?: string
+          invoice_number: string
+          invoice_type: string
+          kilometers?: number | null
+          labor_charges?: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          discount?: number
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          invoice_type?: string
+          kilometers?: number | null
+          labor_charges?: number
+          notes?: string | null
+          paid_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          min_stock_level: number
+          name: string
+          part_number: string | null
+          price: number
+          stock_quantity: number
+          supplier: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_stock_level?: number
+          name: string
+          part_number?: string | null
+          price: number
+          stock_quantity?: number
+          supplier?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_stock_level?: number
+          name?: string
+          part_number?: string | null
+          price?: number
+          stock_quantity?: number
+          supplier?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: string
+          paid_at: string
+          refund_amount: number | null
+          refund_reason: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method: string
+          paid_at?: string
+          refund_amount?: number | null
+          refund_reason?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: string
+          paid_at?: string
+          refund_amount?: number | null
+          refund_reason?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          description: string | null
+          estimated_time: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          base_price: number
+          category: string
+          created_at?: string
+          description?: string | null
+          estimated_time: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          estimated_time?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          chassis_number: string | null
+          color: string | null
+          created_at: string
+          customer_id: string
+          engine_number: string | null
+          id: string
+          make: string
+          model: string
+          vehicle_number: string
+          vehicle_type: string
+          year: number | null
+        }
+        Insert: {
+          chassis_number?: string | null
+          color?: string | null
+          created_at?: string
+          customer_id: string
+          engine_number?: string | null
+          id?: string
+          make: string
+          model: string
+          vehicle_number: string
+          vehicle_type: string
+          year?: number | null
+        }
+        Update: {
+          chassis_number?: string | null
+          color?: string | null
+          created_at?: string
+          customer_id?: string
+          engine_number?: string | null
+          id?: string
+          make?: string
+          model?: string
+          vehicle_number?: string
+          vehicle_type?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
