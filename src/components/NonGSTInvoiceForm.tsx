@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
+import InvoicePrintPreview from "./InvoicePrintPreview";
 
 interface NonGSTInvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -64,6 +65,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
 
@@ -158,12 +160,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
     return `INV-${year}${month}${day}-${random}`;
   };
 
-  const handleSaveInvoice = (status: Invoice['status'] = 'draft') => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part");
-      return;
-    }
-
+  const createInvoiceObject = (status: Invoice['status']) => {
     const total = calculateTotal();
     const payment: Payment | undefined = paymentAmount > 0 ? {
       id: Date.now().toString(),
@@ -174,17 +171,17 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
       paidAt: new Date().toISOString()
     } : undefined;
 
-    const invoice: Invoice = {
+    return {
       id: existingInvoice?.id || Date.now().toString(),
       invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
-      invoiceType: 'non-gst',
-      customerId: selectedCustomer.id,
-      vehicleId: selectedVehicle.id,
+      invoiceType: 'non-gst' as const,
+      customerId: selectedCustomer!.id,
+      vehicleId: selectedVehicle!.id,
       items: invoiceItems,
       subtotal: calculateSubtotal(),
       discount,
       taxRate,
-      taxAmount: 0, // Non-GST has no tax
+      taxAmount: 0,
       extraCharges,
       total,
       status: payment && payment.amount >= total ? 'paid' : status,
@@ -196,15 +193,54 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
       payments: payment ? [payment] : [],
       kilometers
     };
+  };
 
+  const handleSaveDraft = () => {
+    if (!selectedCustomer || !selectedVehicle) {
+      toast.error("Please select customer and vehicle before saving draft");
+      return;
+    }
+
+    const invoice = createInvoiceObject('draft');
     onSave(invoice);
-    toast.success(`Non-GST Invoice ${status === 'draft' ? 'saved as draft' : 'created'} successfully!`);
+    toast.success("Draft saved successfully!");
+  };
+
+  const handleCreateInvoice = () => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part");
+      return;
+    }
+
+    const invoice = createInvoiceObject('pending');
+    onSave(invoice);
+    toast.success("Non-GST Invoice created successfully!");
+  };
+
+  const handlePrintPreview = () => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
+      return;
+    }
+    setShowPrintPreview(true);
   };
 
   useEffect(() => {
     const total = calculateTotal();
     setPaymentAmount(total);
   }, [invoiceItems, laborCharges, discount, taxRate, extraCharges]);
+
+  if (showPrintPreview && selectedCustomer && selectedVehicle) {
+    const previewInvoice = createInvoiceObject('draft');
+    return (
+      <InvoicePrintPreview
+        invoice={previewInvoice}
+        customer={selectedCustomer}
+        vehicle={selectedVehicle}
+        onClose={() => setShowPrintPreview(false)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -579,15 +615,15 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => handleSaveInvoice('draft')} variant="outline">
+            <Button onClick={handleSaveDraft} variant="outline">
               <Save className="h-4 w-4 mr-2" />
               Save as Draft
             </Button>
-            <Button onClick={() => handleSaveInvoice('sent')} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
               <Receipt className="h-4 w-4 mr-2" />
-              Create Non-GST Invoice
+              Create Invoice
             </Button>
-            <Button variant="outline">
+            <Button onClick={handlePrintPreview} variant="outline">
               <Printer className="h-4 w-4 mr-2" />
               Print Preview
             </Button>

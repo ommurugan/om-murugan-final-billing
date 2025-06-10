@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
+import InvoicePrintPreview from "./InvoicePrintPreview";
 
 interface InvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -62,6 +63,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
 
@@ -156,28 +158,23 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
     return `INV-${year}${month}${day}-${random}`;
   };
 
-  const handleSaveInvoice = (status: Invoice['status'] = 'draft') => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part");
-      return;
-    }
-
+  const createInvoiceObject = (status: Invoice['status']) => {
     const total = calculateTotal();
     const payment: Payment | undefined = paymentAmount > 0 ? {
       id: Date.now().toString(),
-      invoiceId: "", // Will be set after invoice creation
+      invoiceId: "",
       amount: paymentAmount,
       method: paymentMethod,
       status: 'completed',
       paidAt: new Date().toISOString()
     } : undefined;
 
-    const invoice: Invoice = {
+    return {
       id: existingInvoice?.id || Date.now().toString(),
       invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
-      invoiceType: 'non-gst', // Default to non-gst for legacy InvoiceForm
-      customerId: selectedCustomer.id,
-      vehicleId: selectedVehicle.id,
+      invoiceType: 'non-gst' as const,
+      customerId: selectedCustomer!.id,
+      vehicleId: selectedVehicle!.id,
       items: invoiceItems,
       subtotal: calculateSubtotal(),
       discount,
@@ -187,21 +184,49 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
       total,
       status: payment && payment.amount >= total ? 'paid' : status,
       createdAt: existingInvoice?.createdAt || new Date().toISOString(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       paidAt: payment && payment.amount >= total ? new Date().toISOString() : undefined,
       notes,
       laborCharges,
       payments: payment ? [payment] : []
     };
+  };
 
+  const handleSaveInvoice = (status: Invoice['status'] = 'draft') => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part");
+      return;
+    }
+
+    const invoice = createInvoiceObject(status);
     onSave(invoice);
     toast.success(`Invoice ${status === 'draft' ? 'saved as draft' : 'created'} successfully!`);
+  };
+
+  const handlePrintPreview = () => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
+      return;
+    }
+    setShowPrintPreview(true);
   };
 
   useEffect(() => {
     const total = calculateTotal();
     setPaymentAmount(total);
   }, [invoiceItems, laborCharges, discount, taxRate, extraCharges]);
+
+  if (showPrintPreview && selectedCustomer && selectedVehicle) {
+    const previewInvoice = createInvoiceObject('draft');
+    return (
+      <InvoicePrintPreview
+        invoice={previewInvoice}
+        customer={selectedCustomer}
+        vehicle={selectedVehicle}
+        onClose={() => setShowPrintPreview(false)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -550,7 +575,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         </Card>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Updated */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
@@ -562,7 +587,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
               <Receipt className="h-4 w-4 mr-2" />
               Create Invoice
             </Button>
-            <Button variant="outline">
+            <Button onClick={handlePrintPreview} variant="outline">
               <Printer className="h-4 w-4 mr-2" />
               Print Preview
             </Button>

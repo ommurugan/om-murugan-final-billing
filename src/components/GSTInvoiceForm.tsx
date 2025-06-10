@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
+import InvoicePrintPreview from "./InvoicePrintPreview";
 
 interface GSTInvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -60,11 +61,12 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState(18); // GST rate
+  const [taxRate, setTaxRate] = useState(18); // Default GST rate
   const [extraCharges, setExtraCharges] = useState<Array<{name: string; amount: number}>>([]);
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
   const [paymentAmount, setPaymentAmount] = useState(0);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
 
@@ -159,17 +161,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     return `GST-INV-${year}${month}${day}-${random}`;
   };
 
-  const handleSaveInvoice = (status: Invoice['status'] = 'draft') => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part");
-      return;
-    }
-
-    if (!selectedCustomer.gstNumber) {
-      toast.error("GST number is required for GST invoice");
-      return;
-    }
-
+  const createInvoiceObject = (status: Invoice['status']) => {
     const total = calculateTotal();
     const payment: Payment | undefined = paymentAmount > 0 ? {
       id: Date.now().toString(),
@@ -180,12 +172,12 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       paidAt: new Date().toISOString()
     } : undefined;
 
-    const invoice: Invoice = {
+    return {
       id: existingInvoice?.id || Date.now().toString(),
       invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
-      invoiceType: 'gst',
-      customerId: selectedCustomer.id,
-      vehicleId: selectedVehicle.id,
+      invoiceType: 'gst' as const,
+      customerId: selectedCustomer!.id,
+      vehicleId: selectedVehicle!.id,
       items: invoiceItems,
       subtotal: calculateSubtotal(),
       discount,
@@ -202,15 +194,59 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       payments: payment ? [payment] : [],
       kilometers
     };
+  };
 
+  const handleSaveDraft = () => {
+    if (!selectedCustomer || !selectedVehicle) {
+      toast.error("Please select customer and vehicle before saving draft");
+      return;
+    }
+
+    const invoice = createInvoiceObject('draft');
     onSave(invoice);
-    toast.success(`GST Invoice ${status === 'draft' ? 'saved as draft' : 'created'} successfully!`);
+    toast.success("GST Draft saved successfully!");
+  };
+
+  const handleCreateInvoice = () => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part");
+      return;
+    }
+
+    if (!selectedCustomer.gstNumber) {
+      toast.error("GST number is required for GST invoice");
+      return;
+    }
+
+    const invoice = createInvoiceObject('pending');
+    onSave(invoice);
+    toast.success("GST Invoice created successfully!");
+  };
+
+  const handlePrintPreview = () => {
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
+      return;
+    }
+    setShowPrintPreview(true);
   };
 
   useEffect(() => {
     const total = calculateTotal();
     setPaymentAmount(total);
   }, [invoiceItems, laborCharges, discount, taxRate, extraCharges]);
+
+  if (showPrintPreview && selectedCustomer && selectedVehicle) {
+    const previewInvoice = createInvoiceObject('draft');
+    return (
+      <InvoicePrintPreview
+        invoice={previewInvoice}
+        customer={selectedCustomer}
+        vehicle={selectedVehicle}
+        onClose={() => setShowPrintPreview(false)}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -299,7 +335,6 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
               </div>
             )}
             
-            {/* Kilometers Input */}
             {selectedVehicle && (
               <div className="mt-4">
                 <Label className="flex items-center gap-2">
@@ -433,7 +468,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         </CardContent>
       </Card>
 
-      {/* Additional Charges */}
+      {/* Additional Charges with GST Selection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -492,11 +527,15 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
               </div>
               <div>
                 <Label>GST Rate (%)</Label>
-                <Input
-                  type="number"
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                />
+                <Select value={taxRate.toString()} onValueChange={(value) => setTaxRate(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="18">18%</SelectItem>
+                    <SelectItem value="28">28%</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -589,15 +628,15 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            <Button onClick={() => handleSaveInvoice('draft')} variant="outline">
+            <Button onClick={handleSaveDraft} variant="outline">
               <Save className="h-4 w-4 mr-2" />
               Save as Draft
             </Button>
-            <Button onClick={() => handleSaveInvoice('sent')} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
               <Receipt className="h-4 w-4 mr-2" />
               Create GST Invoice
             </Button>
-            <Button variant="outline">
+            <Button onClick={handlePrintPreview} variant="outline">
               <Printer className="h-4 w-4 mr-2" />
               Print Preview
             </Button>
