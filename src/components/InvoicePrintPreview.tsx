@@ -187,7 +187,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden;
