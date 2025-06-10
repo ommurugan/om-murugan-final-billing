@@ -37,6 +37,7 @@ const InvoiceManagement = () => {
     {
       id: "1",
       invoiceNumber: "INV-20240101-001",
+      invoiceType: "non-gst",
       customerId: "1",
       vehicleId: "1",
       items: [],
@@ -56,6 +57,7 @@ const InvoiceManagement = () => {
     {
       id: "2",
       invoiceNumber: "INV-20240101-002",
+      invoiceType: "non-gst",
       customerId: "2",
       vehicleId: "2",
       items: [],
@@ -74,6 +76,7 @@ const InvoiceManagement = () => {
     {
       id: "3",
       invoiceNumber: "INV-20240101-003",
+      invoiceType: "non-gst",
       customerId: "1",
       vehicleId: "1",
       items: [],
@@ -450,3 +453,5 @@ const InvoiceManagement = () => {
 };
 
 export default InvoiceManagement;
+
+}

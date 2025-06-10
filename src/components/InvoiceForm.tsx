@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -176,6 +175,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
     const invoice: Invoice = {
       id: existingInvoice?.id || Date.now().toString(),
       invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
+      invoiceType: 'non-gst', // Default to non-gst for legacy InvoiceForm
       customerId: selectedCustomer.id,
       vehicleId: selectedVehicle.id,
       items: invoiceItems,
