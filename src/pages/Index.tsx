@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Car, Wrench, Receipt, BarChart3, Users, Settings, CheckCircle } from "lucide-react";
+import { Wrench, Receipt, BarChart3, Users, Settings, CheckCircle } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -45,8 +45,12 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg">
-                <Car className="h-8 w-8 text-white" />
+              <div className="p-2 bg-white rounded-lg">
+                <img 
+                  src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+                  alt="OM MURUGAN AUTO WORKS" 
+                  className="h-8 w-8"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">OM MURUGAN AUTO WORKS</h1>
@@ -161,7 +165,11 @@ const Index = () => {
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <Car className="h-6 w-6" />
+            <img 
+              src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+              alt="OM MURUGAN AUTO WORKS" 
+              className="h-6 w-6"
+            />
             <span className="text-lg font-semibold">OM MURUGAN AUTO WORKS</span>
           </div>
           <p className="text-gray-400">Professional Billing Software for Automotive Services</p>

@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
-  Car, 
   LayoutDashboard, 
   Receipt, 
   Users, 
@@ -42,8 +41,12 @@ const MobileSidebar = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-orange-500 rounded-lg">
-            <Car className="h-6 w-6 text-white" />
+          <div className="p-2 bg-white rounded-lg">
+            <img 
+              src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+              alt="OM MURUGAN AUTO WORKS" 
+              className="h-6 w-6"
+            />
           </div>
           <div>
             <h2 className="font-bold text-gray-900 text-sm">OM MURUGAN</h2>

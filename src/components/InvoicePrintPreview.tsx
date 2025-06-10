@@ -39,12 +39,21 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
         </div>
       </div>
 
-      {/* Invoice content */}
-      <div className="max-w-4xl mx-auto p-8 print:p-4 print:max-w-none">
+      {/* Invoice content - this will be printed */}
+      <div className="print-content max-w-4xl mx-auto p-8 print:p-4 print:max-w-none print:mx-0">
         {/* Header */}
         <div className="text-center border-b-2 border-black pb-4 mb-6">
-          <h1 className="text-3xl font-bold">OM MURUGAN AUTO WORKS</h1>
-          <p className="text-lg mt-2">Complete Auto Care Solutions</p>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+              alt="OM MURUGAN AUTO WORKS" 
+              className="h-16 w-16 mr-4"
+            />
+            <div>
+              <h1 className="text-3xl font-bold">OM MURUGAN AUTO WORKS</h1>
+              <p className="text-lg mt-2">Complete Auto Care Solutions</p>
+            </div>
+          </div>
           <p className="text-sm">Phone: +91 98765 43210 | Email: info@ommurugan.com</p>
         </div>
 
@@ -72,7 +81,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
         </div>
 
         {/* Vehicle Information */}
-        <div className="bg-gray-50 p-4 rounded mb-6">
+        <div className="bg-gray-50 print:bg-gray-100 p-4 rounded mb-6">
           <h3 className="font-bold mb-2">VEHICLE DETAILS:</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -189,17 +198,30 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
 
       <style>{`
         @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          
           body * {
             visibility: hidden;
           }
-          .print-area, .print-area * {
+          
+          .print-content, .print-content * {
             visibility: visible;
           }
-          .print-area {
+          
+          .print-content {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            padding: 20px;
+          }
+          
+          @page {
+            margin: 0.5in;
+            size: A4;
           }
         }
       `}</style>
