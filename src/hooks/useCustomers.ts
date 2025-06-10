@@ -13,7 +13,20 @@ export const useCustomers = () => {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as Customer[];
+      
+      // Transform database response to match our TypeScript interface
+      return data.map((customer: any): Customer => ({
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        gstNumber: customer.gst_number,
+        createdAt: customer.created_at,
+        totalSpent: 0, // Will be calculated from invoices when needed
+        loyaltyPoints: 0, // Will be calculated when needed
+        notes: customer.notes
+      }));
     },
   });
 };
@@ -23,9 +36,18 @@ export const useCreateCustomer = () => {
   
   return useMutation({
     mutationFn: async (customer: Omit<Customer, "id" | "createdAt" | "totalSpent" | "loyaltyPoints">) => {
+      // Transform the Customer interface back to database format
+      const dbCustomer = {
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        gst_number: customer.gstNumber
+      };
+      
       const { data, error } = await supabase
         .from("customers")
-        .insert([customer])
+        .insert([dbCustomer])
         .select()
         .single();
       

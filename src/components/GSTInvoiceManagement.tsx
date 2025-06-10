@@ -71,7 +71,7 @@ const GSTInvoiceManagement = () => {
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = 
-      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getCustomerName(invoice).toLowerCase().includes(searchTerm.toLowerCase()) ||
       getCustomerGST(invoice).toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -79,7 +79,7 @@ const GSTInvoiceManagement = () => {
     
     let matchesDate = true;
     if (dateFilter !== "all") {
-      const invoiceDate = new Date(invoice.created_at);
+      const invoiceDate = new Date(invoice.createdAt);
       const now = new Date();
       switch (dateFilter) {
         case "today":
@@ -298,7 +298,7 @@ const GSTInvoiceManagement = () => {
                       {getStatusIcon(invoice.status)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{invoice.invoice_number}</p>
+                      <p className="font-medium text-gray-900">{invoice.invoiceNumber}</p>
                       <p className="text-sm text-gray-600">
                         {getCustomerName(invoice)} • {getVehicleInfo(invoice)}
                       </p>
@@ -306,7 +306,7 @@ const GSTInvoiceManagement = () => {
                         GST: {getCustomerGST(invoice)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Created: {new Date(invoice.created_at).toLocaleDateString()}
+                        Created: {new Date(invoice.createdAt).toLocaleDateString()}
                         {invoice.kilometers && (
                           <span className="ml-2">• KM: {invoice.kilometers.toLocaleString()}</span>
                         )}
@@ -316,7 +316,7 @@ const GSTInvoiceManagement = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">₹{invoice.total.toFixed(2)}</p>
-                      <p className="text-xs text-gray-500">Tax: ₹{invoice.tax_amount.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">Tax: ₹{invoice.taxAmount.toFixed(2)}</p>
                       <Badge variant={getStatusColor(invoice.status)} className="capitalize">
                         {invoice.status}
                       </Badge>

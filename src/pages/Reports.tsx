@@ -40,7 +40,7 @@ const Reports = () => {
     const monthName = date.toLocaleDateString('en', { month: 'short' });
     
     const monthInvoices = paidInvoices.filter(invoice => {
-      const invoiceDate = new Date(invoice.created_at);
+      const invoiceDate = new Date(invoice.createdAt);
       return invoiceDate.getMonth() === date.getMonth() && 
              invoiceDate.getFullYear() === date.getFullYear();
     });
@@ -68,7 +68,7 @@ const Reports = () => {
     const dayName = date.toLocaleDateString('en', { weekday: 'short' });
     
     const dayInvoices = paidInvoices.filter(invoice => {
-      const invoiceDate = new Date(invoice.created_at);
+      const invoiceDate = new Date(invoice.createdAt);
       return invoiceDate.toDateString() === date.toDateString();
     });
     

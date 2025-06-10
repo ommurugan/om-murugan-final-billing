@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   // Calculate real stats from database
   const todaysInvoices = invoices.filter(invoice => 
-    new Date(invoice.created_at).toDateString() === new Date().toDateString()
+    new Date(invoice.createdAt).toDateString() === new Date().toDateString()
   );
   
   const todaysRevenue = todaysInvoices
@@ -78,8 +78,8 @@ const Dashboard = () => {
   // Get recent activity from actual invoices
   const recentActivity = invoices.slice(0, 4).map(invoice => ({
     id: invoice.id,
-    customer: invoice.customers?.name || "Unknown Customer",
-    vehicle: `${invoice.vehicles?.make || ""} ${invoice.vehicles?.model || ""}`.trim() || "Unknown Vehicle",
+    customer: (invoice as any).customers?.name || "Unknown Customer",
+    vehicle: `${(invoice as any).vehicles?.make || ""} ${(invoice as any).vehicles?.model || ""}`.trim() || "Unknown Vehicle",
     service: "Service", // This would come from invoice_items in a real implementation
     amount: `₹${invoice.total.toLocaleString()}`,
     status: invoice.status === 'paid' ? 'Completed' : 
