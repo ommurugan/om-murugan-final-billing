@@ -1,10 +1,10 @@
-
 export interface Customer {
   id: string;
   name: string;
   phone: string;
   email?: string;
   address?: string;
+  gstNumber?: string;
   createdAt: string;
   lastServiceDate?: string;
   totalSpent: number;
@@ -74,6 +74,7 @@ export interface Payment {
 export interface Invoice {
   id: string;
   invoiceNumber: string;
+  invoiceType: 'gst' | 'non-gst';
   customerId: string;
   vehicleId: string;
   items: InvoiceItem[];
@@ -93,6 +94,7 @@ export interface Invoice {
   notes?: string;
   laborCharges: number;
   payments: Payment[];
+  kilometers?: number;
 }
 
 export interface ServiceHistory {
