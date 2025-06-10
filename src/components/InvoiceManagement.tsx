@@ -453,5 +453,3 @@ const InvoiceManagement = () => {
 };
 
 export default InvoiceManagement;
-
-}
