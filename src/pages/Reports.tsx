@@ -15,19 +15,11 @@ import BottomNavigation from "@/components/BottomNavigation";
 import VehicleSearch from "@/components/VehicleSearch";
 
 const Reports = () => {
-  // Sample data for demonstration
-  const monthlyRevenue = [
-    { month: "Jan", revenue: 45000, invoices: 45 },
-    { month: "Feb", revenue: 52000, invoices: 52 },
-    { month: "Mar", revenue: 48000, invoices: 48 },
-    { month: "Apr", revenue: 61000, invoices: 61 },
-    { month: "May", revenue: 55000, invoices: 55 },
-    { month: "Jun", revenue: 67000, invoices: 67 },
-  ];
-
-  const totalRevenue = monthlyRevenue.reduce((sum, item) => sum + item.revenue, 0);
-  const totalInvoices = monthlyRevenue.reduce((sum, item) => sum + item.invoices, 0);
-  const avgInvoiceValue = totalRevenue / totalInvoices;
+  // Clear dummy data - start with empty arrays
+  const monthlyRevenue = [];
+  const totalRevenue = 0;
+  const totalInvoices = 0;
+  const avgInvoiceValue = 0;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -81,7 +73,7 @@ const Reports = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Avg Invoice Value</p>
-                        <p className="text-2xl font-bold">₹{Math.round(avgInvoiceValue).toLocaleString()}</p>
+                        <p className="text-2xl font-bold">₹{avgInvoiceValue.toLocaleString()}</p>
                       </div>
                       <TrendingUp className="h-8 w-8 text-purple-600" />
                     </div>
@@ -93,7 +85,7 @@ const Reports = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Active Customers</p>
-                        <p className="text-2xl font-bold">128</p>
+                        <p className="text-2xl font-bold">0</p>
                       </div>
                       <Users className="h-8 w-8 text-orange-600" />
                     </div>
@@ -101,7 +93,7 @@ const Reports = () => {
                 </Card>
               </div>
 
-              {/* Monthly Revenue Chart */}
+              {/* Monthly Revenue Chart - Empty State */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -111,60 +103,21 @@ const Reports = () => {
                   <CardDescription>Revenue and invoice count over the last 6 months</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {monthlyRevenue.map((item, index) => (
-                      <div key={item.month} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Calendar className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold">{item.month} 2024</p>
-                            <p className="text-sm text-gray-600">{item.invoices} invoices</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-lg">₹{item.revenue.toLocaleString()}</p>
-                          <p className="text-sm text-gray-600">
-                            ₹{Math.round(item.revenue / item.invoices).toLocaleString()} avg
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No revenue data available. Start creating invoices to see trends.</p>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Service Categories */}
+              {/* Service Categories - Empty State */}
               <Card>
                 <CardHeader>
                   <CardTitle>Popular Services</CardTitle>
                   <CardDescription>Most requested services this month</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { name: "Oil Change", count: 45, percentage: 35 },
-                      { name: "Brake Service", count: 32, percentage: 25 },
-                      { name: "Engine Tune-up", count: 28, percentage: 22 },
-                      { name: "Tire Replacement", count: 23, percentage: 18 }
-                    ].map((service) => (
-                      <div key={service.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Car className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium">{service.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-24 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
-                              style={{ width: `${service.percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium w-8">{service.count}</span>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No service data available. Add services and create invoices to see popular services.</p>
                   </div>
                 </CardContent>
               </Card>

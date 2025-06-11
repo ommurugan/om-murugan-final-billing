@@ -22,6 +22,8 @@ import {
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
 import InvoicePrintPreview from "./InvoicePrintPreview";
+import CustomerQuickAdd from "./CustomerQuickAdd";
+import { useCustomers } from "@/hooks/useCustomers";
 
 interface InvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -30,28 +32,13 @@ interface InvoiceFormProps {
 }
 
 const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) => {
-  const [customers] = useState<Customer[]>([
-    { id: "1", name: "Rajesh Kumar", phone: "9876543210", email: "rajesh@email.com", createdAt: "2024-01-01", totalSpent: 15000, loyaltyPoints: 150 },
-    { id: "2", name: "Priya Sharma", phone: "9876543211", email: "priya@email.com", createdAt: "2024-01-01", totalSpent: 8000, loyaltyPoints: 80 }
-  ]);
+  const { data: customersData = [] } = useCustomers();
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
-  const [vehicles] = useState<Vehicle[]>([
-    { id: "1", customerId: "1", make: "Honda", model: "City", vehicleNumber: "TN 01 AB 1234", vehicleType: "car", createdAt: "2024-01-01" },
-    { id: "2", customerId: "2", make: "Yamaha", model: "R15", vehicleNumber: "TN 02 CD 5678", vehicleType: "bike", createdAt: "2024-01-01" }
-  ]);
-
-  const [services] = useState<Service[]>([
-    { id: "1", name: "Full Service", category: "Maintenance", basePrice: 2500, estimatedTime: 120, isActive: true },
-    { id: "2", name: "Oil Change", category: "Maintenance", basePrice: 800, estimatedTime: 30, isActive: true },
-    { id: "3", name: "Brake Service", category: "Repair", basePrice: 1200, estimatedTime: 60, isActive: true },
-    { id: "4", name: "Engine Repair", category: "Repair", basePrice: 3500, estimatedTime: 240, isActive: true }
-  ]);
-
-  const [parts] = useState<Part[]>([
-    { id: "1", name: "Engine Oil", category: "Fluid", price: 450, stockQuantity: 50, minStockLevel: 10, isActive: true },
-    { id: "2", name: "Brake Pads", category: "Brake", price: 800, stockQuantity: 25, minStockLevel: 5, isActive: true },
-    { id: "3", name: "Air Filter", category: "Filter", price: 350, stockQuantity: 30, minStockLevel: 8, isActive: true }
-  ]);
+  // Clear dummy data and use empty arrays
+  const [vehicles] = useState<Vehicle[]>([]);
+  const [services] = useState<Service[]>([]);
+  const [parts] = useState<Part[]>([]);
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -65,7 +52,17 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
+  // Update customers when data changes
+  useEffect(() => {
+    setCustomers(customersData);
+  }, [customersData]);
+
   const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
+
+  const handleCustomerAdded = (newCustomer: Customer) => {
+    setCustomers(prev => [...prev, newCustomer]);
+    setSelectedCustomer(newCustomer);
+  };
 
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
@@ -241,7 +238,10 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Select Customer</Label>
+              <div className="flex justify-between items-center mb-2">
+                <Label>Select Customer</Label>
+                <CustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
+              </div>
               <Select onValueChange={(value) => {
                 const customer = customers.find(c => c.id === value);
                 setSelectedCustomer(customer || null);
@@ -293,11 +293,17 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
                   <SelectValue placeholder="Choose a vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customerVehicles.map(vehicle => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                  {customerVehicles.length === 0 ? (
+                    <SelectItem value="no-vehicles" disabled>
+                      No vehicles found for this customer
                     </SelectItem>
-                  ))}
+                  ) : (
+                    customerVehicles.map(vehicle => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -312,7 +318,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         </Card>
       </div>
 
-      {/* Services & Parts */}
+      {/* Services & Parts - Empty state for now */}
       <Card>
         <CardHeader>
           <CardTitle>Services & Parts</CardTitle>
@@ -326,49 +332,14 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
             </TabsList>
 
             <TabsContent value="services" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.map(service => (
-                  <div key={service.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{service.name}</h4>
-                        <p className="text-sm text-gray-600">{service.category}</p>
-                        <p className="text-lg font-semibold text-blue-600">₹{service.basePrice}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => addService(service.id)}
-                        disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-gray-500">
+                <p>No services available. Please add services first.</p>
               </div>
             </TabsContent>
 
             <TabsContent value="parts" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {parts.map(part => (
-                  <div key={part.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{part.name}</h4>
-                        <p className="text-sm text-gray-600">{part.category}</p>
-                        <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
-                        <p className="text-xs text-gray-500">Stock: {part.stockQuantity}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => addPart(part.id)}
-                        disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-gray-500">
+                <p>No parts available. Please add parts first.</p>
               </div>
             </TabsContent>
 
@@ -575,7 +546,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         </Card>
       </div>
 
-      {/* Action Buttons - Updated */}
+      {/* Action Buttons */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
