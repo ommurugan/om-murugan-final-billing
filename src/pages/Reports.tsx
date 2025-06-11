@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,17 +15,23 @@ import {
   Car,
   Receipt,
   Calendar,
-  BarChart3
+  BarChart3,
+  Search
 } from "lucide-react";
 import MobileSidebar from "@/components/MobileSidebar";
+import BottomNavigation from "@/components/BottomNavigation";
 import { CustomBarChart, CustomLineChart, CustomPieChart } from "@/components/Chart";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useVehicleSearch } from "@/hooks/useVehicleSearch";
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState("30");
+  const [searchVehicle, setSearchVehicle] = useState("");
+  const [activeTab, setActiveTab] = useState("overview");
   const { data: invoices = [] } = useInvoices();
   const { data: customers = [] } = useCustomers();
+  const { data: vehicleSearchResult } = useVehicleSearch(searchVehicle);
 
   // Calculate metrics from real data
   const paidInvoices = invoices.filter(inv => inv.status === 'paid');
@@ -78,13 +85,6 @@ const Reports = () => {
       customers: dayInvoices.length
     };
   });
-
-  const topServices = [
-    { name: 'Full Service', count: Math.floor(totalInvoices * 0.4), revenue: Math.floor(totalRevenue * 0.45), growth: '+12%' },
-    { name: 'Oil Change', count: Math.floor(totalInvoices * 0.3), revenue: Math.floor(totalRevenue * 0.25), growth: '+8%' },
-    { name: 'Brake Service', count: Math.floor(totalInvoices * 0.2), revenue: Math.floor(totalRevenue * 0.2), growth: '+15%' },
-    { name: 'Engine Repair', count: Math.floor(totalInvoices * 0.1), revenue: Math.floor(totalRevenue * 0.1), growth: '+5%' }
-  ];
 
   const keyMetrics = [
     {
@@ -168,6 +168,7 @@ const Reports = () => {
             </div>
           </div>
         </div>
+        <BottomNavigation />
       </div>
     );
   }
@@ -179,14 +180,23 @@ const Reports = () => {
         
         <div className="flex-1 flex flex-col min-h-screen">
           <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">Reports & Analytics</h1>
                 <p className="text-gray-600">Track your business performance and insights</p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search vehicle number..."
+                    value={searchVehicle}
+                    onChange={(e) => setSearchVehicle(e.target.value)}
+                    className="pl-10 w-full md:w-64"
+                  />
+                </div>
                 <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full md:w-48">
                     <Calendar className="h-4 w-4 mr-2" />
                     <SelectValue />
                   </SelectTrigger>
@@ -206,6 +216,61 @@ const Reports = () => {
           </header>
 
           <div className="flex-1 p-4 md:p-6 pb-20 md:pb-6 space-y-6">
+            {/* Vehicle Search Results */}
+            {searchVehicle && vehicleSearchResult && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vehicle Service History</CardTitle>
+                  <CardDescription>
+                    Service history for {vehicleSearchResult.vehicle.vehicle_number} - {vehicleSearchResult.vehicle.make} {vehicleSearchResult.vehicle.model}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {vehicleSearchResult.serviceHistory.length > 0 ? (
+                    <div className="space-y-4">
+                      {vehicleSearchResult.serviceHistory.map((invoice: any) => (
+                        <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Receipt className="h-5 w-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Invoice #{invoice.invoice_number}</p>
+                              <p className="text-sm text-gray-600">
+                                {new Date(invoice.created_at).toLocaleDateString()} • {invoice.invoice_type}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900">₹{invoice.total.toLocaleString()}</p>
+                            <Badge variant={invoice.status === 'paid' ? 'default' : 'secondary'}>
+                              {invoice.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No service history found for this vehicle.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {searchVehicle && !vehicleSearchResult && (
+              <Card>
+                <CardContent className="pt-8 pb-8">
+                  <div className="text-center">
+                    <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No vehicle found with number "{searchVehicle}"</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {keyMetrics.map((metric, index) => (
@@ -224,7 +289,7 @@ const Reports = () => {
                           <span className={`text-sm ${metric.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                             {metric.change}
                           </span>
-                          <span className="text-sm text-gray-500">vs last period</span>
+                          <span className="text-sm text-gray-500">current total</span>
                         </div>
                       </div>
                       <div className={`p-3 rounded-full ${metric.bgColor}`}>
@@ -236,11 +301,10 @@ const Reports = () => {
               ))}
             </div>
 
-            <Tabs defaultValue="overview" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="revenue">Revenue</TabsTrigger>
-                <TabsTrigger value="services">Services</TabsTrigger>
                 <TabsTrigger value="customers">Customers</TabsTrigger>
               </TabsList>
 
@@ -358,42 +422,6 @@ const Reports = () => {
                 </div>
               </TabsContent>
 
-              {/* Services Tab */}
-              <TabsContent value="services" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Service Performance</CardTitle>
-                    <CardDescription>Estimated breakdown of service performance</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {topServices.map((service, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{service.name}</p>
-                              <p className="text-sm text-gray-600">{service.count} services estimated</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-gray-900">₹{service.revenue.toLocaleString()}</p>
-                            <Badge 
-                              variant={service.growth.startsWith('+') ? 'default' : 'destructive'}
-                              className="text-xs"
-                            >
-                              {service.growth}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
               {/* Customers Tab */}
               <TabsContent value="customers" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -432,6 +460,7 @@ const Reports = () => {
           </div>
         </div>
       </div>
+      <BottomNavigation />
     </div>
   );
 };

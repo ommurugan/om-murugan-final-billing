@@ -31,7 +31,7 @@ const BottomNavigation = () => {
             key={item.path}
             onClick={() => navigate(item.path)}
             className={cn(
-              "flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 text-xs",
+              "flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 text-xs font-medium",
               isActive(item.path)
                 ? "text-blue-600"
                 : "text-gray-600"
