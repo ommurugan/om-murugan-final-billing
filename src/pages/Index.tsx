@@ -3,176 +3,246 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Wrench, Receipt, BarChart3, Users, Settings, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { 
+  Wrench, 
+  Receipt, 
+  Users, 
+  BarChart3, 
+  CheckCircle, 
+  Star,
+  ArrowRight,
+  Shield,
+  Clock,
+  Smartphone
+} from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  if (user && !loading) {
+    navigate('/dashboard');
+    return null;
+  }
 
   const features = [
     {
       icon: Receipt,
-      title: "Automated Invoice Generation",
-      description: "Instantly creates detailed invoices with customer and vehicle information"
-    },
-    {
-      icon: Wrench,
-      title: "Service & Parts Catalog",
-      description: "Maintains a comprehensive list of services, repairs, and spare parts"
+      title: "Smart Invoicing",
+      description: "Generate professional GST and non-GST invoices with automated calculations",
+      color: "text-blue-600"
     },
     {
       icon: Users,
-      title: "Customer Database",
-      description: "Stores customer details for future reference and repeat service benefits"
+      title: "Customer Management",
+      description: "Track customer history, loyalty points, and service records effortlessly",
+      color: "text-green-600"
     },
     {
       icon: BarChart3,
-      title: "Reporting & Analytics",
-      description: "Provides insights into revenue, expenses, and business performance"
+      title: "Business Analytics",
+      description: "Real-time insights and reports to grow your automotive business",
+      color: "text-purple-600"
+    },
+    {
+      icon: Shield,
+      title: "Secure & Reliable",
+      description: "Bank-grade security with automatic backups and data protection",
+      color: "text-orange-600"
     }
   ];
 
   const benefits = [
-    "Efficiency & Time-Saving",
-    "Improved Accuracy",
-    "Enhanced Customer Experience",
-    "Better Financial Management"
+    "Professional invoice generation",
+    "Customer relationship management",
+    "Inventory tracking",
+    "Financial reporting",
+    "Mobile-friendly interface",
+    "Cloud-based storage"
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-white rounded-lg">
-                <img 
-                  src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
-                  alt="OM MURUGAN AUTO WORKS" 
-                  className="h-8 w-8"
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">OM MURUGAN AUTO WORKS</h1>
-                <p className="text-sm text-gray-600">Billing Management System</p>
-              </div>
-            </div>
-            <Button 
-              onClick={() => navigate('/dashboard')} 
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-            >
-              Access Dashboard
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Wrench className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">AutoBill Pro</h1>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => navigate('/auth')}>
+              Sign In
+            </Button>
+            <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
+              Get Started
             </Button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Badge className="mb-6 bg-gradient-to-r from-blue-100 to-orange-100 text-blue-800 border-blue-200">
-            Professional Automotive Billing Solution
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-4xl mx-auto">
+          <Badge variant="secondary" className="mb-4">
+            ✨ Professional Automotive Billing Solution
           </Badge>
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Streamline Your Auto Service
-            <span className="bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent"> Business</span>
-          </h2>
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            Streamline Your
+            <span className="text-blue-600"> Auto Service</span>
+            <br />Business
+          </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Complete billing software for car and bike mechanics. Automate invoicing, track services, 
-            manage customers, and grow your business with powerful analytics.
+            Complete billing and customer management solution designed specifically for automotive service centers, garages, and repair shops.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              onClick={() => navigate('/dashboard')}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              onClick={() => navigate('/auth')}
+              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
             >
-              Start Billing Now
+              Start Free Trial
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => navigate('/services')}
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/auth')}
+              className="text-lg px-8 py-3"
             >
-              View Features
+              View Demo
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Key Features</h3>
-            <p className="text-lg text-gray-600">Everything you need to manage your auto service business efficiently</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-100 to-orange-100 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm">{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Features Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Everything You Need to Manage Your Business
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Powerful features designed to help automotive businesses save time, increase efficiency, and grow revenue.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {features.map((feature, index) => (
+            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className={`w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center mx-auto mb-4`}>
+                  <feature.icon className={`h-6 w-6 ${feature.color}`} />
+                </div>
+                <CardTitle className="text-xl">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-gray-600">
+                  {feature.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 bg-gradient-to-br from-blue-50 to-orange-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Why Choose Our Solution?</h3>
-            <p className="text-lg text-gray-600">Transform your auto service business with these key benefits</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center space-x-3 bg-white p-6 rounded-lg shadow-sm">
-                <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
-                <span className="text-lg font-medium text-gray-900">{benefit}</span>
+      <section className="bg-gray-50 py-20">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Why Choose AutoBill Pro?
+              </h2>
+              <p className="text-lg text-gray-600 mb-8">
+                Built specifically for automotive professionals who want to focus on their craft while we handle the business operations.
+              </p>
+              
+              <div className="grid gap-4">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <span className="text-gray-700">{benefit}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            
+            <div className="grid gap-6">
+              <Card className="p-6">
+                <div className="flex items-start gap-4">
+                  <Clock className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Save Time</h3>
+                    <p className="text-gray-600">Automate invoicing and reduce paperwork by up to 80%</p>
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-6">
+                <div className="flex items-start gap-4">
+                  <Smartphone className="h-8 w-8 text-green-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Mobile Ready</h3>
+                    <p className="text-gray-600">Access your business data anywhere, anytime on any device</p>
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-6">
+                <div className="flex items-start gap-4">
+                  <Star className="h-8 w-8 text-purple-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Customer Satisfaction</h3>
+                    <p className="text-gray-600">Professional invoices and faster service delivery</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-orange-500">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h3 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h3>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of auto service centers using our billing software
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Ready to Transform Your Business?
+          </h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Join hundreds of automotive professionals who trust AutoBill Pro to manage their billing and customer relationships.
           </p>
           <Button 
             size="lg" 
-            variant="secondary"
-            onClick={() => navigate('/dashboard')}
-            className="bg-white text-blue-600 hover:bg-gray-100"
+            onClick={() => navigate('/auth')}
+            className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
           >
-            Access Your Dashboard
+            Get Started Today
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <img 
-              src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
-              alt="OM MURUGAN AUTO WORKS" 
-              className="h-6 w-6"
-            />
-            <span className="text-lg font-semibold">OM MURUGAN AUTO WORKS</span>
+      <footer className="bg-gray-900 text-gray-300 py-12">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Wrench className="h-6 w-6 text-blue-600" />
+            <span className="text-xl font-bold text-white">AutoBill Pro</span>
           </div>
-          <p className="text-gray-400">Professional Billing Software for Automotive Services</p>
+          <p className="text-gray-400">
+            Professional automotive billing management solution
+          </p>
         </div>
       </footer>
     </div>

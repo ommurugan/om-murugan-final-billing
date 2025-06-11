@@ -4,7 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invoices from "./pages/Invoices";
 import Customers from "./pages/Customers";
@@ -16,23 +19,61 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <div className="min-h-screen w-full">
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </div>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <div className="min-h-screen w-full">
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/invoices"
+                element={
+                  <ProtectedRoute>
+                    <Invoices />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customers"
+                element={
+                  <ProtectedRoute>
+                    <Customers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/services"
+                element={
+                  <ProtectedRoute>
+                    <Services />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute>
+                    <Reports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

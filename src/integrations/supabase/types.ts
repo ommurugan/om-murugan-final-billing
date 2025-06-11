@@ -19,6 +19,7 @@ export type Database = {
           name: string
           phone: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -29,6 +30,7 @@ export type Database = {
           name: string
           phone: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -39,8 +41,17 @@ export type Database = {
           name?: string
           phone?: string
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -107,6 +118,7 @@ export type Database = {
           tax_amount: number
           tax_rate: number
           total: number
+          user_id: string | null
           vehicle_id: string
         }
         Insert: {
@@ -126,6 +138,7 @@ export type Database = {
           tax_amount?: number
           tax_rate?: number
           total?: number
+          user_id?: string | null
           vehicle_id: string
         }
         Update: {
@@ -145,6 +158,7 @@ export type Database = {
           tax_amount?: number
           tax_rate?: number
           total?: number
+          user_id?: string | null
           vehicle_id?: string
         }
         Relationships: [
@@ -153,6 +167,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -176,6 +197,7 @@ export type Database = {
           price: number
           stock_quantity: number
           supplier: string | null
+          user_id: string | null
         }
         Insert: {
           category: string
@@ -188,6 +210,7 @@ export type Database = {
           price: number
           stock_quantity?: number
           supplier?: string | null
+          user_id?: string | null
         }
         Update: {
           category?: string
@@ -200,8 +223,17 @@ export type Database = {
           price?: number
           stock_quantity?: number
           supplier?: string | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -250,6 +282,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           base_price: number
@@ -260,6 +319,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          user_id: string | null
         }
         Insert: {
           base_price: number
@@ -270,6 +330,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          user_id?: string | null
         }
         Update: {
           base_price?: number
@@ -280,8 +341,17 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
@@ -293,6 +363,7 @@ export type Database = {
           id: string
           make: string
           model: string
+          user_id: string | null
           vehicle_number: string
           vehicle_type: string
           year: number | null
@@ -306,6 +377,7 @@ export type Database = {
           id?: string
           make: string
           model: string
+          user_id?: string | null
           vehicle_number: string
           vehicle_type: string
           year?: number | null
@@ -319,6 +391,7 @@ export type Database = {
           id?: string
           make?: string
           model?: string
+          user_id?: string | null
           vehicle_number?: string
           vehicle_type?: string
           year?: number | null
@@ -329,6 +402,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

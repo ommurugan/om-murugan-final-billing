@@ -16,11 +16,14 @@ import {
   Wrench
 } from "lucide-react";
 import MobileSidebar from "@/components/MobileSidebar";
+import UserProfileButton from "@/components/UserProfileButton";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentDate] = useState(new Date().toLocaleDateString('en-IN', {
     weekday: 'long',
     year: 'numeric',
@@ -104,17 +107,20 @@ const Dashboard = () => {
           <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                  Welcome back{user?.user_metadata?.full_name && `, ${user.user_metadata.full_name}`}!
+                </h1>
                 <p className="text-gray-600 flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   {currentDate}
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex items-center gap-3">
                 <Button onClick={() => navigate('/invoices')} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
                   New Invoice
                 </Button>
+                <UserProfileButton />
               </div>
             </div>
           </header>

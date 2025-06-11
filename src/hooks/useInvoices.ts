@@ -1,11 +1,17 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice } from "@/types/billing";
+import { useAuth } from "@/hooks/useAuth";
 
 export const useInvoices = (type?: 'gst' | 'non-gst') => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["invoices", type],
     queryFn: async () => {
+      if (!user) throw new Error("User not authenticated");
+      
       let query = supabase
         .from("invoices")
         .select(`
@@ -47,14 +53,18 @@ export const useInvoices = (type?: 'gst' | 'non-gst') => {
         kilometers: invoice.kilometers
       }));
     },
+    enabled: !!user,
   });
 };
 
 export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (invoice: Omit<Invoice, "id" | "createdAt">) => {
+      if (!user) throw new Error("User not authenticated");
+      
       // Transform the Invoice interface back to database format
       const dbInvoice = {
         invoice_number: invoice.invoiceNumber,
@@ -71,7 +81,8 @@ export const useCreateInvoice = () => {
         paid_at: invoice.paidAt,
         notes: invoice.notes,
         labor_charges: invoice.laborCharges,
-        kilometers: invoice.kilometers
+        kilometers: invoice.kilometers,
+        user_id: user.id
       };
       
       const { data, error } = await supabase
