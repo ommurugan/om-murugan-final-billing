@@ -14,10 +14,12 @@ import {
   Menu,
   X
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = [
@@ -29,6 +31,11 @@ const Sidebar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className={cn(
@@ -44,13 +51,22 @@ const Sidebar = () => {
                 <img 
                   src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
                   alt="OM MURUGAN AUTO WORKS" 
-                  className="h-10 w-10"
+                  className="h-16 w-16"
                 />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900 text-base">OM MURUGAN</h2>
-                <p className="text-sm text-gray-600">AUTO WORKS</p>
+                <h2 className="font-bold text-gray-900 text-lg">OM MURUGAN</h2>
+                <p className="text-base text-gray-600">AUTO WORKS</p>
               </div>
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="flex justify-center w-full">
+              <img 
+                src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+                alt="OM MURUGAN AUTO WORKS" 
+                className="h-8 w-8"
+              />
             </div>
           )}
           <Button
@@ -103,7 +119,7 @@ const Sidebar = () => {
             "w-full justify-start gap-3 h-10 text-red-600 hover:bg-red-50",
             isCollapsed && "justify-center px-0"
           )}
-          onClick={() => navigate('/')}
+          onClick={handleLogout}
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
           {!isCollapsed && <span>Logout</span>}

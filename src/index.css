@@ -94,14 +94,41 @@
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-weight: 600;
+    line-height: 1.3;
   }
+
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+  h5 { font-size: 1rem; }
+  h6 { font-size: 0.875rem; }
 
   p, span, div, button, input, textarea, label {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /* Ensure consistent button fonts */
+  button {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  /* Ensure consistent input fonts */
+  input, textarea, select {
+    font-size: 0.875rem;
+  }
+
+  /* Ensure consistent label fonts */
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
   }
 }
