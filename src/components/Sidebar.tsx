@@ -42,7 +42,7 @@ const Sidebar = () => {
       "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
       isCollapsed ? "w-16" : "w-64"
     )}>
-      {/* Header */}
+      {/* Header with consistent styling */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
@@ -56,7 +56,7 @@ const Sidebar = () => {
               </div>
               <div>
                 <h2 className="font-bold text-gray-900 text-lg">OM MURUGAN</h2>
-                <p className="text-base text-gray-600">AUTO WORKS</p>
+                <p className="text-sm text-gray-600">AUTO WORKS</p>
               </div>
             </div>
           )}
@@ -80,14 +80,14 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation with consistent font sizing */}
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => (
           <Button
             key={item.path}
             variant={isActive(item.path) ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-10",
+              "w-full justify-start gap-3 h-10 text-sm font-medium",
               isActive(item.path) 
                 ? "bg-blue-600 text-white hover:bg-blue-700" 
                 : "text-gray-700 hover:bg-gray-100",
@@ -101,12 +101,12 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Footer */}
+      {/* Footer with consistent positioning and styling */}
       <div className="p-4 border-t border-gray-200 space-y-2">
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 h-10 text-gray-700 hover:bg-gray-100",
+            "w-full justify-start gap-3 h-10 text-sm font-medium text-gray-700 hover:bg-gray-100",
             isCollapsed && "justify-center px-0"
           )}
         >
@@ -116,7 +116,7 @@ const Sidebar = () => {
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 h-10 text-red-600 hover:bg-red-50",
+            "w-full justify-start gap-3 h-10 text-sm font-medium text-red-600 hover:bg-red-50",
             isCollapsed && "justify-center px-0"
           )}
           onClick={handleLogout}

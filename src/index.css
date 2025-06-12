@@ -94,11 +94,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-    font-size: 16px !important;
-    line-height: 1.6 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
   }
 
-  /* Force consistent font family and sizes across ALL elements */
+  /* Consistent font family across ALL elements */
   h1, h2, h3, h4, h5, h6,
   p, span, div, button, input, textarea, label, select,
   .text-xl, .text-2xl, .text-lg, .text-sm, .text-xs,
@@ -109,34 +109,34 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   }
 
-  /* Consistent heading sizes across all pages */
+  /* Standardized heading sizes */
   h1 { 
-    font-size: 2rem !important; 
-    font-weight: 700 !important; 
-    line-height: 1.2 !important; 
-  }
-  h2 { 
     font-size: 1.5rem !important; 
-    font-weight: 600 !important; 
+    font-weight: 700 !important; 
     line-height: 1.3 !important; 
   }
-  h3 { 
+  h2 { 
     font-size: 1.25rem !important; 
     font-weight: 600 !important; 
     line-height: 1.3 !important; 
   }
-  h4 { 
+  h3 { 
     font-size: 1.125rem !important; 
-    font-weight: 500 !important; 
-    line-height: 1.4 !important; 
+    font-weight: 600 !important; 
+    line-height: 1.3 !important; 
   }
-  h5 { 
+  h4 { 
     font-size: 1rem !important; 
     font-weight: 500 !important; 
     line-height: 1.4 !important; 
   }
-  h6 { 
+  h5 { 
     font-size: 0.875rem !important; 
+    font-weight: 500 !important; 
+    line-height: 1.4 !important; 
+  }
+  h6 { 
+    font-size: 0.75rem !important; 
     font-weight: 500 !important; 
     line-height: 1.4 !important; 
   }
@@ -153,67 +153,69 @@
   }
   
   .text-base {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+  
+  .text-lg {
     font-size: 1rem !important;
     line-height: 1.5rem !important;
   }
   
-  .text-lg {
+  .text-xl {
     font-size: 1.125rem !important;
     line-height: 1.75rem !important;
   }
   
-  .text-xl {
+  .text-2xl {
     font-size: 1.25rem !important;
     line-height: 1.75rem !important;
   }
-  
-  .text-2xl {
-    font-size: 1.5rem !important;
-    line-height: 2rem !important;
-  }
 
-  /* Ensure consistent button fonts */
+  /* Consistent button styling */
   button, .btn {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   }
 
-  /* Ensure consistent input fonts */
+  /* Consistent input styling */
   input, textarea, select {
     font-size: 0.875rem !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   }
 
-  /* Ensure consistent label fonts */
+  /* Consistent label styling */
   label {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
   }
 
-  /* Override any component-specific font styles */
-  [class*="font-"], [class*="text-"] {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  }
-
-  /* Improved logo visibility */
-  .logo-container {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 8px;
-    padding: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .logo-text {
-    color: #1e40af !important;
+  /* Page headers consistency */
+  header h1 {
+    font-size: 1.25rem !important;
     font-weight: 700 !important;
-    font-size: 1.5rem !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  /* Ensure consistent navigation and sidebar fonts */
+  @media (min-width: 768px) {
+    header h1 {
+      font-size: 1.5rem !important;
+    }
+  }
+
+  /* Card styling consistency */
+  .card-title {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  .card-description {
+    font-size: 0.875rem !important;
+    color: #6b7280 !important;
+  }
+
+  /* Navigation and sidebar consistency */
   nav, .sidebar, .navigation {
     font-size: 0.875rem !important;
   }
@@ -223,40 +225,21 @@
     font-weight: 500 !important;
   }
 
-  /* Consistent page content fonts */
-  .page-content, main {
-    font-size: 1rem !important;
-  }
-
-  /* Card titles and descriptions consistency */
-  .card-title {
+  /* Dialog and modal consistency */
+  .dialog-title {
     font-size: 1.125rem !important;
     font-weight: 600 !important;
   }
 
-  .card-description {
+  /* Tab styling consistency */
+  .tabs-trigger {
     font-size: 0.875rem !important;
-    color: #6b7280 !important;
+    font-weight: 500 !important;
   }
 
-  /* Force consistency on all pages */
-  .customers-page *, 
-  .services-page *, 
-  .reports-page *, 
-  .dashboard-page *, 
-  .invoices-page * {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  }
-
-  /* Header consistency across all pages */
-  header h1 {
-    font-size: 1.5rem !important;
-    font-weight: 700 !important;
-  }
-
-  @media (min-width: 768px) {
-    header h1 {
-      font-size: 2rem !important;
-    }
+  /* Badge consistency */
+  .badge {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
   }
 }
