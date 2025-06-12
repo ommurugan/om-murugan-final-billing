@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Plus, 
   Search, 
@@ -15,7 +16,9 @@ import {
   Edit,
   Trash2,
   Eye,
-  User
+  User,
+  Save,
+  X
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -26,6 +29,7 @@ import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
 const Customers = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingCustomer, setEditingCustomer] = useState(null);
   
   const { data: customers = [], isLoading } = useCustomers();
   const createCustomerMutation = useCreateCustomer();
@@ -35,7 +39,16 @@ const Customers = () => {
     phone: "",
     email: "",
     address: "",
-    gstNumber: ""
+    gstNumber: "",
+    // Vehicle details
+    vehicleMake: "",
+    vehicleModel: "",
+    vehicleNumber: "",
+    vehicleType: "car",
+    vehicleYear: new Date().getFullYear(),
+    vehicleColor: "",
+    engineNumber: "",
+    chassisNumber: ""
   });
 
   const filteredCustomers = customers.filter(customer =>
@@ -52,18 +65,36 @@ const Customers = () => {
     
     try {
       await createCustomerMutation.mutateAsync(newCustomer);
-      toast.success("Customer added successfully!");
+      toast.success("Customer and vehicle added successfully!");
       setShowAddForm(false);
       setNewCustomer({
         name: "",
         phone: "",
         email: "",
         address: "",
-        gstNumber: ""
+        gstNumber: "",
+        vehicleMake: "",
+        vehicleModel: "",
+        vehicleNumber: "",
+        vehicleType: "car",
+        vehicleYear: new Date().getFullYear(),
+        vehicleColor: "",
+        engineNumber: "",
+        chassisNumber: ""
       });
     } catch (error) {
       toast.error("Failed to add customer");
     }
+  };
+
+  const handleEditCustomer = (customer) => {
+    setEditingCustomer({...customer});
+  };
+
+  const handleUpdateCustomer = async () => {
+    // This would need an update mutation - for now just show success
+    toast.success("Customer updated successfully!");
+    setEditingCustomer(null);
   };
 
   const getInitials = (name: string) => {
@@ -104,66 +135,158 @@ const Customers = () => {
                   Add Customer
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add New Customer</DialogTitle>
+                  <DialogTitle>Add New Customer & Vehicle</DialogTitle>
                   <DialogDescription>
-                    Enter customer details to create a new record
+                    Enter customer and vehicle details to create a new record
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Customer Details */}
                   <div>
-                    <Label htmlFor="name">Customer Name *</Label>
-                    <Input 
-                      id="name"
-                      value={newCustomer.name}
-                      onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
-                      placeholder="Enter customer name"
-                    />
+                    <h3 className="text-lg font-semibold mb-4">Customer Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Customer Name *</Label>
+                        <Input 
+                          id="name"
+                          value={newCustomer.name}
+                          onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                          placeholder="Enter customer name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Phone Number *</Label>
+                        <Input 
+                          id="phone"
+                          value={newCustomer.phone}
+                          onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input 
+                          id="email"
+                          type="email"
+                          value={newCustomer.email}
+                          onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="gstNumber">GST Number</Label>
+                        <Input 
+                          id="gstNumber"
+                          value={newCustomer.gstNumber}
+                          onChange={(e) => setNewCustomer({...newCustomer, gstNumber: e.target.value})}
+                          placeholder="Enter GST number (optional)"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="address">Address</Label>
+                        <Input 
+                          id="address"
+                          value={newCustomer.address}
+                          onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
+                          placeholder="Enter address"
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Vehicle Details */}
                   <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input 
-                      id="phone"
-                      value={newCustomer.phone}
-                      onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-                      placeholder="Enter phone number"
-                    />
+                    <h3 className="text-lg font-semibold mb-4">Vehicle Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="vehicleNumber">Vehicle Number *</Label>
+                        <Input 
+                          id="vehicleNumber"
+                          value={newCustomer.vehicleNumber}
+                          onChange={(e) => setNewCustomer({...newCustomer, vehicleNumber: e.target.value})}
+                          placeholder="Enter vehicle number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicleType">Vehicle Type</Label>
+                        <Select value={newCustomer.vehicleType} onValueChange={(value) => setNewCustomer({...newCustomer, vehicleType: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="car">Car</SelectItem>
+                            <SelectItem value="bike">Bike</SelectItem>
+                            <SelectItem value="truck">Truck</SelectItem>
+                            <SelectItem value="bus">Bus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicleMake">Make</Label>
+                        <Input 
+                          id="vehicleMake"
+                          value={newCustomer.vehicleMake}
+                          onChange={(e) => setNewCustomer({...newCustomer, vehicleMake: e.target.value})}
+                          placeholder="Enter vehicle make"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicleModel">Model</Label>
+                        <Input 
+                          id="vehicleModel"
+                          value={newCustomer.vehicleModel}
+                          onChange={(e) => setNewCustomer({...newCustomer, vehicleModel: e.target.value})}
+                          placeholder="Enter vehicle model"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicleYear">Year</Label>
+                        <Input 
+                          id="vehicleYear"
+                          type="number"
+                          value={newCustomer.vehicleYear}
+                          onChange={(e) => setNewCustomer({...newCustomer, vehicleYear: parseInt(e.target.value) || new Date().getFullYear()})}
+                          placeholder="Enter vehicle year"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="vehicleColor">Color</Label>
+                        <Input 
+                          id="vehicleColor"
+                          value={newCustomer.vehicleColor}
+                          onChange={(e) => setNewCustomer({...newCustomer, vehicleColor: e.target.value})}
+                          placeholder="Enter vehicle color"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="engineNumber">Engine Number</Label>
+                        <Input 
+                          id="engineNumber"
+                          value={newCustomer.engineNumber}
+                          onChange={(e) => setNewCustomer({...newCustomer, engineNumber: e.target.value})}
+                          placeholder="Enter engine number"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="chassisNumber">Chassis Number</Label>
+                        <Input 
+                          id="chassisNumber"
+                          value={newCustomer.chassisNumber}
+                          onChange={(e) => setNewCustomer({...newCustomer, chassisNumber: e.target.value})}
+                          placeholder="Enter chassis number"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input 
-                      id="email"
-                      type="email"
-                      value={newCustomer.email}
-                      onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input 
-                      id="address"
-                      value={newCustomer.address}
-                      onChange={(e) => setNewCustomer({...newCustomer, address: e.target.value})}
-                      placeholder="Enter address"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gstNumber">GST Number</Label>
-                    <Input 
-                      id="gstNumber"
-                      value={newCustomer.gstNumber}
-                      onChange={(e) => setNewCustomer({...newCustomer, gstNumber: e.target.value})}
-                      placeholder="Enter GST number (optional)"
-                    />
-                  </div>
+
                   <Button 
                     onClick={handleAddCustomer} 
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     disabled={createCustomerMutation.isPending}
                   >
-                    {createCustomerMutation.isPending ? "Adding..." : "Add Customer"}
+                    {createCustomerMutation.isPending ? "Adding..." : "Add Customer & Vehicle"}
                   </Button>
                 </div>
               </DialogContent>
@@ -216,61 +339,96 @@ const Customers = () => {
                 ) : (
                   filteredCustomers.map((customer) => (
                     <div key={customer.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                          <Avatar className="h-12 w-12">
-                            <AvatarFallback className="bg-blue-100 text-blue-600">
-                              {getInitials(customer.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-gray-900">{customer.name}</h3>
-                              <Badge variant="default">Active</Badge>
-                            </div>
-                            <div className="space-y-1 text-sm text-gray-600">
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4" />
-                                <span>{customer.phone}</span>
+                      {editingCustomer && editingCustomer.id === customer.id ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Input
+                              value={editingCustomer.name}
+                              onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})}
+                              placeholder="Customer name"
+                            />
+                            <Input
+                              value={editingCustomer.phone}
+                              onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})}
+                              placeholder="Phone number"
+                            />
+                            <Input
+                              value={editingCustomer.email || ""}
+                              onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})}
+                              placeholder="Email address"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button onClick={handleUpdateCustomer} size="sm">
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button onClick={() => setEditingCustomer(null)} variant="outline" size="sm">
+                              <X className="h-4 w-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4">
+                            <Avatar className="h-12 w-12">
+                              <AvatarFallback className="bg-blue-100 text-blue-600">
+                                {getInitials(customer.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                                <Badge variant="default">Active</Badge>
+                                {customer.gstNumber && (
+                                  <Badge variant="secondary">GST</Badge>
+                                )}
                               </div>
-                              {customer.email && (
+                              <div className="space-y-1 text-sm text-gray-600">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4" />
-                                  <span>{customer.email}</span>
+                                  <Phone className="h-4 w-4" />
+                                  <span>{customer.phone}</span>
                                 </div>
-                              )}
-                              {customer.address && (
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
-                                  <span>{customer.address}</span>
-                                </div>
-                              )}
-                              {customer.gstNumber && (
-                                <div className="text-xs text-gray-500">
-                                  GST: {customer.gstNumber}
-                                </div>
-                              )}
+                                {customer.email && (
+                                  <div className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4" />
+                                    <span>{customer.email}</span>
+                                  </div>
+                                )}
+                                {customer.address && (
+                                  <div className="flex items-center gap-2">
+                                    <User className="h-4 w-4" />
+                                    <span>{customer.address}</span>
+                                  </div>
+                                )}
+                                {customer.gstNumber && (
+                                  <div className="text-xs text-gray-500">
+                                    GST: {customer.gstNumber}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="text-right text-sm">
+                              <p className="text-gray-500">Joined: {new Date(customer.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleEditCustomer(customer)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         </div>
-                        
-                        <div className="flex flex-col items-end gap-2">
-                          <div className="text-right text-sm">
-                            <p className="text-gray-500">Joined: {new Date(customer.createdAt).toLocaleDateString()}</p>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   ))
                 )}

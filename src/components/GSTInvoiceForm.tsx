@@ -24,6 +24,8 @@ import {
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
 import InvoicePrintPreview from "./InvoicePrintPreview";
+import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
+import { useCustomers } from "@/hooks/useCustomers";
 
 interface GSTInvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -32,28 +34,13 @@ interface GSTInvoiceFormProps {
 }
 
 const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormProps) => {
-  const [customers] = useState<Customer[]>([
-    { id: "3", name: "ABC Motors Pvt Ltd", phone: "9876543212", email: "abc@motors.com", gstNumber: "29ABCDE1234F1Z5", createdAt: "2024-01-01", totalSpent: 25000, loyaltyPoints: 250 },
-    { id: "4", name: "XYZ Transport Co", phone: "9876543213", email: "xyz@transport.com", gstNumber: "29XYZDE5678G2A6", createdAt: "2024-01-01", totalSpent: 15000, loyaltyPoints: 150 }
-  ]);
+  const { data: customersData = [] } = useCustomers();
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
-  const [vehicles] = useState<Vehicle[]>([
-    { id: "3", customerId: "3", make: "Mahindra", model: "Bolero", vehicleNumber: "TN 03 EF 9012", vehicleType: "car", createdAt: "2024-01-01" },
-    { id: "4", customerId: "4", make: "Tata", model: "Ace", vehicleNumber: "TN 04 GH 3456", vehicleType: "car", createdAt: "2024-01-01" }
-  ]);
-
-  const [services] = useState<Service[]>([
-    { id: "1", name: "Full Service", category: "Maintenance", basePrice: 2500, estimatedTime: 120, isActive: true },
-    { id: "2", name: "Oil Change", category: "Maintenance", basePrice: 800, estimatedTime: 30, isActive: true },
-    { id: "3", name: "Brake Service", category: "Repair", basePrice: 1200, estimatedTime: 60, isActive: true },
-    { id: "4", name: "Engine Repair", category: "Repair", basePrice: 3500, estimatedTime: 240, isActive: true }
-  ]);
-
-  const [parts] = useState<Part[]>([
-    { id: "1", name: "Engine Oil", category: "Fluid", price: 450, stockQuantity: 50, minStockLevel: 10, isActive: true },
-    { id: "2", name: "Brake Pads", category: "Brake", price: 800, stockQuantity: 25, minStockLevel: 5, isActive: true },
-    { id: "3", name: "Air Filter", category: "Filter", price: 350, stockQuantity: 30, minStockLevel: 8, isActive: true }
-  ]);
+  // Clear dummy data and use empty arrays
+  const [vehicles] = useState<Vehicle[]>([]);
+  const [services] = useState<Service[]>([]);
+  const [parts] = useState<Part[]>([]);
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -68,7 +55,18 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
+  // Update customers and filter GST customers when data changes
+  useEffect(() => {
+    const gstCustomers = customersData.filter(customer => customer.gstNumber && customer.gstNumber.trim() !== '');
+    setCustomers(gstCustomers);
+  }, [customersData]);
+
   const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
+
+  const handleCustomerAdded = (newCustomer: Customer) => {
+    setCustomers(prev => [...prev, newCustomer]);
+    setSelectedCustomer(newCustomer);
+  };
 
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
@@ -256,12 +254,15 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
-              Customer Selection (GST)
+              GST Customer Selection
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Select GST Customer</Label>
+              <div className="flex justify-between items-center mb-2">
+                <Label>Select GST Customer</Label>
+                <GSTCustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
+              </div>
               <Select onValueChange={(value) => {
                 const customer = customers.find(c => c.id === value);
                 setSelectedCustomer(customer || null);
@@ -271,11 +272,17 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   <SelectValue placeholder="Choose a GST customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map(customer => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.phone}
+                  {customers.length === 0 ? (
+                    <SelectItem value="no-customers" disabled>
+                      No GST customers found
                     </SelectItem>
-                  ))}
+                  ) : (
+                    customers.map(customer => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} - {customer.phone}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -319,11 +326,17 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   <SelectValue placeholder="Choose a vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customerVehicles.map(vehicle => (
-                    <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                  {customerVehicles.length === 0 ? (
+                    <SelectItem value="no-vehicles" disabled>
+                      No vehicles found for this customer
                     </SelectItem>
-                  ))}
+                  ) : (
+                    customerVehicles.map(vehicle => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -357,7 +370,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         </Card>
       </div>
 
-      {/* Services & Parts - Same structure as NonGSTInvoiceForm */}
+      {/* Services & Parts - Empty state for now */}
       <Card>
         <CardHeader>
           <CardTitle>Services & Parts</CardTitle>
@@ -371,49 +384,14 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             </TabsList>
 
             <TabsContent value="services" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.map(service => (
-                  <div key={service.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{service.name}</h4>
-                        <p className="text-sm text-gray-600">{service.category}</p>
-                        <p className="text-lg font-semibold text-blue-600">₹{service.basePrice}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => addService(service.id)}
-                        disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-gray-500">
+                <p>No services available. Please add services first.</p>
               </div>
             </TabsContent>
 
             <TabsContent value="parts" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {parts.map(part => (
-                  <div key={part.id} className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium">{part.name}</h4>
-                        <p className="text-sm text-gray-600">{part.category}</p>
-                        <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
-                        <p className="text-xs text-gray-500">Stock: {part.stockQuantity}</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => addPart(part.id)}
-                        disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-gray-500">
+                <p>No parts available. Please add parts first.</p>
               </div>
             </TabsContent>
 
