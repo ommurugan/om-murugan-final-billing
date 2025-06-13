@@ -33,8 +33,12 @@ const Sidebar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -50,13 +54,13 @@ const Sidebar = () => {
               <div className="p-2 bg-white rounded-lg">
                 <img 
                   src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
-                  alt="OM MURUGAN AUTO WORKS" 
+                  alt="OM MURUGAN AUTO WORKS"  
                   className="h-16 w-16"
                 />
               </div>
               <div>
-                <h2 className="font-bold text-gray-900 text-lg">OM MURUGAN</h2>
-                <p className="text-sm text-gray-600">AUTO WORKS</p>
+                <h2 className="font-bold text-gray-900">OM MURUGAN</h2>
+                <p className="text-gray-600">AUTO WORKS</p>
               </div>
             </div>
           )}
@@ -87,7 +91,7 @@ const Sidebar = () => {
             key={item.path}
             variant={isActive(item.path) ? "default" : "ghost"}
             className={cn(
-              "w-full justify-start gap-3 h-10 text-sm font-medium",
+              "w-full justify-start gap-3 h-10 font-medium",
               isActive(item.path) 
                 ? "bg-blue-600 text-white hover:bg-blue-700" 
                 : "text-gray-700 hover:bg-gray-100",
@@ -106,7 +110,7 @@ const Sidebar = () => {
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 h-10 text-sm font-medium text-gray-700 hover:bg-gray-100",
+            "w-full justify-start gap-3 h-10 font-medium text-gray-700 hover:bg-gray-100",
             isCollapsed && "justify-center px-0"
           )}
         >
@@ -116,7 +120,7 @@ const Sidebar = () => {
         <Button
           variant="ghost"
           className={cn(
-            "w-full justify-start gap-3 h-10 text-sm font-medium text-red-600 hover:bg-red-50",
+            "w-full justify-start gap-3 h-10 font-medium text-red-600 hover:bg-red-50",
             isCollapsed && "justify-center px-0"
           )}
           onClick={handleLogout}
