@@ -70,7 +70,9 @@ const CustomerQuickAdd = ({ onCustomerAdded }: CustomerQuickAddProps) => {
         email: customer.email || "",
         address: customer.address || "",
         gstNumber: "",
-        totalSpent: 0
+        totalSpent: 0,
+        createdAt: customer.created_at,
+        loyaltyPoints: 0
       };
 
       onCustomerAdded(transformedCustomer);

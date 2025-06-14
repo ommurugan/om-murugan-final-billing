@@ -71,7 +71,9 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
         email: customer.email || "",
         address: customer.address || "",
         gstNumber: customer.gst_number || "",
-        totalSpent: 0
+        totalSpent: 0,
+        createdAt: customer.created_at,
+        loyaltyPoints: 0
       };
 
       onCustomerAdded(transformedCustomer);
