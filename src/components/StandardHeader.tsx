@@ -28,9 +28,7 @@ const StandardHeader = ({
         <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4 flex-shrink-0 safe-area-inset-top">
           <div className="flex justify-between items-center min-h-[44px]">
             <div className="flex-1">
-              <h1 className="text-xl font-semibold text-gray-900 truncate">
-                {title}
-              </h1>
+              {/* Title removed */}
             </div>
             <div className="flex-shrink-0 ml-4">
               {children}
