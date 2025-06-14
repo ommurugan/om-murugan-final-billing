@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
@@ -26,6 +25,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [kilometers, setKilometers] = useState(0);
 
   // Fetch vehicles for the selected customer
   const { data: vehiclesData = [] } = useVehicles(selectedCustomer?.id);
@@ -107,6 +107,61 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
     setSelectedCustomer(newCustomer);
   };
 
+  // Service and part handlers
+  const addService = (serviceId: string) => {
+    const service = transformedServices.find(s => s.id === serviceId);
+    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
+      const newItem: InvoiceItem = {
+        id: Date.now().toString(),
+        type: 'service',
+        itemId: service.id,
+        name: service.name,
+        quantity: 1,
+        unitPrice: service.basePrice,
+        discount: 0,
+        total: service.basePrice
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
+  };
+
+  const addPart = (partId: string) => {
+    const part = transformedParts.find(p => p.id === partId);
+    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
+      const newItem: InvoiceItem = {
+        id: Date.now().toString(),
+        type: 'part',
+        itemId: part.id,
+        name: part.name,
+        quantity: 1,
+        unitPrice: part.price,
+        discount: 0,
+        total: part.price
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
+  };
+
+  const removeItem = (itemId: string) => {
+    setInvoiceItems(invoiceItems.filter(item => item.id !== itemId));
+  };
+
+  const updateItemQuantity = (itemId: string, quantity: number) => {
+    setInvoiceItems(items => items.map(item => 
+      item.id === itemId 
+        ? { ...item, quantity, total: (item.unitPrice - item.discount) * quantity }
+        : item
+    ));
+  };
+
+  const updateItemDiscount = (itemId: string, discount: number) => {
+    setInvoiceItems(items => items.map(item => 
+      item.id === itemId 
+        ? { ...item, discount, total: (item.unitPrice - discount) * item.quantity }
+        : item
+    ));
+  };
+
   const generateInvoiceNumber = () => {
     const date = new Date();
     const year = date.getFullYear();
@@ -145,7 +200,8 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
       paidAt: payment && payment.amount >= total ? new Date().toISOString() : undefined,
       notes,
       laborCharges,
-      payments: payment ? [payment] : []
+      payments: payment ? [payment] : [],
+      kilometers
     };
   };
 
@@ -191,8 +247,10 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         selectedCustomer={selectedCustomer}
         selectedVehicle={selectedVehicle}
         vehicles={transformedVehicles}
+        kilometers={kilometers}
         onCustomerChange={setSelectedCustomer}
         onVehicleChange={setSelectedVehicle}
+        onKilometersChange={setKilometers}
         onCustomerAdded={handleCustomerAdded}
         CustomerQuickAddComponent={CustomerQuickAdd}
       />
@@ -201,7 +259,11 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         services={transformedServices}
         parts={transformedParts}
         invoiceItems={invoiceItems}
-        onItemsChange={setInvoiceItems}
+        onAddService={addService}
+        onAddPart={addPart}
+        onRemoveItem={removeItem}
+        onUpdateItemQuantity={updateItemQuantity}
+        onUpdateItemDiscount={updateItemDiscount}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
