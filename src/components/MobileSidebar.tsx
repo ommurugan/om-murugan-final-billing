@@ -63,7 +63,19 @@ const MobileSidebar = () => {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center p-6 border-b">
-          <h2 className="text-lg font-semibold">Menu</h2>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-white rounded-lg">
+              <img 
+                src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
+                alt="OM MURUGAN AUTO WORKS" 
+                className="h-10 w-10" 
+              />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900 text-lg">OM MURUGAN</h2>
+              <p className="text-gray-600 text-sm">AUTO WORKS</p>
+            </div>
+          </div>
         </div>
         
         {/* Navigation Menu */}
@@ -76,13 +88,14 @@ const MobileSidebar = () => {
                   key={item.path}
                   onClick={() => handleNavigate(item.path)}
                   className={cn(
-                    "flex items-center gap-3 w-full px-3 py-2 text-left rounded-lg transition-colors",
+                    "flex items-center gap-3 w-full px-4 py-3 text-left rounded-lg transition-all duration-200 touch-manipulation active:scale-95",
+                    "min-h-[52px] text-base font-medium",
                     isActive(item.path)
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5 flex-shrink-0" />
                   <span>{item.label}</span>
                 </button>
               );
@@ -94,9 +107,9 @@ const MobileSidebar = () => {
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2 text-left rounded-lg transition-colors text-foreground hover:bg-accent hover:text-accent-foreground"
+            className="flex items-center gap-3 w-full px-4 py-3 text-left rounded-lg transition-all duration-200 text-red-600 hover:bg-red-50 active:bg-red-100 touch-manipulation active:scale-95 min-h-[52px] text-base font-medium"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-5 w-5 flex-shrink-0" />
             <span>Logout</span>
           </button>
         </div>
@@ -111,7 +124,7 @@ const MobileSidebar = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed top-4 left-4 z-30 bg-white shadow-md border"
+            className="fixed top-4 left-4 z-30 bg-white shadow-md border h-12 w-12 touch-manipulation active:scale-95"
           >
             <Menu className="h-6 w-6" />
           </Button>

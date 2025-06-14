@@ -31,6 +31,7 @@ const DashboardStats = () => {
       change: todayRevenue > 0 ? "+100%" : "0%",
       icon: DollarSign,
       color: "text-green-600",
+      bgColor: "bg-green-50",
       onClick: () => navigate('/invoices?status=paid&date=today')
     },
     {
@@ -39,6 +40,7 @@ const DashboardStats = () => {
       change: vehicles.length > 0 ? "+100%" : "0%",
       icon: Car,
       color: "text-blue-600",
+      bgColor: "bg-blue-50",
       onClick: () => navigate('/vehicles')
     },
     {
@@ -47,6 +49,7 @@ const DashboardStats = () => {
       change: customers.length > 0 ? "+100%" : "0%",
       icon: Users,
       color: "text-purple-600",
+      bgColor: "bg-purple-50",
       onClick: () => navigate('/customers')
     },
     {
@@ -55,28 +58,31 @@ const DashboardStats = () => {
       change: pendingInvoices > 0 ? "+100%" : "0%",
       icon: Receipt,
       color: "text-orange-600",
+      bgColor: "bg-orange-50",
       onClick: () => navigate('/invoices?status=pending')
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {stats.map((stat, index) => (
         <Card 
           key={index} 
-          className="hover:shadow-lg transition-all cursor-pointer hover:scale-105" 
+          className="hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105 touch-manipulation active:scale-95" 
           onClick={stat.onClick}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600 leading-tight">
               {stat.title}
             </CardTitle>
-            <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            <div className={`h-10 w-10 rounded-full ${stat.bgColor} flex items-center justify-center`}>
+              <stat.icon className={`h-5 w-5 ${stat.color}`} />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</div>
             <div className="flex items-center gap-1 text-sm">
-              <span className="text-gray-500">Click to view details</span>
+              <span className="text-gray-500">Tap to view details</span>
             </div>
           </CardContent>
         </Card>

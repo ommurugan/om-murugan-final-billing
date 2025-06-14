@@ -14,6 +14,8 @@ import {
   Receipt
 } from "lucide-react";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
+import MobileInvoiceTable from "./MobileInvoiceTable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvoiceListProps {
   invoices: Invoice[];
@@ -34,6 +36,8 @@ const InvoiceList = ({
   onEmail,
   onCreateFirst
 }: InvoiceListProps) => {
+  const isMobile = useIsMobile();
+
   const getCustomerName = (customerId: string) => {
     return customers.find(c => c.id === customerId)?.name || "Unknown Customer";
   };
@@ -65,6 +69,44 @@ const InvoiceList = ({
     }
   };
 
+  // Mobile view
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Non-GST Invoices ({invoices.length})
+            </h2>
+            <p className="text-sm text-gray-600">
+              Manage and track all your non-GST invoices
+            </p>
+          </div>
+        </div>
+        
+        {invoices.length === 0 ? (
+          <Card className="p-8 text-center">
+            <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-4">No non-GST invoices found</p>
+            <Button onClick={onCreateFirst} className="bg-blue-600 hover:bg-blue-700 h-12 px-6">
+              Create First Non-GST Invoice
+            </Button>
+          </Card>
+        ) : (
+          <MobileInvoiceTable
+            invoices={invoices}
+            customers={customers}
+            vehicles={vehicles}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onEmail={onEmail}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view (existing code)
   return (
     <Card className="hidden md:block">
       <CardHeader>
