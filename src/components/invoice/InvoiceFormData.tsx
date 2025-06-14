@@ -1,17 +1,8 @@
 
-import { useState, useEffect } from "react";
-import { Customer, Vehicle, Invoice, Payment } from "@/types/billing";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useVehicles } from "@/hooks/useVehicles";
-import { useServices } from "@/hooks/useServices";
-import { useParts } from "@/hooks/useParts";
-import { useInvoiceCalculations } from "@/hooks/useInvoiceCalculations";
-import { useInvoiceOperations } from "@/hooks/useInvoiceOperations";
-import { useDataTransformations } from "@/hooks/useDataTransformations";
-import CustomerVehicleSelection from "./CustomerVehicleSelection";
-import ServicesPartsSelection from "./ServicesPartsSelection";
-import AdditionalCharges from "./AdditionalCharges";
-import PaymentSummary from "./PaymentSummary";
+import { Customer, Vehicle, Payment } from "@/types/billing";
+import CustomerSection from "./CustomerSection";
+import ServicesSection from "./ServicesSection";
+import PaymentSection from "./PaymentSection";
 
 interface InvoiceFormDataProps {
   selectedCustomer: Customer | null;
@@ -78,50 +69,20 @@ const InvoiceFormData = ({
   subtotal,
   total
 }: InvoiceFormDataProps) => {
-  const { data: customersData = [] } = useCustomers();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-
-  // Fetch vehicles for the selected customer
-  const { data: vehiclesData = [] } = useVehicles(selectedCustomer?.id);
-  
-  // Fetch services and parts
-  const { data: servicesData = [] } = useServices();
-  const { data: partsData = [] } = useParts();
-
-  const { transformedVehicles, transformedServices, transformedParts } = useDataTransformations({
-    vehiclesData,
-    servicesData,
-    partsData
-  });
-
-  // Update customers when data changes
-  useEffect(() => {
-    setCustomers(customersData);
-  }, [customersData]);
-
-  const handleCustomerAdded = (newCustomer: Customer) => {
-    setCustomers(prev => [...prev, newCustomer]);
-    onCustomerAdded(newCustomer);
-  };
-
   return (
     <div className="space-y-6">
-      <CustomerVehicleSelection
-        customers={customers}
+      <CustomerSection
         selectedCustomer={selectedCustomer}
         selectedVehicle={selectedVehicle}
-        vehicles={transformedVehicles}
         kilometers={kilometers}
         onCustomerChange={onCustomerChange}
         onVehicleChange={onVehicleChange}
         onKilometersChange={onKilometersChange}
-        onCustomerAdded={handleCustomerAdded}
+        onCustomerAdded={onCustomerAdded}
         CustomerQuickAddComponent={CustomerQuickAddComponent}
       />
 
-      <ServicesPartsSelection
-        services={transformedServices}
-        parts={transformedParts}
+      <ServicesSection
         invoiceItems={invoiceItems}
         onAddService={onAddService}
         onAddPart={onAddPart}
@@ -130,31 +91,24 @@ const InvoiceFormData = ({
         onUpdateItemDiscount={onUpdateItemDiscount}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AdditionalCharges
-          laborCharges={laborCharges}
-          extraCharges={extraCharges}
-          discount={discount}
-          taxRate={taxRate}
-          notes={notes}
-          onLaborChargesChange={onLaborChargesChange}
-          onExtraChargesChange={onExtraChargesChange}
-          onDiscountChange={onDiscountChange}
-          onTaxRateChange={onTaxRateChange}
-          onNotesChange={onNotesChange}
-        />
-
-        <PaymentSummary
-          subtotal={subtotal}
-          discount={discount}
-          taxRate={taxRate}
-          total={total}
-          paymentMethod={paymentMethod}
-          paymentAmount={paymentAmount}
-          onPaymentMethodChange={onPaymentMethodChange}
-          onPaymentAmountChange={onPaymentAmountChange}
-        />
-      </div>
+      <PaymentSection
+        laborCharges={laborCharges}
+        extraCharges={extraCharges}
+        discount={discount}
+        taxRate={taxRate}
+        notes={notes}
+        paymentMethod={paymentMethod}
+        paymentAmount={paymentAmount}
+        onLaborChargesChange={onLaborChargesChange}
+        onExtraChargesChange={onExtraChargesChange}
+        onDiscountChange={onDiscountChange}
+        onTaxRateChange={onTaxRateChange}
+        onNotesChange={onNotesChange}
+        onPaymentMethodChange={onPaymentMethodChange}
+        onPaymentAmountChange={onPaymentAmountChange}
+        subtotal={subtotal}
+        total={total}
+      />
     </div>
   );
 };
