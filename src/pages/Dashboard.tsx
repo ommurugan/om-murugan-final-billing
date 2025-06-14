@@ -75,7 +75,7 @@ const Dashboard = () => {
 
   const quickActions = [
     { title: "New Invoice", icon: Plus, action: () => navigate('/invoices'), color: "bg-blue-600" },
-    { title: "Add Customer", icon: Users, action: () => navigate('/customers'), color: "bg-green-600" },
+    { title: "Customer", icon: Users, action: () => navigate('/customers'), color: "bg-green-600" },
     { title: "Manage Services", icon: Wrench, action: () => navigate('/services'), color: "bg-purple-600" },
     { title: "View Reports", icon: BarChart3, action: () => navigate('/reports'), color: "bg-orange-600" }
   ];
