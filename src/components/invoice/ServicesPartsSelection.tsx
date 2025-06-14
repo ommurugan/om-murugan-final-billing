@@ -5,53 +5,73 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Trash2 } from "lucide-react";
 import { Service, Part, InvoiceItem } from "@/types/billing";
-import { useServices } from "@/hooks/useServices";
-import { useParts } from "@/hooks/useParts";
 
 interface ServicesPartsSelectionProps {
+  services: Service[];
+  parts: Part[];
   invoiceItems: InvoiceItem[];
-  onAddService: (serviceId: string) => void;
-  onAddPart: (partId: string) => void;
-  onRemoveItem: (itemId: string) => void;
-  onUpdateItemQuantity: (itemId: string, quantity: number) => void;
-  onUpdateItemDiscount: (itemId: string, discount: number) => void;
+  onItemsChange: (items: InvoiceItem[]) => void;
 }
 
 const ServicesPartsSelection = ({
+  services,
+  parts,
   invoiceItems,
-  onAddService,
-  onAddPart,
-  onRemoveItem,
-  onUpdateItemQuantity,
-  onUpdateItemDiscount
+  onItemsChange
 }: ServicesPartsSelectionProps) => {
-  // Fetch services and parts
-  const { data: servicesData = [] } = useServices();
-  const { data: partsData = [] } = useParts();
+  const addService = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
+      const newItem: InvoiceItem = {
+        id: Date.now().toString(),
+        type: 'service',
+        itemId: service.id,
+        name: service.name,
+        quantity: 1,
+        unitPrice: service.basePrice,
+        discount: 0,
+        total: service.basePrice
+      };
+      onItemsChange([...invoiceItems, newItem]);
+    }
+  };
 
-  // Transform database services to match our interface
-  const transformedServices: Service[] = servicesData.map(s => ({
-    id: s.id,
-    name: s.name,
-    category: s.category,
-    basePrice: Number(s.base_price),
-    estimatedTime: s.estimated_time,
-    description: s.description,
-    isActive: s.is_active
-  }));
+  const addPart = (partId: string) => {
+    const part = parts.find(p => p.id === partId);
+    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
+      const newItem: InvoiceItem = {
+        id: Date.now().toString(),
+        type: 'part',
+        itemId: part.id,
+        name: part.name,
+        quantity: 1,
+        unitPrice: part.price,
+        discount: 0,
+        total: part.price
+      };
+      onItemsChange([...invoiceItems, newItem]);
+    }
+  };
 
-  // Transform database parts to match our interface
-  const transformedParts: Part[] = partsData.map(p => ({
-    id: p.id,
-    name: p.name,
-    category: p.category,
-    price: Number(p.price),
-    stockQuantity: p.stock_quantity,
-    minStockLevel: p.min_stock_level,
-    supplier: p.supplier,
-    partNumber: p.part_number,
-    isActive: p.is_active
-  }));
+  const removeItem = (itemId: string) => {
+    onItemsChange(invoiceItems.filter(item => item.id !== itemId));
+  };
+
+  const updateItemQuantity = (itemId: string, quantity: number) => {
+    onItemsChange(invoiceItems.map(item => 
+      item.id === itemId 
+        ? { ...item, quantity, total: (item.unitPrice - item.discount) * quantity }
+        : item
+    ));
+  };
+
+  const updateItemDiscount = (itemId: string, discount: number) => {
+    onItemsChange(invoiceItems.map(item => 
+      item.id === itemId 
+        ? { ...item, discount, total: (item.unitPrice - discount) * item.quantity }
+        : item
+    ));
+  };
 
   return (
     <Card>
@@ -67,13 +87,13 @@ const ServicesPartsSelection = ({
           </TabsList>
 
           <TabsContent value="services" className="space-y-4">
-            {transformedServices.length === 0 ? (
+            {services.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No services available. Please add services first.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {transformedServices.map(service => (
+                {services.map(service => (
                   <div key={service.id} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
@@ -83,7 +103,7 @@ const ServicesPartsSelection = ({
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => onAddService(service.id)}
+                        onClick={() => addService(service.id)}
                         disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
                       >
                         <Plus className="h-4 w-4" />
@@ -96,13 +116,13 @@ const ServicesPartsSelection = ({
           </TabsContent>
 
           <TabsContent value="parts" className="space-y-4">
-            {transformedParts.length === 0 ? (
+            {parts.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No parts available. Please add parts first.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {transformedParts.map(part => (
+                {parts.map(part => (
                   <div key={part.id} className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
@@ -113,7 +133,7 @@ const ServicesPartsSelection = ({
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => onAddPart(part.id)}
+                        onClick={() => addPart(part.id)}
                         disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
                       >
                         <Plus className="h-4 w-4" />
@@ -142,7 +162,7 @@ const ServicesPartsSelection = ({
                           <Input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => onUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
                             className="w-16 text-center"
                             min="1"
                           />
@@ -152,7 +172,7 @@ const ServicesPartsSelection = ({
                           <Input
                             type="number"
                             value={item.discount}
-                            onChange={(e) => onUpdateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
                             className="w-20 text-center"
                             min="0"
                           />
@@ -162,7 +182,7 @@ const ServicesPartsSelection = ({
                           <p className="font-semibold">₹{item.total}</p>
                           <p className="text-xs text-gray-500">Total</p>
                         </div>
-                        <Button size="sm" variant="ghost" onClick={() => onRemoveItem(item.id)}>
+                        <Button size="sm" variant="ghost" onClick={() => removeItem(item.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

@@ -1,64 +1,32 @@
 
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Car, User, Gauge } from "lucide-react";
+import { User, Car } from "lucide-react";
 import { Customer, Vehicle } from "@/types/billing";
-import CustomerQuickAdd from "../CustomerQuickAdd";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useVehicles } from "@/hooks/useVehicles";
 
 interface CustomerVehicleSelectionProps {
+  customers: Customer[];
   selectedCustomer: Customer | null;
   selectedVehicle: Vehicle | null;
-  kilometers: number;
+  vehicles: Vehicle[];
   onCustomerChange: (customer: Customer | null) => void;
   onVehicleChange: (vehicle: Vehicle | null) => void;
-  onKilometersChange: (kilometers: number) => void;
+  onCustomerAdded: (customer: Customer) => void;
+  CustomerQuickAddComponent: React.ComponentType<{ onCustomerAdded: (customer: Customer) => void }>;
 }
 
 const CustomerVehicleSelection = ({
+  customers,
   selectedCustomer,
   selectedVehicle,
-  kilometers,
+  vehicles,
   onCustomerChange,
   onVehicleChange,
-  onKilometersChange
+  onCustomerAdded,
+  CustomerQuickAddComponent
 }: CustomerVehicleSelectionProps) => {
-  const { data: customersData = [] } = useCustomers();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-
-  // Fetch vehicles for the selected customer
-  const { data: vehiclesData = [] } = useVehicles(selectedCustomer?.id);
-
-  // Update customers when data changes
-  useEffect(() => {
-    setCustomers(customersData);
-  }, [customersData]);
-
-  // Transform database vehicles to match our interface
-  const transformedVehicles: Vehicle[] = vehiclesData.map(v => ({
-    id: v.id,
-    customerId: v.customer_id,
-    make: v.make,
-    model: v.model,
-    year: v.year,
-    vehicleNumber: v.vehicle_number,
-    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter' || 'car',
-    engineNumber: v.engine_number,
-    chassisNumber: v.chassis_number,
-    color: v.color,
-    createdAt: v.created_at
-  }));
-
-  const handleCustomerAdded = (newCustomer: Customer) => {
-    setCustomers(prev => [...prev, newCustomer]);
-    onCustomerChange(newCustomer);
-  };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -72,11 +40,10 @@ const CustomerVehicleSelection = ({
           <div>
             <div className="flex justify-between items-center mb-2">
               <Label>Select Customer</Label>
-              <CustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
+              <CustomerQuickAddComponent onCustomerAdded={onCustomerAdded} />
             </div>
             <Select onValueChange={(value) => {
               const customer = customers.find(c => c.id === value);
-              console.log("Customer selected:", customer);
               onCustomerChange(customer || null);
               onVehicleChange(null);
             }}>
@@ -117,8 +84,7 @@ const CustomerVehicleSelection = ({
             <Label>Select Vehicle</Label>
             <Select 
               onValueChange={(value) => {
-                const vehicle = transformedVehicles.find(v => v.id === value);
-                console.log("Vehicle selected:", vehicle);
+                const vehicle = vehicles.find(v => v.id === value);
                 onVehicleChange(vehicle || null);
               }}
               disabled={!selectedCustomer}
@@ -127,12 +93,12 @@ const CustomerVehicleSelection = ({
                 <SelectValue placeholder="Choose a vehicle" />
               </SelectTrigger>
               <SelectContent>
-                {transformedVehicles.length === 0 ? (
+                {vehicles.length === 0 ? (
                   <SelectItem value="no-vehicles" disabled>
                     No vehicles found for this customer
                   </SelectItem>
                 ) : (
-                  transformedVehicles.map(vehicle => (
+                  vehicles.map(vehicle => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
                     </SelectItem>
@@ -146,25 +112,6 @@ const CustomerVehicleSelection = ({
               <p className="font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
               <p className="text-sm text-gray-600">{selectedVehicle.vehicleNumber}</p>
               <Badge variant="secondary">{selectedVehicle.vehicleType}</Badge>
-            </div>
-          )}
-          
-          {selectedVehicle && (
-            <div className="mt-4">
-              <Label className="flex items-center gap-2">
-                <Gauge className="h-4 w-4" />
-                Current Kilometers
-              </Label>
-              <Input
-                type="number"
-                value={kilometers}
-                onChange={(e) => onKilometersChange(parseInt(e.target.value) || 0)}
-                placeholder="Enter current kilometers"
-                className="mt-2"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Record the vehicle's current kilometer reading
-              </p>
             </div>
           )}
         </CardContent>

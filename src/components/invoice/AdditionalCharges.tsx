@@ -13,27 +13,27 @@ interface ExtraCharge {
 
 interface AdditionalChargesProps {
   laborCharges: number;
+  extraCharges: ExtraCharge[];
   discount: number;
   taxRate: number;
-  extraCharges: ExtraCharge[];
   notes: string;
   onLaborChargesChange: (charges: number) => void;
+  onExtraChargesChange: (charges: ExtraCharge[]) => void;
   onDiscountChange: (discount: number) => void;
   onTaxRateChange: (rate: number) => void;
-  onExtraChargesChange: (charges: ExtraCharge[]) => void;
   onNotesChange: (notes: string) => void;
 }
 
 const AdditionalCharges = ({
   laborCharges,
+  extraCharges,
   discount,
   taxRate,
-  extraCharges,
   notes,
   onLaborChargesChange,
+  onExtraChargesChange,
   onDiscountChange,
   onTaxRateChange,
-  onExtraChargesChange,
   onNotesChange
 }: AdditionalChargesProps) => {
   const addExtraCharge = () => {
@@ -107,13 +107,11 @@ const AdditionalCharges = ({
             />
           </div>
           <div>
-            <Label>Tax Rate (%) - Non-GST</Label>
+            <Label>Tax Rate (%)</Label>
             <Input
               type="number"
               value={taxRate}
               onChange={(e) => onTaxRateChange(parseFloat(e.target.value) || 0)}
-              disabled
-              className="bg-gray-100"
             />
           </div>
         </div>
