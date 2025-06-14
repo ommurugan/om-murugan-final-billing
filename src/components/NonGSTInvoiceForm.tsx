@@ -1,12 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
+import { Customer, Vehicle, Invoice, InvoiceItem, Payment } from "@/types/billing";
 import InvoicePrintPreview from "./InvoicePrintPreview";
-import CustomerVehicleSelection from "./invoice/CustomerVehicleSelection";
-import ServicesPartsSelection from "./invoice/ServicesPartsSelection";
-import AdditionalCharges from "./invoice/AdditionalCharges";
-import PaymentSummary from "./invoice/PaymentSummary";
+import CustomerSection from "./invoice/CustomerSection";
+import ServicesSection from "./invoice/ServicesSection";
+import PaymentSection from "./invoice/PaymentSection";
 import InvoiceActionButtons from "./invoice/InvoiceActionButtons";
+import CustomerQuickAdd from "./CustomerQuickAdd";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
 import { useCreateInvoice } from "@/hooks/useInvoices";
@@ -27,7 +28,7 @@ const NonGSTInvoiceForm = ({
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [kilometers, setKilometers] = useState<number>(0);
 
-  // Fetch services and parts
+  // Fetch services and parts for the add functions
   const { data: servicesData = [] } = useServices();
   const { data: partsData = [] } = useParts();
   
@@ -56,7 +57,7 @@ const NonGSTInvoiceForm = ({
   });
 
   // Transform database services to match our interface
-  const transformedServices: Service[] = servicesData.map(s => ({
+  const transformedServices = servicesData.map(s => ({
     id: s.id,
     name: s.name,
     category: s.category,
@@ -67,7 +68,7 @@ const NonGSTInvoiceForm = ({
   }));
 
   // Transform database parts to match our interface
-  const transformedParts: Part[] = partsData.map(p => ({
+  const transformedParts = partsData.map(p => ({
     id: p.id,
     name: p.name,
     category: p.category,
@@ -239,6 +240,11 @@ const NonGSTInvoiceForm = ({
     setShowPrintPreview(true);
   };
 
+  const handleCustomerAdded = (customer: Customer) => {
+    console.log("Customer added:", customer);
+    setSelectedCustomer(customer);
+  };
+
   useEffect(() => {
     setPaymentAmount(total);
   }, [total]);
@@ -257,22 +263,18 @@ const NonGSTInvoiceForm = ({
 
   return (
     <div className="space-y-6">
-      <CustomerVehicleSelection
-        customers={[]} // You'll need to implement customer fetching
+      <CustomerSection
         selectedCustomer={selectedCustomer}
         selectedVehicle={selectedVehicle}
-        vehicles={[]} // You'll need to implement vehicle fetching based on selected customer
         kilometers={kilometers}
         onCustomerChange={setSelectedCustomer}
         onVehicleChange={setSelectedVehicle}
         onKilometersChange={setKilometers}
-        onCustomerAdded={() => {}} // You'll need to implement this
-        CustomerQuickAddComponent={() => <div>Quick Add Component</div>} // You'll need to implement this
+        onCustomerAdded={handleCustomerAdded}
+        CustomerQuickAddComponent={CustomerQuickAdd}
       />
 
-      <ServicesPartsSelection
-        services={transformedServices}
-        parts={transformedParts}
+      <ServicesSection
         invoiceItems={invoiceItems}
         onAddService={addService}
         onAddPart={addPart}
@@ -281,31 +283,24 @@ const NonGSTInvoiceForm = ({
         onUpdateItemDiscount={updateItemDiscount}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AdditionalCharges
-          laborCharges={laborCharges}
-          discount={discount}
-          taxRate={taxRate}
-          extraCharges={extraCharges}
-          notes={notes}
-          onLaborChargesChange={setLaborCharges}
-          onDiscountChange={setDiscount}
-          onTaxRateChange={setTaxRate}
-          onExtraChargesChange={setExtraCharges}
-          onNotesChange={setNotes}
-        />
-
-        <PaymentSummary
-          subtotal={subtotal}
-          discount={discount}
-          taxRate={taxRate}
-          total={total}
-          paymentMethod={paymentMethod}
-          paymentAmount={paymentAmount}
-          onPaymentMethodChange={setPaymentMethod}
-          onPaymentAmountChange={setPaymentAmount}
-        />
-      </div>
+      <PaymentSection
+        laborCharges={laborCharges}
+        extraCharges={extraCharges}
+        discount={discount}
+        taxRate={taxRate}
+        notes={notes}
+        paymentMethod={paymentMethod}
+        paymentAmount={paymentAmount}
+        onLaborChargesChange={setLaborCharges}
+        onExtraChargesChange={setExtraCharges}
+        onDiscountChange={setDiscount}
+        onTaxRateChange={setTaxRate}
+        onNotesChange={setNotes}
+        onPaymentMethodChange={setPaymentMethod}
+        onPaymentAmountChange={setPaymentAmount}
+        subtotal={subtotal}
+        total={total}
+      />
 
       <InvoiceActionButtons
         onSaveDraft={handleSaveDraft}
