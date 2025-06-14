@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LayoutDashboard, Receipt, Users, Wrench, BarChart3, LogOut, Menu, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Users, Wrench, BarChart3, LogOut, Menu } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const MobileSidebar = () => {
@@ -105,24 +105,22 @@ const MobileSidebar = () => {
   };
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      
-
-      {/* Mobile Menu Button & Drawer */}
-      <div className="md:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 bg-white shadow-md">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80 p-0">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
-    </>
+    <div className="md:hidden">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="fixed top-4 left-4 z-40 bg-white shadow-md border"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-80 p-0">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 };
 

@@ -89,7 +89,7 @@ const Dashboard = () => {
         
         <div className="flex-1 flex flex-col min-h-screen">
           {/* Header */}
-          <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-16 md:pt-4">
+          <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 pt-20 md:pt-4 relative z-10">
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>

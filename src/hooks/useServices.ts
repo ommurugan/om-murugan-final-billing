@@ -1,6 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface Service {
   id: string;
@@ -11,12 +12,17 @@ export interface Service {
   description?: string;
   is_active: boolean;
   created_at: string;
+  user_id?: string;
 }
 
 export const useServices = () => {
+  const { user } = useAuth();
+  
   return useQuery({
     queryKey: ["services"],
     queryFn: async () => {
+      if (!user) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from("services")
         .select("*")
@@ -26,17 +32,26 @@ export const useServices = () => {
       if (error) throw error;
       return data as Service[];
     },
+    enabled: !!user,
   });
 };
 
 export const useCreateService = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (service: Omit<Service, "id" | "created_at">) => {
+    mutationFn: async (service: Omit<Service, "id" | "created_at" | "user_id">) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const serviceData = {
+        ...service,
+        user_id: user.id
+      };
+      
       const { data, error } = await supabase
         .from("services")
-        .insert([service])
+        .insert([serviceData])
         .select()
         .single();
       
@@ -51,13 +66,17 @@ export const useCreateService = () => {
 
 export const useUpdateService = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Service> & { id: string }) => {
+      if (!user) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from("services")
         .update(updates)
         .eq("id", id)
+        .eq("user_id", user.id)
         .select()
         .single();
       
@@ -72,13 +91,17 @@ export const useUpdateService = () => {
 
 export const useDeleteService = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (id: string) => {
+      if (!user) throw new Error("User not authenticated");
+      
       const { error } = await supabase
         .from("services")
         .update({ is_active: false })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("user_id", user.id);
       
       if (error) throw error;
     },

@@ -3,57 +3,63 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export interface Part {
+export interface Vehicle {
   id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock_quantity: number;
-  min_stock_level: number;
-  supplier?: string;
-  part_number?: string;
-  is_active: boolean;
+  customer_id: string;
+  make: string;
+  model: string;
+  year?: number;
+  vehicle_number: string;
+  vehicle_type: 'car' | 'bike' | 'scooter';
+  engine_number?: string;
+  chassis_number?: string;
+  color?: string;
   created_at: string;
   user_id?: string;
 }
 
-export const useParts = () => {
+export const useVehicles = (customerId?: string) => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ["parts"],
+    queryKey: ["vehicles", customerId],
     queryFn: async () => {
       if (!user) throw new Error("User not authenticated");
       
-      const { data, error } = await supabase
-        .from("parts")
+      let query = supabase
+        .from("vehicles")
         .select("*")
-        .eq("is_active", true)
         .order("created_at", { ascending: false });
       
+      if (customerId) {
+        query = query.eq("customer_id", customerId);
+      }
+      
+      const { data, error } = await query;
+      
       if (error) throw error;
-      return data as Part[];
+      return data as Vehicle[];
     },
     enabled: !!user,
   });
 };
 
-export const useCreatePart = () => {
+export const useCreateVehicle = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (part: Omit<Part, "id" | "created_at" | "user_id">) => {
+    mutationFn: async (vehicle: Omit<Vehicle, "id" | "created_at" | "user_id">) => {
       if (!user) throw new Error("User not authenticated");
       
-      const partData = {
-        ...part,
+      const vehicleData = {
+        ...vehicle,
         user_id: user.id
       };
       
       const { data, error } = await supabase
-        .from("parts")
-        .insert([partData])
+        .from("vehicles")
+        .insert([vehicleData])
         .select()
         .single();
       
@@ -61,21 +67,21 @@ export const useCreatePart = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["parts"] });
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
     },
   });
 };
 
-export const useUpdatePart = () => {
+export const useUpdateVehicle = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Part> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<Vehicle> & { id: string }) => {
       if (!user) throw new Error("User not authenticated");
       
       const { data, error } = await supabase
-        .from("parts")
+        .from("vehicles")
         .update(updates)
         .eq("id", id)
         .eq("user_id", user.id)
@@ -86,12 +92,12 @@ export const useUpdatePart = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["parts"] });
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
     },
   });
 };
 
-export const useDeletePart = () => {
+export const useDeleteVehicle = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
@@ -100,15 +106,15 @@ export const useDeletePart = () => {
       if (!user) throw new Error("User not authenticated");
       
       const { error } = await supabase
-        .from("parts")
-        .update({ is_active: false })
+        .from("vehicles")
+        .delete()
         .eq("id", id)
         .eq("user_id", user.id);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["parts"] });
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
     },
   });
 };
