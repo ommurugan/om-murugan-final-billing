@@ -1,13 +1,14 @@
 
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Customer } from "@/types/billing";
+import { useCreateCustomer } from "@/hooks/useCustomers";
+import { useCreateVehicle } from "@/hooks/useVehicles";
 
 interface GSTCustomerQuickAddProps {
   onCustomerAdded: (customer: Customer) => void;
@@ -21,218 +22,178 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
     email: "",
     address: "",
     gstNumber: "",
-    // Vehicle details
-    vehicleMake: "",
-    vehicleModel: "",
     vehicleNumber: "",
-    vehicleType: "car",
-    vehicleYear: new Date().getFullYear(),
-    vehicleColor: "",
-    engineNumber: "",
-    chassisNumber: ""
+    make: "",
+    model: "",
+    vehicleType: "car"
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createCustomer = useCreateCustomer();
+  const createVehicle = useCreateVehicle();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.phone || !formData.gstNumber) {
-      toast.error("Name, phone, and GST number are required for GST customers");
+      toast.error("Name, phone, and GST number are required");
       return;
     }
 
-    if (!formData.vehicleNumber) {
-      toast.error("Vehicle number is required");
-      return;
+    try {
+      // Create customer first
+      const customerData = {
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || "",
+        address: formData.address || "",
+        gstNumber: formData.gstNumber,
+        totalSpent: 0
+      };
+
+      const customer = await createCustomer.mutateAsync(customerData);
+      
+      // Create vehicle if vehicle details are provided
+      if (formData.vehicleNumber && formData.make && formData.model) {
+        await createVehicle.mutateAsync({
+          customer_id: customer.id,
+          vehicle_number: formData.vehicleNumber,
+          make: formData.make,
+          model: formData.model,
+          vehicle_type: formData.vehicleType
+        });
+      }
+
+      // Transform to match the expected Customer interface
+      const transformedCustomer: Customer = {
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || "",
+        address: customer.address || "",
+        gstNumber: customer.gst_number || "",
+        totalSpent: 0
+      };
+
+      onCustomerAdded(transformedCustomer);
+      setOpen(false);
+      setFormData({
+        name: "",
+        phone: "",
+        email: "",
+        address: "",
+        gstNumber: "",
+        vehicleNumber: "",
+        make: "",
+        model: "",
+        vehicleType: "car"
+      });
+      toast.success("GST Customer and vehicle added successfully!");
+    } catch (error) {
+      console.error("Error creating GST customer:", error);
+      toast.error("Failed to create GST customer");
     }
-
-    // Create customer object
-    const newCustomer: Customer = {
-      id: Date.now().toString(),
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      address: formData.address,
-      gstNumber: formData.gstNumber,
-      createdAt: new Date().toISOString(),
-      totalSpent: 0,
-      loyaltyPoints: 0
-    };
-
-    onCustomerAdded(newCustomer);
-    toast.success("GST Customer and vehicle added successfully!");
-    setOpen(false);
-    setFormData({
-      name: "",
-      phone: "",
-      email: "",
-      address: "",
-      gstNumber: "",
-      vehicleMake: "",
-      vehicleModel: "",
-      vehicleNumber: "",
-      vehicleType: "car",
-      vehicleYear: new Date().getFullYear(),
-      vehicleColor: "",
-      engineNumber: "",
-      chassisNumber: ""
-    });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button size="sm" variant="outline">
+          <Plus className="h-4 w-4 mr-1" />
           Add GST Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New GST Customer & Vehicle</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Add New GST Customer
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Customer Details */}
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <h3 className="text-lg font-semibold mb-4">Customer Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Company Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="gstNumber">GST Number *</Label>
-                <Input
-                  id="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value })}
-                  placeholder="29ABCDE1234F1Z5"
-                  required
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="address">Address</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                />
-              </div>
-            </div>
+            <Label>Name *</Label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Customer name"
+              required
+            />
           </div>
-
-          {/* Vehicle Details */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Vehicle Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Label>Phone *</Label>
+            <Input
+              value={formData.phone}
+              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+              placeholder="Phone number"
+              required
+            />
+          </div>
+          <div>
+            <Label>GST Number *</Label>
+            <Input
+              value={formData.gstNumber}
+              onChange={(e) => setFormData(prev => ({ ...prev, gstNumber: e.target.value }))}
+              placeholder="GST Number (e.g., 27AAPCS1959B1ZI)"
+              required
+            />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="Email address"
+            />
+          </div>
+          <div>
+            <Label>Address</Label>
+            <Input
+              value={formData.address}
+              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+              placeholder="Address"
+            />
+          </div>
+          
+          <div className="border-t pt-4">
+            <h4 className="font-medium mb-3">Vehicle Details (Optional)</h4>
+            <div className="space-y-3">
               <div>
-                <Label htmlFor="vehicleNumber">Vehicle Number *</Label>
+                <Label>Vehicle Number</Label>
                 <Input
-                  id="vehicleNumber"
                   value={formData.vehicleNumber}
-                  onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value })}
-                  placeholder="TN 01 AB 1234"
-                  required
+                  onChange={(e) => setFormData(prev => ({ ...prev, vehicleNumber: e.target.value }))}
+                  placeholder="Vehicle number"
                 />
               </div>
-              <div>
-                <Label htmlFor="vehicleType">Vehicle Type</Label>
-                <Select value={formData.vehicleType} onValueChange={(value) => setFormData({ ...formData, vehicleType: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="car">Car</SelectItem>
-                    <SelectItem value="bike">Bike</SelectItem>
-                    <SelectItem value="truck">Truck</SelectItem>
-                    <SelectItem value="bus">Bus</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="vehicleMake">Make</Label>
-                <Input
-                  id="vehicleMake"
-                  value={formData.vehicleMake}
-                  onChange={(e) => setFormData({ ...formData, vehicleMake: e.target.value })}
-                  placeholder="Toyota, Honda, etc."
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicleModel">Model</Label>
-                <Input
-                  id="vehicleModel"
-                  value={formData.vehicleModel}
-                  onChange={(e) => setFormData({ ...formData, vehicleModel: e.target.value })}
-                  placeholder="Camry, Civic, etc."
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicleYear">Year</Label>
-                <Input
-                  id="vehicleYear"
-                  type="number"
-                  value={formData.vehicleYear}
-                  onChange={(e) => setFormData({ ...formData, vehicleYear: parseInt(e.target.value) || new Date().getFullYear() })}
-                  min="1900"
-                  max={new Date().getFullYear() + 1}
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicleColor">Color</Label>
-                <Input
-                  id="vehicleColor"
-                  value={formData.vehicleColor}
-                  onChange={(e) => setFormData({ ...formData, vehicleColor: e.target.value })}
-                  placeholder="Red, Blue, etc."
-                />
-              </div>
-              <div>
-                <Label htmlFor="engineNumber">Engine Number</Label>
-                <Input
-                  id="engineNumber"
-                  value={formData.engineNumber}
-                  onChange={(e) => setFormData({ ...formData, engineNumber: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="chassisNumber">Chassis Number</Label>
-                <Input
-                  id="chassisNumber"
-                  value={formData.chassisNumber}
-                  onChange={(e) => setFormData({ ...formData, chassisNumber: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Make</Label>
+                  <Input
+                    value={formData.make}
+                    onChange={(e) => setFormData(prev => ({ ...prev, make: e.target.value }))}
+                    placeholder="Honda, Toyota, etc."
+                  />
+                </div>
+                <div>
+                  <Label>Model</Label>
+                  <Input
+                    value={formData.model}
+                    onChange={(e) => setFormData(prev => ({ ...prev, model: e.target.value }))}
+                    placeholder="City, Camry, etc."
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex gap-2 pt-4">
+            <Button type="submit" disabled={createCustomer.isPending}>
+              {createCustomer.isPending ? "Adding..." : "Add GST Customer"}
+            </Button>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add GST Customer & Vehicle</Button>
           </div>
         </form>
       </DialogContent>
