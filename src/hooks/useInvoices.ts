@@ -65,6 +65,8 @@ export const useCreateInvoice = () => {
     mutationFn: async (invoice: Omit<Invoice, "id" | "createdAt">) => {
       if (!user) throw new Error("User not authenticated");
       
+      console.log("Creating invoice with data:", invoice);
+      
       // Transform the Invoice interface back to database format
       const dbInvoice = {
         invoice_number: invoice.invoiceNumber,
@@ -85,13 +87,20 @@ export const useCreateInvoice = () => {
         user_id: user.id
       };
       
+      console.log("Transformed invoice data for database:", dbInvoice);
+      
       const { data, error } = await supabase
         .from("invoices")
         .insert([dbInvoice])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+      
+      console.log("Invoice created successfully:", data);
       return data;
     },
     onSuccess: () => {
