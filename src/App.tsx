@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invoices from "./pages/Invoices";
 import Customers from "./pages/Customers";
+import Vehicles from "./pages/Vehicles";
 import Services from "./pages/Services";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
@@ -49,6 +50,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Customers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/vehicles"
+                element={
+                  <ProtectedRoute>
+                    <Vehicles />
                   </ProtectedRoute>
                 }
               />
