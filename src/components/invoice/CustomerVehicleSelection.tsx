@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { User, Car } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { User, Car, Gauge } from "lucide-react";
 import { Customer, Vehicle } from "@/types/billing";
 
 interface CustomerVehicleSelectionProps {
@@ -11,8 +12,10 @@ interface CustomerVehicleSelectionProps {
   selectedCustomer: Customer | null;
   selectedVehicle: Vehicle | null;
   vehicles: Vehicle[];
+  kilometers: number;
   onCustomerChange: (customer: Customer | null) => void;
   onVehicleChange: (vehicle: Vehicle | null) => void;
+  onKilometersChange: (kilometers: number) => void;
   onCustomerAdded: (customer: Customer) => void;
   CustomerQuickAddComponent: React.ComponentType<{ onCustomerAdded: (customer: Customer) => void }>;
 }
@@ -22,8 +25,10 @@ const CustomerVehicleSelection = ({
   selectedCustomer,
   selectedVehicle,
   vehicles,
+  kilometers,
   onCustomerChange,
   onVehicleChange,
+  onKilometersChange,
   onCustomerAdded,
   CustomerQuickAddComponent
 }: CustomerVehicleSelectionProps) => {
@@ -114,6 +119,20 @@ const CustomerVehicleSelection = ({
               <Badge variant="secondary">{selectedVehicle.vehicleType}</Badge>
             </div>
           )}
+          
+          <div>
+            <Label className="flex items-center gap-2">
+              <Gauge className="h-4 w-4" />
+              Current Kilometers
+            </Label>
+            <Input
+              type="number"
+              value={kilometers}
+              onChange={(e) => onKilometersChange(parseInt(e.target.value) || 0)}
+              placeholder="Enter current kilometers"
+              min="0"
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

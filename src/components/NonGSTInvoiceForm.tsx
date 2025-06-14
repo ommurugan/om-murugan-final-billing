@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
@@ -259,15 +258,21 @@ const NonGSTInvoiceForm = ({
   return (
     <div className="space-y-6">
       <CustomerVehicleSelection
+        customers={[]} // You'll need to implement customer fetching
         selectedCustomer={selectedCustomer}
         selectedVehicle={selectedVehicle}
+        vehicles={[]} // You'll need to implement vehicle fetching based on selected customer
         kilometers={kilometers}
         onCustomerChange={setSelectedCustomer}
         onVehicleChange={setSelectedVehicle}
         onKilometersChange={setKilometers}
+        onCustomerAdded={() => {}} // You'll need to implement this
+        CustomerQuickAddComponent={() => <div>Quick Add Component</div>} // You'll need to implement this
       />
 
       <ServicesPartsSelection
+        services={transformedServices}
+        parts={transformedParts}
         invoiceItems={invoiceItems}
         onAddService={addService}
         onAddPart={addPart}

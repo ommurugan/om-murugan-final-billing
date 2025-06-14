@@ -10,69 +10,23 @@ interface ServicesPartsSelectionProps {
   services: Service[];
   parts: Part[];
   invoiceItems: InvoiceItem[];
-  onItemsChange: (items: InvoiceItem[]) => void;
+  onAddService: (serviceId: string) => void;
+  onAddPart: (partId: string) => void;
+  onRemoveItem: (itemId: string) => void;
+  onUpdateItemQuantity: (itemId: string, quantity: number) => void;
+  onUpdateItemDiscount: (itemId: string, discount: number) => void;
 }
 
 const ServicesPartsSelection = ({
   services,
   parts,
   invoiceItems,
-  onItemsChange
+  onAddService,
+  onAddPart,
+  onRemoveItem,
+  onUpdateItemQuantity,
+  onUpdateItemDiscount
 }: ServicesPartsSelectionProps) => {
-  const addService = (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
-    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
-      const newItem: InvoiceItem = {
-        id: Date.now().toString(),
-        type: 'service',
-        itemId: service.id,
-        name: service.name,
-        quantity: 1,
-        unitPrice: service.basePrice,
-        discount: 0,
-        total: service.basePrice
-      };
-      onItemsChange([...invoiceItems, newItem]);
-    }
-  };
-
-  const addPart = (partId: string) => {
-    const part = parts.find(p => p.id === partId);
-    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
-      const newItem: InvoiceItem = {
-        id: Date.now().toString(),
-        type: 'part',
-        itemId: part.id,
-        name: part.name,
-        quantity: 1,
-        unitPrice: part.price,
-        discount: 0,
-        total: part.price
-      };
-      onItemsChange([...invoiceItems, newItem]);
-    }
-  };
-
-  const removeItem = (itemId: string) => {
-    onItemsChange(invoiceItems.filter(item => item.id !== itemId));
-  };
-
-  const updateItemQuantity = (itemId: string, quantity: number) => {
-    onItemsChange(invoiceItems.map(item => 
-      item.id === itemId 
-        ? { ...item, quantity, total: (item.unitPrice - item.discount) * quantity }
-        : item
-    ));
-  };
-
-  const updateItemDiscount = (itemId: string, discount: number) => {
-    onItemsChange(invoiceItems.map(item => 
-      item.id === itemId 
-        ? { ...item, discount, total: (item.unitPrice - discount) * item.quantity }
-        : item
-    ));
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -103,7 +57,7 @@ const ServicesPartsSelection = ({
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => addService(service.id)}
+                        onClick={() => onAddService(service.id)}
                         disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
                       >
                         <Plus className="h-4 w-4" />
@@ -133,7 +87,7 @@ const ServicesPartsSelection = ({
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => addPart(part.id)}
+                        onClick={() => onAddPart(part.id)}
                         disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
                       >
                         <Plus className="h-4 w-4" />
@@ -162,7 +116,7 @@ const ServicesPartsSelection = ({
                           <Input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => onUpdateItemQuantity(item.id, parseInt(e.target.value) || 1)}
                             className="w-16 text-center"
                             min="1"
                           />
@@ -172,7 +126,7 @@ const ServicesPartsSelection = ({
                           <Input
                             type="number"
                             value={item.discount}
-                            onChange={(e) => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
+                            onChange={(e) => onUpdateItemDiscount(item.id, parseFloat(e.target.value) || 0)}
                             className="w-20 text-center"
                             min="0"
                           />
@@ -182,7 +136,7 @@ const ServicesPartsSelection = ({
                           <p className="font-semibold">₹{item.total}</p>
                           <p className="text-xs text-gray-500">Total</p>
                         </div>
-                        <Button size="sm" variant="ghost" onClick={() => removeItem(item.id)}>
+                        <Button size="sm" variant="ghost" onClick={() => onRemoveItem(item.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
