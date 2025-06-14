@@ -6,7 +6,8 @@ import {
   Receipt, 
   Users, 
   Car,
-  BarChart3
+  BarChart3,
+  Wrench
 } from "lucide-react";
 
 const BottomNavigation = () => {
@@ -18,6 +19,7 @@ const BottomNavigation = () => {
     { icon: Receipt, label: "Invoices", path: "/invoices" },
     { icon: Users, label: "Customers", path: "/customers" },
     { icon: Car, label: "Vehicles", path: "/vehicles" },
+    { icon: Wrench, label: "Services", path: "/services" },
     { icon: BarChart3, label: "Reports", path: "/reports" },
   ];
 

@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LayoutDashboard, Receipt, Users, Car, BarChart3, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, Receipt, Users, Car, BarChart3, LogOut, Menu, Wrench } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const MobileSidebar = () => {
@@ -33,6 +33,11 @@ const MobileSidebar = () => {
       icon: Car,
       label: "Vehicles",
       path: "/vehicles"
+    },
+    {
+      icon: Wrench,
+      label: "Services & Parts",
+      path: "/services"
     },
     {
       icon: BarChart3,
