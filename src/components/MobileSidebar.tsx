@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,42 @@ const MobileSidebar = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Close sidebar when clicking outside or on page content
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking on the trigger button or inside the sidebar
+      if (target.closest('[data-sidebar="trigger"]') || 
+          target.closest('[data-sidebar="sidebar"]') ||
+          target.closest('.sheet-content')) {
+        return;
+      }
+      
+      // Close sidebar if it's open and clicking anywhere else
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    // Add event listener when sidebar is open
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    // Cleanup event listeners
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -125,11 +161,12 @@ const MobileSidebar = () => {
             variant="ghost" 
             size="icon" 
             className="fixed top-4 left-4 z-30 bg-white shadow-md border h-12 w-12 touch-manipulation active:scale-95"
+            data-sidebar="trigger"
           >
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-80 p-0 z-40">
+        <SheetContent side="left" className="w-80 p-0 z-40 sheet-content" data-sidebar="sidebar">
           <SidebarContent />
         </SheetContent>
       </Sheet>
