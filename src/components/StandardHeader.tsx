@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import MobileSidebar from "./MobileSi debar";
+import MobileSidebar from "./MobileSidebar";
 import Sidebar from "./Sidebar";
 
 interface StandardHeaderProps {
