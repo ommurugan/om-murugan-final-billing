@@ -57,6 +57,7 @@ const MobileSidebar = () => {
       
       // Close sidebar if it's open and clicking anywhere else
       if (isOpen) {
+        console.log('Closing sidebar due to outside click');
         setIsOpen(false);
       }
     };
@@ -76,10 +77,12 @@ const MobileSidebar = () => {
 
   // Close sidebar on route change
   useEffect(() => {
+    console.log('Route changed to:', location.pathname, '- Closing sidebar');
     setIsOpen(false);
   }, [location.pathname]);
 
   const handleNavigate = (path: string) => {
+    console.log('Navigating to:', path, '- Closing sidebar');
     navigate(path);
     setIsOpen(false);
   };

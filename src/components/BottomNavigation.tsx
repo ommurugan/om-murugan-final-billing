@@ -24,6 +24,7 @@ const BottomNavigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const handleNavigation = (path: string) => {
+    console.log('Bottom navigation - Navigating to:', path);
     navigate(path);
   };
 
