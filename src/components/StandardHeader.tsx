@@ -39,8 +39,8 @@ const StandardHeader = ({
         </div>
       </div>
 
-      {/* Mobile Layout */}
-      <div className="flex md:hidden w-full min-h-screen flex-col">
+      {/* Mobile Layout - Full Width */}
+      <div className="md:hidden w-full min-h-screen">
         {/* Mobile Sidebar */}
         <MobileSidebar />
         
@@ -57,7 +57,7 @@ const StandardHeader = ({
         </header>
         
         {/* Mobile Main Content */}
-        <main className="flex-1 w-full overflow-x-hidden pb-20">
+        <main className="w-full overflow-x-hidden pb-20">
           {/* Content will be passed as children to the page component */}
         </main>
         
