@@ -24,6 +24,9 @@ import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from 
 import InvoicePrintPreview from "./InvoicePrintPreview";
 import CustomerQuickAdd from "./CustomerQuickAdd";
 import { useCustomers } from "@/hooks/useCustomers";
+import { useVehicles } from "@/hooks/useVehicles";
+import { useServices } from "@/hooks/useServices";
+import { useParts } from "@/hooks/useParts";
 
 interface InvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -34,14 +37,21 @@ interface InvoiceFormProps {
 const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) => {
   const { data: customersData = [] } = useCustomers();
   const [customers, setCustomers] = useState<Customer[]>([]);
-
-  // Clear dummy data and use empty arrays
-  const [vehicles] = useState<Vehicle[]>([]);
-  const [services] = useState<Service[]>([]);
-  const [parts] = useState<Part[]>([]);
-
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+
+  // Fetch vehicles for the selected customer
+  const { data: vehiclesData = [] } = useVehicles(selectedCustomer?.id);
+  
+  // Fetch services and parts
+  const { data: servicesData = [] } = useServices();
+  const { data: partsData = [] } = useParts();
+
+  console.log("Services data:", servicesData);
+  console.log("Parts data:", partsData);
+  console.log("Vehicles data:", vehiclesData);
+  console.log("Selected customer:", selectedCustomer);
+
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -57,7 +67,44 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
     setCustomers(customersData);
   }, [customersData]);
 
-  const customerVehicles = selectedCustomer ? vehicles.filter(v => v.customerId === selectedCustomer.id) : [];
+  // Transform database vehicles to match our interface
+  const transformedVehicles: Vehicle[] = vehiclesData.map(v => ({
+    id: v.id,
+    customerId: v.customer_id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: (v.vehicle_type as 'car' | 'bike' | 'scooter') || 'car',
+    engineNumber: v.engine_number,
+    chassisNumber: v.chassis_number,
+    color: v.color,
+    createdAt: v.created_at
+  }));
+
+  // Transform database services to match our interface
+  const transformedServices: Service[] = servicesData.map(s => ({
+    id: s.id,
+    name: s.name,
+    category: s.category,
+    basePrice: Number(s.base_price),
+    estimatedTime: s.estimated_time,
+    description: s.description,
+    isActive: s.is_active
+  }));
+
+  // Transform database parts to match our interface
+  const transformedParts: Part[] = partsData.map(p => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    price: Number(p.price),
+    stockQuantity: p.stock_quantity,
+    minStockLevel: p.min_stock_level,
+    supplier: p.supplier,
+    partNumber: p.part_number,
+    isActive: p.is_active
+  }));
 
   const handleCustomerAdded = (newCustomer: Customer) => {
     setCustomers(prev => [...prev, newCustomer]);
@@ -65,7 +112,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
   };
 
   const addService = (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
+    const service = transformedServices.find(s => s.id === serviceId);
     if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
@@ -82,7 +129,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
   };
 
   const addPart = (partId: string) => {
-    const part = parts.find(p => p.id === partId);
+    const part = transformedParts.find(p => p.id === partId);
     if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
@@ -284,7 +331,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
               <Label>Select Vehicle</Label>
               <Select 
                 onValueChange={(value) => {
-                  const vehicle = customerVehicles.find(v => v.id === value);
+                  const vehicle = transformedVehicles.find(v => v.id === value);
                   setSelectedVehicle(vehicle || null);
                 }}
                 disabled={!selectedCustomer}
@@ -293,12 +340,12 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
                   <SelectValue placeholder="Choose a vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customerVehicles.length === 0 ? (
+                  {transformedVehicles.length === 0 ? (
                     <SelectItem value="no-vehicles" disabled>
                       No vehicles found for this customer
                     </SelectItem>
                   ) : (
-                    customerVehicles.map(vehicle => (
+                    transformedVehicles.map(vehicle => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
                         {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
                       </SelectItem>
@@ -318,7 +365,7 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         </Card>
       </div>
 
-      {/* Services & Parts - Empty state for now */}
+      {/* Services & Parts */}
       <Card>
         <CardHeader>
           <CardTitle>Services & Parts</CardTitle>
@@ -332,15 +379,62 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
             </TabsList>
 
             <TabsContent value="services" className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
-                <p>No services available. Please add services first.</p>
-              </div>
+              {transformedServices.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No services available. Please add services first.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {transformedServices.map(service => (
+                    <div key={service.id} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">{service.name}</h4>
+                          <p className="text-sm text-gray-600">{service.category}</p>
+                          <p className="text-lg font-semibold text-blue-600">₹{service.basePrice}</p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          onClick={() => addService(service.id)}
+                          disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="parts" className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
-                <p>No parts available. Please add parts first.</p>
-              </div>
+              {transformedParts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No parts available. Please add parts first.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {transformedParts.map(part => (
+                    <div key={part.id} className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">{part.name}</h4>
+                          <p className="text-sm text-gray-600">{part.category}</p>
+                          <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
+                          <p className="text-xs text-gray-500">Stock: {part.stockQuantity}</p>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          onClick={() => addPart(part.id)}
+                          disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="selected" className="space-y-4">
