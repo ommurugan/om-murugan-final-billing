@@ -1,57 +1,22 @@
+
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Plus, 
-  Search, 
-  Phone, 
-  Mail, 
-  Edit,
-  Trash2,
-  Eye,
-  User,
-  Save,
-  X
-} from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import StandardHeader from "@/components/StandardHeader";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { useCustomers, useCreateCustomer } from "@/hooks/useCustomers";
+import { useCustomers } from "@/hooks/useCustomers";
 import { useUpdateCustomer } from "@/hooks/useUpdateCustomer";
 import { useDeleteCustomer } from "@/hooks/useDeleteCustomer";
+import CustomerSearch from "@/components/customers/CustomerSearch";
+import CustomerStats from "@/components/customers/CustomerStats";
+import CustomerList from "@/components/customers/CustomerList";
+import { Customer } from "@/types/billing";
 
 const Customers = () => {
-  const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   
   const { data: customers = [], isLoading } = useCustomers();
-  const createCustomerMutation = useCreateCustomer();
   const updateCustomerMutation = useUpdateCustomer();
   const deleteCustomerMutation = useDeleteCustomer();
-  
-  const [newCustomer, setNewCustomer] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    gstNumber: "",
-    // Vehicle details
-    vehicleMake: "",
-    vehicleModel: "",
-    vehicleNumber: "",
-    vehicleType: "car",
-    vehicleYear: new Date().getFullYear(),
-    vehicleColor: "",
-    engineNumber: "",
-    chassisNumber: ""
-  });
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,36 +24,7 @@ const Customers = () => {
     (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAddCustomer = async () => {
-    if (!newCustomer.name || !newCustomer.phone) {
-      toast.error("Please fill in required fields");
-      return;
-    }
-    
-    try {
-      await createCustomerMutation.mutateAsync(newCustomer);
-      setShowAddForm(false);
-      setNewCustomer({
-        name: "",
-        phone: "",
-        email: "",
-        address: "",
-        gstNumber: "",
-        vehicleMake: "",
-        vehicleModel: "",
-        vehicleNumber: "",
-        vehicleType: "car",
-        vehicleYear: new Date().getFullYear(),
-        vehicleColor: "",
-        engineNumber: "",
-        chassisNumber: ""
-      });
-    } catch (error) {
-      // Error handling is done in the hook
-    }
-  };
-
-  const handleEditCustomer = (customer) => {
+  const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer({...customer});
   };
 
@@ -113,8 +49,12 @@ const Customers = () => {
     }
   };
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const handleCancelEdit = () => {
+    setEditingCustomer(null);
+  };
+
+  const handleEditingCustomerChange = (customer: Customer) => {
+    setEditingCustomer(customer);
   };
 
   if (isLoading) {
@@ -128,161 +68,35 @@ const Customers = () => {
   }
 
   return (
-    <StandardHeader 
-      title="Customers"
-    >
+    <StandardHeader title="Customers">
       <div className="w-full">
         <div className="p-4 md:p-6 pb-20 md:pb-6 max-w-full">
           {/* Search and Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
             <div className="lg:col-span-3">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input 
-                      placeholder="Search customers by name, phone, or email..." 
-                      className="pl-10"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <CustomerSearch 
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+              />
             </div>
             <div>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{customers.length}</p>
-                    <p className="text-sm text-gray-600">Total Customers</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <CustomerStats totalCustomers={customers.length} />
             </div>
           </div>
 
           {/* Customers List */}
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Customer Database</CardTitle>
-              <CardDescription>Manage your customer information and service history</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredCustomers.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    {customers.length === 0 ? "No customers found. Add your first customer to get started." : "No customers found matching your search."}
-                  </div>
-                ) : (
-                  filteredCustomers.map((customer) => (
-                    <div key={customer.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      {editingCustomer && editingCustomer.id === customer.id ? (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <Input
-                              value={editingCustomer.name}
-                              onChange={(e) => setEditingCustomer({...editingCustomer, name: e.target.value})}
-                              placeholder="Customer name"
-                            />
-                            <Input
-                              value={editingCustomer.phone}
-                              onChange={(e) => setEditingCustomer({...editingCustomer, phone: e.target.value})}
-                              placeholder="Phone number"
-                            />
-                            <Input
-                              value={editingCustomer.email || ""}
-                              onChange={(e) => setEditingCustomer({...editingCustomer, email: e.target.value})}
-                              placeholder="Email address"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              onClick={handleUpdateCustomer} 
-                              size="sm"
-                              disabled={updateCustomerMutation.isPending}
-                            >
-                              <Save className="h-4 w-4 mr-1" />
-                              {updateCustomerMutation.isPending ? "Saving..." : "Save"}
-                            </Button>
-                            <Button onClick={() => setEditingCustomer(null)} variant="outline" size="sm">
-                              <X className="h-4 w-4 mr-1" />
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-4">
-                            <Avatar className="h-12 w-12">
-                              <AvatarFallback className="bg-blue-100 text-blue-600">
-                                {getInitials(customer.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-gray-900">{customer.name}</h3>
-                                <Badge variant="default">Active</Badge>
-                                {customer.gstNumber && (
-                                  <Badge variant="secondary">GST</Badge>
-                                )}
-                              </div>
-                              <div className="space-y-1 text-sm text-gray-600">
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-4 w-4" />
-                                  <span>{customer.phone}</span>
-                                </div>
-                                {customer.email && (
-                                  <div className="flex items-center gap-2">
-                                    <Mail className="h-4 w-4" />
-                                    <span>{customer.email}</span>
-                                  </div>
-                                )}
-                                {customer.address && (
-                                  <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4" />
-                                    <span>{customer.address}</span>
-                                  </div>
-                                )}
-                                {customer.gstNumber && (
-                                  <div className="text-xs text-gray-500">
-                                    GST: {customer.gstNumber}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col items-end gap-2">
-                            <div className="text-right text-sm">
-                              <p className="text-gray-500">Joined: {new Date(customer.createdAt).toLocaleDateString()}</p>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button size="sm" variant="ghost">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleEditCustomer(customer)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="text-red-600 hover:text-red-700"
-                                onClick={() => handleDeleteCustomer(customer.id)}
-                                disabled={deleteCustomerMutation.isPending}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CustomerList
+            customers={customers}
+            filteredCustomers={filteredCustomers}
+            editingCustomer={editingCustomer}
+            onEditCustomer={handleEditCustomer}
+            onUpdateCustomer={handleUpdateCustomer}
+            onCancelEdit={handleCancelEdit}
+            onDeleteCustomer={handleDeleteCustomer}
+            onEditingCustomerChange={handleEditingCustomerChange}
+            isUpdating={updateCustomerMutation.isPending}
+            isDeleting={deleteCustomerMutation.isPending}
+          />
         </div>
       </div>
       
