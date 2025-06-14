@@ -111,12 +111,12 @@ const MobileSidebar = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed top-4 left-4 z-40 bg-white shadow-md border"
+            className="fixed top-4 left-4 z-30 bg-white shadow-md border"
           >
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-80 p-0">
+        <SheetContent side="left" className="w-80 p-0 z-40">
           <SidebarContent />
         </SheetContent>
       </Sheet>
