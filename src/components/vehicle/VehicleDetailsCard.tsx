@@ -143,53 +143,67 @@ const VehicleDetailsCard = ({ searchResult }: VehicleDetailsCardProps) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {serviceHistory.map((invoice) => (
-                <div key={invoice.id} className="bg-white border rounded-lg p-4 shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-semibold text-lg">{invoice.invoice_number}</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(invoice.created_at).toLocaleDateString()}
-                      </p>
-                      {invoice.kilometers && (
+              {serviceHistory.map((invoice) => {
+                // Log invoice items for debugging
+                console.log('Invoice items for', invoice.invoice_number, ':', invoice.invoice_items);
+                
+                const serviceItems = invoice.invoice_items?.filter(item => item.item_type === 'service') || [];
+                const partItems = invoice.invoice_items?.filter(item => item.item_type === 'part') || [];
+                
+                console.log('Service items:', serviceItems);
+                console.log('Part items:', partItems);
+                
+                return (
+                  <div key={invoice.id} className="bg-white border rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-semibold text-lg">{invoice.invoice_number}</p>
                         <p className="text-sm text-gray-600">
-                          Kilometers: {invoice.kilometers.toLocaleString()}
+                          {new Date(invoice.created_at).toLocaleDateString()}
                         </p>
-                      )}
+                        {invoice.kilometers && (
+                          <p className="text-sm text-gray-600">
+                            Kilometers: {invoice.kilometers.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-xl text-green-600">₹{invoice.total.toFixed(2)}</p>
+                        <Badge 
+                          variant={invoice.status === 'paid' ? 'default' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-xl text-green-600">₹{invoice.total.toFixed(2)}</p>
-                      <Badge 
-                        variant={invoice.status === 'paid' ? 'default' : 'secondary'}
-                        className="capitalize"
-                      >
-                        {invoice.status}
-                      </Badge>
-                    </div>
-                  </div>
 
-                  {/* Services and Parts Details */}
-                  {invoice.invoice_items && invoice.invoice_items.length > 0 && (
+                    {/* Services and Parts Details */}
                     <div className="mt-4 space-y-3">
                       {/* Services Section */}
                       <div className="border-t pt-3">
                         <div className="flex items-center gap-2 mb-2">
                           <Settings className="h-4 w-4 text-blue-600" />
-                          <h5 className="font-medium text-blue-900">Services Performed</h5>
+                          <h5 className="font-medium text-blue-900">Services Performed ({serviceItems.length})</h5>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {invoice.invoice_items
-                            .filter(item => item.item_type === 'service' && item.services)
-                            .map((item) => (
+                        {serviceItems.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {serviceItems.map((item) => (
                               <div key={item.id} className="bg-blue-50 p-3 rounded">
-                                <p className="font-medium text-blue-900">{item.services?.name}</p>
-                                <p className="text-sm text-blue-700">Category: {item.services?.category}</p>
-                                <p className="text-sm text-gray-600">Qty: {item.quantity} × ₹{item.unit_price} = ₹{item.total}</p>
+                                <p className="font-medium text-blue-900">
+                                  {item.services?.name || item.name}
+                                </p>
+                                {item.services?.category && (
+                                  <p className="text-sm text-blue-700">Category: {item.services.category}</p>
+                                )}
+                                <p className="text-sm text-gray-600">
+                                  Qty: {item.quantity} × ₹{item.unit_price} = ₹{item.total}
+                                </p>
                               </div>
                             ))}
-                        </div>
-                        {invoice.invoice_items.filter(item => item.item_type === 'service').length === 0 && (
-                          <p className="text-sm text-gray-500 italic">No services recorded</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">No services recorded for this invoice</p>
                         )}
                       </div>
 
@@ -197,30 +211,35 @@ const VehicleDetailsCard = ({ searchResult }: VehicleDetailsCardProps) => {
                       <div className="border-t pt-3">
                         <div className="flex items-center gap-2 mb-2">
                           <Package className="h-4 w-4 text-orange-600" />
-                          <h5 className="font-medium text-orange-900">Parts Changed</h5>
+                          <h5 className="font-medium text-orange-900">Parts Changed ({partItems.length})</h5>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {invoice.invoice_items
-                            .filter(item => item.item_type === 'part' && item.parts)
-                            .map((item) => (
+                        {partItems.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {partItems.map((item) => (
                               <div key={item.id} className="bg-orange-50 p-3 rounded">
-                                <p className="font-medium text-orange-900">{item.parts?.name}</p>
-                                <div className="text-sm text-orange-700">
-                                  <p>Category: {item.parts?.category}</p>
-                                  {item.parts?.part_number && <p>Part #: {item.parts.part_number}</p>}
-                                </div>
-                                <p className="text-sm text-gray-600">Qty: {item.quantity} × ₹{item.unit_price} = ₹{item.total}</p>
+                                <p className="font-medium text-orange-900">
+                                  {item.parts?.name || item.name}
+                                </p>
+                                {item.parts && (
+                                  <div className="text-sm text-orange-700">
+                                    <p>Category: {item.parts.category}</p>
+                                    {item.parts.part_number && <p>Part #: {item.parts.part_number}</p>}
+                                  </div>
+                                )}
+                                <p className="text-sm text-gray-600">
+                                  Qty: {item.quantity} × ₹{item.unit_price} = ₹{item.total}
+                                </p>
                               </div>
                             ))}
-                        </div>
-                        {invoice.invoice_items.filter(item => item.item_type === 'part').length === 0 && (
-                          <p className="text-sm text-gray-500 italic">No parts recorded</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500 italic">No parts recorded for this invoice</p>
                         )}
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
