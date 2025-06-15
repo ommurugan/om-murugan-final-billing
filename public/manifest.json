@@ -1,0 +1,25 @@
+
+{
+  "name": "OM MURUGAN AUTO WORKS",
+  "short_name": "Auto Works",
+  "description": "Professional auto garage billing and management system",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1d4ed8",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

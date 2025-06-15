@@ -6,11 +6,14 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Device } from '@capacitor/device';
 import { Network } from '@capacitor/network';
+import { Keyboard } from '@capacitor/keyboard';
 
 export const useMobileFeatures = () => {
   const [isNative, setIsNative] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(true);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const initializeMobile = async () => {
@@ -20,8 +23,9 @@ export const useMobileFeatures = () => {
         // Hide splash screen after app loads
         await SplashScreen.hide();
         
-        // Set status bar style
+        // Set status bar style for auto garage theme
         await StatusBar.setStyle({ style: StatusBarStyle.Default });
+        await StatusBar.setBackgroundColor({ color: '#ffffff' });
         
         // Get device info
         const info = await Device.getInfo();
@@ -34,6 +38,17 @@ export const useMobileFeatures = () => {
         Network.addListener('networkStatusChange', (status) => {
           setIsOnline(status.connected);
         });
+
+        // Monitor keyboard events
+        Keyboard.addListener('keyboardWillShow', (info) => {
+          setKeyboardHeight(info.keyboardHeight);
+          setIsKeyboardOpen(true);
+        });
+
+        Keyboard.addListener('keyboardWillHide', () => {
+          setKeyboardHeight(0);
+          setIsKeyboardOpen(false);
+        });
       }
     };
 
@@ -42,16 +57,34 @@ export const useMobileFeatures = () => {
 
   const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Medium) => {
     if (isNative) {
-      await Haptics.impact({ style });
+      try {
+        await Haptics.impact({ style });
+      } catch (error) {
+        console.log('Haptic feedback not available');
+      }
     }
   };
 
   const setStatusBarColor = async (color: string, dark = false) => {
     if (isNative) {
-      await StatusBar.setBackgroundColor({ color });
-      await StatusBar.setStyle({ 
-        style: dark ? StatusBarStyle.Dark : StatusBarStyle.Light 
-      });
+      try {
+        await StatusBar.setBackgroundColor({ color });
+        await StatusBar.setStyle({ 
+          style: dark ? StatusBarStyle.Dark : StatusBarStyle.Light 
+        });
+      } catch (error) {
+        console.log('Status bar customization not available');
+      }
+    }
+  };
+
+  const hideKeyboard = async () => {
+    if (isNative) {
+      try {
+        await Keyboard.hide();
+      } catch (error) {
+        console.log('Keyboard hide not available');
+      }
     }
   };
 
@@ -59,7 +92,10 @@ export const useMobileFeatures = () => {
     isNative,
     deviceInfo,
     isOnline,
+    keyboardHeight,
+    isKeyboardOpen,
     triggerHaptic,
-    setStatusBarColor
+    setStatusBarColor,
+    hideKeyboard
   };
 };

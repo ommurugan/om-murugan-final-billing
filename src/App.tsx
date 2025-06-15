@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import NetworkStatus from "@/components/mobile/NetworkStatus";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -25,6 +26,7 @@ const AppContent = () => {
     <div className={`min-h-screen w-full ${isNative ? 'safe-area-insets' : ''}`}>
       <Toaster />
       <Sonner />
+      <NetworkStatus />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
