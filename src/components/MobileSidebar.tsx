@@ -30,14 +30,14 @@ const MobileSidebar = () => {
       path: "/customers"
     },
     {
-      icon: Car,
-      label: "Vehicles",
-      path: "/vehicles"
-    },
-    {
       icon: Wrench,
       label: "Services & Parts",
       path: "/services"
+    },
+    {
+      icon: Car,
+      label: "Vehicles",
+      path: "/vehicles"
     },
     {
       icon: BarChart3,
@@ -162,13 +162,13 @@ const MobileSidebar = () => {
   };
 
   return (
-    <div className="md:hidden">
+    <div>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="fixed top-4 left-4 z-30 bg-white shadow-md border h-12 w-12 touch-manipulation active:scale-95"
+            className="fixed top-4 left-4 z-30 bg-white shadow-md border h-12 w-12 touch-manipulation active:scale-95 md:relative md:top-0 md:left-0 md:z-auto"
             data-sidebar="trigger"
           >
             <Menu className="h-6 w-6" />

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Receipt, Users, Car, BarChart3, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Receipt, Users, Car, BarChart3, LogOut, Menu, X, Wrench } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const Sidebar = () => {
@@ -16,6 +16,7 @@ const Sidebar = () => {
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Receipt, label: "Invoices", path: "/invoices" },
     { icon: Users, label: "Customers", path: "/customers" },
+    { icon: Wrench, label: "Services & Parts", path: "/services" },
     { icon: Car, label: "Vehicles", path: "/vehicles" },
     { icon: BarChart3, label: "Reports", path: "/reports" }
   ];

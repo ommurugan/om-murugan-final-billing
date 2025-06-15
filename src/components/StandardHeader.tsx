@@ -25,7 +25,8 @@ const StandardHeader = ({
           <header className="bg-white shadow-sm border-b px-4 md:px-6 py-4 flex-shrink-0 safe-area-inset-top">
             <div className="flex justify-between items-center min-h-[44px]">
               <div className="flex-1">
-                {/* Title removed */}
+                {/* Hamburger menu now available on desktop too */}
+                <MobileSidebar />
               </div>
               <div className="flex-shrink-0 ml-4">
                 {children}
