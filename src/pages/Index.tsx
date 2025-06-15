@@ -37,8 +37,8 @@ const Index = () => {
     }
   }, [user, loading, navigate, hasShownSplash]);
 
-  // Show splash screen on first load (especially for mobile)
-  if (showSplashScreen && (isNative || !hasShownSplash)) {
+  // Show splash screen on first load for both web and mobile
+  if (showSplashScreen && !hasShownSplash) {
     return <SplashScreen onComplete={handleSplashComplete} />;
   }
 

@@ -11,7 +11,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Set status bar to match splash screen background
+    // Set status bar to match splash screen background (mobile only)
     if (isNative) {
       setStatusBarColor('#1d4ed8', false);
     }
