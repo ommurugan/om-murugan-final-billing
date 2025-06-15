@@ -14,6 +14,8 @@ import {
   X
 } from "lucide-react";
 import { Invoice } from "@/types/billing";
+import { useMobileFeatures } from "@/hooks/useMobileFeatures";
+import { ImpactStyle } from "@capacitor/haptics";
 
 interface MobileInvoiceCardProps {
   invoice: Invoice;
@@ -34,6 +36,8 @@ const MobileInvoiceCard = ({
   onPrint,
   onEmail
 }: MobileInvoiceCardProps) => {
+  const { triggerHaptic } = useMobileFeatures();
+
   const getStatusColor = (status: Invoice['status']) => {
     switch (status) {
       case 'paid': return 'default';
@@ -56,8 +60,13 @@ const MobileInvoiceCard = ({
     }
   };
 
+  const handleAction = async (action: () => void, hapticStyle: ImpactStyle = ImpactStyle.Light) => {
+    await triggerHaptic(hapticStyle);
+    action();
+  };
+
   return (
-    <Card className="mb-4">
+    <Card className="mb-4 transition-all duration-200 hover:shadow-md active:scale-[0.98]">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
@@ -90,23 +99,38 @@ const MobileInvoiceCard = ({
         </div>
 
         <div className="grid grid-cols-4 gap-2">
-          <Button size="sm" variant="outline" onClick={() => onEdit(invoice)} className="h-12 flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => handleAction(() => onEdit(invoice))} 
+            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
+          >
             <Eye className="h-4 w-4" />
             <span className="text-xs">View</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => onEdit(invoice)} className="h-12 flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => handleAction(() => onEdit(invoice))} 
+            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
+          >
             <Edit className="h-4 w-4" />
             <span className="text-xs">Edit</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => onPrint(invoice)} className="h-12 flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => handleAction(() => onPrint(invoice))} 
+            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
+          >
             <Printer className="h-4 w-4" />
             <span className="text-xs">Print</span>
           </Button>
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => onDelete(invoice.id)}
-            className="h-12 flex flex-col gap-1 text-red-500 hover:text-red-700"
+            onClick={() => handleAction(() => onDelete(invoice.id), ImpactStyle.Medium)}
+            className="h-12 flex flex-col gap-1 text-red-500 hover:text-red-700 transition-all duration-150 active:scale-95"
           >
             <Trash2 className="h-4 w-4" />
             <span className="text-xs">Delete</span>
