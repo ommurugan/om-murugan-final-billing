@@ -6,32 +6,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import SplashScreen from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Invoices from "./pages/Invoices";
 import Customers from "./pages/Customers";
-import Vehicles from "./pages/Vehicles";
 import Services from "./pages/Services";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
-        <div className="min-h-screen w-full touch-manipulation">
-          <SplashScreen />
+        <div className="min-h-screen w-full">
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -59,14 +49,6 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Customers />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/vehicles"
-                element={
-                  <ProtectedRoute>
-                    <Vehicles />
                   </ProtectedRoute>
                 }
               />
