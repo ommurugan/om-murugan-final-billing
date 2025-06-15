@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Service } from "@/hooks/useServices";
 
 interface ServiceFormProps {
@@ -26,6 +27,33 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
     category: editingService?.category || ""
   });
 
+  const [durationFormat, setDurationFormat] = useState("minutes");
+
+  const convertToMinutes = (value: string, format: string): number => {
+    const numValue = parseInt(value) || 0;
+    switch (format) {
+      case "days":
+        return numValue * 1440; // 24 * 60
+      case "months":
+        return numValue * 43200; // 30 * 24 * 60
+      case "minutes":
+      default:
+        return numValue;
+    }
+  };
+
+  const convertFromMinutes = (minutes: number, format: string): string => {
+    switch (format) {
+      case "days":
+        return Math.floor(minutes / 1440).toString();
+      case "months":
+        return Math.floor(minutes / 43200).toString();
+      case "minutes":
+      default:
+        return minutes.toString();
+    }
+  };
+
   const handleSubmit = () => {
     if (editingService) {
       onSubmit({
@@ -33,7 +61,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
         name: formData.name,
         description: formData.description,
         base_price: parseFloat(formData.base_price),
-        estimated_time: parseInt(formData.estimated_time),
+        estimated_time: convertToMinutes(formData.estimated_time, durationFormat),
         category: formData.category
       });
     } else {
@@ -41,7 +69,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
         name: formData.name,
         description: formData.description || undefined,
         base_price: parseFloat(formData.base_price),
-        estimated_time: parseInt(formData.estimated_time) || 60,
+        estimated_time: convertToMinutes(formData.estimated_time, durationFormat) || 60,
         category: formData.category,
         is_active: true
       });
@@ -56,6 +84,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
       estimated_time: "",
       category: ""
     });
+    setDurationFormat("minutes");
   };
 
   const handleClose = () => {
@@ -63,6 +92,13 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
     if (!editingService) {
       resetForm();
     }
+  };
+
+  const handleDurationFormatChange = (newFormat: string) => {
+    const currentMinutes = convertToMinutes(formData.estimated_time, durationFormat);
+    const newValue = convertFromMinutes(currentMinutes, newFormat);
+    setDurationFormat(newFormat);
+    setFormData({...formData, estimated_time: newValue});
   };
 
   return (
@@ -104,23 +140,38 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
               />
             </div>
             <div>
-              <Label htmlFor="serviceDuration">Duration (minutes)</Label>
+              <Label htmlFor="serviceCategory">Category</Label>
               <Input 
-                id="serviceDuration"
-                type="number"
-                value={formData.estimated_time}
-                onChange={(e) => setFormData({...formData, estimated_time: e.target.value})}
-                placeholder="60"
+                id="serviceCategory"
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                placeholder="e.g., Maintenance, Repair"
               />
             </div>
           </div>
           <div>
-            <Label htmlFor="serviceCategory">Category</Label>
+            <Label htmlFor="durationFormat">Duration Format</Label>
+            <Select value={durationFormat} onValueChange={handleDurationFormatChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select duration format" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="minutes">Minutes</SelectItem>
+                <SelectItem value="days">Days</SelectItem>
+                <SelectItem value="months">Months</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="serviceDuration">
+              Duration ({durationFormat === "minutes" ? "minutes" : durationFormat === "days" ? "days" : "months"})
+            </Label>
             <Input 
-              id="serviceCategory"
-              value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
-              placeholder="e.g., Maintenance, Repair"
+              id="serviceDuration"
+              type="number"
+              value={formData.estimated_time}
+              onChange={(e) => setFormData({...formData, estimated_time: e.target.value})}
+              placeholder={durationFormat === "minutes" ? "60" : durationFormat === "days" ? "1" : "1"}
             />
           </div>
           <Button 
