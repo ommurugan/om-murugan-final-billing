@@ -10,17 +10,19 @@ export const useSplashScreen = () => {
   useEffect(() => {
     const hideSplash = async () => {
       if (isNative) {
-        // Hide the native splash screen after our custom splash is ready
+        // Give a short delay to ensure our custom splash screen is ready
         setTimeout(async () => {
           try {
             await SplashScreen.hide();
             setIsNativeSplashVisible(false);
+            console.log('Native splash screen hidden successfully');
           } catch (error) {
-            console.log('Native splash screen already hidden');
+            console.log('Native splash screen already hidden or not available');
             setIsNativeSplashVisible(false);
           }
-        }, 100);
+        }, 200);
       } else {
+        // For web, immediately mark as not visible
         setIsNativeSplashVisible(false);
       }
     };

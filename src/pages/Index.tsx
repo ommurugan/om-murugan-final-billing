@@ -22,6 +22,7 @@ const Index = () => {
   }, []);
 
   const handleSplashComplete = () => {
+    console.log('Splash screen completed');
     setShowSplashScreen(false);
     setHasShownSplash(true);
     sessionStorage.setItem('splashShown', 'true');
@@ -29,6 +30,7 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading && hasShownSplash) {
+      console.log('Redirecting user:', user ? 'to dashboard' : 'to auth');
       if (user) {
         navigate('/dashboard');
       } else {
