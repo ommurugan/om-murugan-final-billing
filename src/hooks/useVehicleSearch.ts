@@ -65,9 +65,13 @@ export const useVehicleSearch = (vehicleNumber: string) => {
       if (servicesData.error) throw servicesData.error;
       if (partsData.error) throw partsData.error;
       
-      // Create lookup maps
-      const servicesMap = new Map(servicesData.data?.map(service => [service.id, service]) || []);
-      const partsMap = new Map(partsData.data?.map(part => [part.id, part]) || []);
+      // Create lookup maps with proper type handling
+      const servicesMap = new Map(
+        (servicesData.data || []).map(service => [service.id, service] as [string, any])
+      );
+      const partsMap = new Map(
+        (partsData.data || []).map(part => [part.id, part] as [string, any])
+      );
       
       // Transform the data to match the expected interface
       const enrichedInvoices = invoices.map(invoice => ({
@@ -76,8 +80,12 @@ export const useVehicleSearch = (vehicleNumber: string) => {
         created_at: invoice.created_at,
         total: invoice.total,
         status: invoice.status,
-        customers: invoice.customers,
-        kilometers: invoice.kilometers,
+        customers: invoice.customers ? {
+          name: invoice.customers.name,
+          phone: invoice.customers.phone || undefined,
+          email: invoice.customers.email || undefined
+        } : undefined,
+        kilometers: invoice.kilometers || undefined,
         invoice_items: invoiceItems
           ?.filter(item => item.invoice_id === invoice.id)
           ?.map(item => ({
@@ -89,7 +97,7 @@ export const useVehicleSearch = (vehicleNumber: string) => {
             item_type: item.item_type,
             services: item.item_type === 'service' ? servicesMap.get(item.item_id) : undefined,
             parts: item.item_type === 'part' ? partsMap.get(item.item_id) : undefined
-          })) || []
+          })) || undefined
       }));
       
       return {
