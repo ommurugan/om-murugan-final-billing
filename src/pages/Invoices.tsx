@@ -2,7 +2,7 @@
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
 import MobileInvoiceList from "@/components/mobile/MobileInvoiceList";
 import StandardHeader from "@/components/StandardHeader";
-import { InvoiceManagement } from "@/components/InvoiceManagement";
+import InvoiceManagement from "@/components/InvoiceManagement";
 
 const Invoices = () => {
   const { isNative } = useMobileFeatures();

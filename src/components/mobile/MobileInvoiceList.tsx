@@ -12,13 +12,13 @@ import MobileActionSheet from "./MobileActionSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Receipt } from "lucide-react";
 import { Invoice } from "@/types/billing";
 
 const MobileInvoiceList = () => {
-  const { invoices, isLoading, refetch } = useInvoices();
-  const { customers } = useCustomers();
-  const { vehicles } = useVehicles();
+  const { data: invoices, isLoading, refetch } = useInvoices();
+  const { data: customers } = useCustomers();
+  const { data: vehicles } = useVehicles();
   const { triggerHaptic } = useMobileFeatures();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");

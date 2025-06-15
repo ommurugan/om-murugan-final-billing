@@ -2,7 +2,7 @@
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
 import MobileDashboard from "@/components/mobile/MobileDashboard";
 import StandardHeader from "@/components/StandardHeader";
-import { Dashboard as DesktopDashboard } from "@/components/Dashboard";
+import DesktopDashboard from "@/components/Dashboard";
 
 const Dashboard = () => {
   const { isNative } = useMobileFeatures();
