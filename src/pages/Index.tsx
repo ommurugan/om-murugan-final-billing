@@ -1,21 +1,46 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useMobileFeatures } from '@/hooks/useMobileFeatures';
+import SplashScreen from '@/components/mobile/SplashScreen';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { isNative } = useMobileFeatures();
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [hasShownSplash, setHasShownSplash] = useState(false);
+
+  // Check if splash screen has been shown in this session
+  useEffect(() => {
+    const splashShown = sessionStorage.getItem('splashShown');
+    if (splashShown) {
+      setShowSplashScreen(false);
+      setHasShownSplash(true);
+    }
+  }, []);
+
+  const handleSplashComplete = () => {
+    setShowSplashScreen(false);
+    setHasShownSplash(true);
+    sessionStorage.setItem('splashShown', 'true');
+  };
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && hasShownSplash) {
       if (user) {
         navigate('/dashboard');
       } else {
         navigate('/auth');
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, hasShownSplash]);
+
+  // Show splash screen on first load (especially for mobile)
+  if (showSplashScreen && (isNative || !hasShownSplash)) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
 
   if (loading) {
     return (
