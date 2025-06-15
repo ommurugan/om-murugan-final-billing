@@ -82,11 +82,11 @@ const Customers = () => {
 
   return (
     <StandardHeader title="Customers">
-      <div className="w-full">
-        <div className="p-4 md:p-6 pb-20 md:pb-6 max-w-full">
+      <div className="w-full h-full">
+        <div className="h-full flex flex-col">
           {/* Filter indicators */}
           {hasFilters && (
-            <div className="mb-4 flex items-center gap-2 flex-wrap">
+            <div className="p-4 flex items-center gap-2 flex-wrap border-b bg-white">
               <span className="text-sm text-gray-600">Active filters:</span>
               {filterParams.status && (
                 <Badge variant="secondary" className="gap-1">
@@ -116,31 +116,35 @@ const Customers = () => {
           )}
 
           {/* Search and Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-            <div className="lg:col-span-3">
-              <CustomerSearch 
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-              />
-            </div>
-            <div>
-              <CustomerStats totalCustomers={customers.length} />
+          <div className="p-4 border-b bg-white">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3">
+                <CustomerSearch 
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                />
+              </div>
+              <div>
+                <CustomerStats totalCustomers={customers.length} />
+              </div>
             </div>
           </div>
 
-          {/* Customers List */}
-          <CustomerList
-            customers={customers}
-            filteredCustomers={filteredCustomers}
-            editingCustomer={editingCustomer}
-            onEditCustomer={handleEditCustomer}
-            onUpdateCustomer={handleUpdateCustomer}
-            onCancelEdit={handleCancelEdit}
-            onDeleteCustomer={handleDeleteCustomer}
-            onEditingCustomerChange={handleEditingCustomerChange}
-            isUpdating={updateCustomerMutation.isPending}
-            isDeleting={deleteCustomerMutation.isPending}
-          />
+          {/* Customers List - Full height */}
+          <div className="flex-1 overflow-auto p-4">
+            <CustomerList
+              customers={customers}
+              filteredCustomers={filteredCustomers}
+              editingCustomer={editingCustomer}
+              onEditCustomer={handleEditCustomer}
+              onUpdateCustomer={handleUpdateCustomer}
+              onCancelEdit={handleCancelEdit}
+              onDeleteCustomer={handleDeleteCustomer}
+              onEditingCustomerChange={handleEditingCustomerChange}
+              isUpdating={updateCustomerMutation.isPending}
+              isDeleting={deleteCustomerMutation.isPending}
+            />
+          </div>
         </div>
       </div>
       
