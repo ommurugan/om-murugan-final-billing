@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useMobileFeatures } from "@/hooks/useMobileFeatures";
+import { useInvoices } from "@/hooks/useInvoices";
 import { useInvoiceStats } from "@/hooks/useInvoiceStats";
 import MobileLayout from "./MobileLayout";
 import MobileStats from "./MobileStats";
@@ -14,14 +15,15 @@ import { ImpactStyle } from "@capacitor/haptics";
 
 const MobileDashboard = () => {
   const { triggerHaptic, isOnline } = useMobileFeatures();
-  const invoiceStats = useInvoiceStats("");
+  const { data: invoices = [], refetch } = useInvoices();
+  const invoiceStats = useInvoiceStats(invoices);
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await triggerHaptic(ImpactStyle.Medium);
-    // Note: useInvoiceStats returns data directly, not a query object with refetch
+    await refetch();
     setRefreshing(false);
   };
 
