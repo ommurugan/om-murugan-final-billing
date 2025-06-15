@@ -14,7 +14,7 @@ import { ImpactStyle } from "@capacitor/haptics";
 
 const MobileDashboard = () => {
   const { triggerHaptic, isOnline } = useMobileFeatures();
-  const invoiceStats = useInvoiceStats();
+  const invoiceStats = useInvoiceStats("");
   const navigate = useNavigate();
   const [refreshing, setRefreshing] = useState(false);
 

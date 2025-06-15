@@ -50,8 +50,8 @@ const MobileInvoiceList = () => {
     const customer = customers?.find(c => c.id === customerId);
     if (!customer) return "No vehicle info";
     
-    const vehicle = vehicles?.find(v => v.customerId === customerId);
-    return vehicle ? `${vehicle.make} ${vehicle.model} - ${vehicle.registrationNumber}` : "No vehicle";
+    const vehicle = vehicles?.find(v => v.customer_id === customerId);
+    return vehicle ? `${vehicle.make} ${vehicle.model} - ${vehicle.vehicle_number}` : "No vehicle";
   };
 
   const handleEdit = (invoice: Invoice) => {
