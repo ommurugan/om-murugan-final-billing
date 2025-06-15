@@ -11,12 +11,21 @@ export const useVehicleSearch = (vehicleNumber: string) => {
     queryFn: async () => {
       if (!user || !vehicleNumber.trim()) return null;
       
+      console.log('=== Starting Vehicle Search ===');
       console.log('Searching for vehicle:', vehicleNumber);
       
-      // First, find the vehicle
+      // First, find the vehicle with customer information
       const { data: vehicle, error: vehicleError } = await supabase
         .from("vehicles")
-        .select("*")
+        .select(`
+          *,
+          customers (
+            id,
+            name,
+            phone,
+            email
+          )
+        `)
         .ilike("vehicle_number", `%${vehicleNumber.trim()}%`)
         .single();
       
@@ -25,16 +34,12 @@ export const useVehicleSearch = (vehicleNumber: string) => {
         return null;
       }
       
-      console.log('Found vehicle:', vehicle);
+      console.log('Found vehicle with customer:', vehicle);
       
-      // Then find all invoices for this vehicle with basic information
+      // Then find all invoices for this vehicle
       const { data: invoices, error: invoicesError } = await supabase
         .from("invoices")
-        .select(`
-          *,
-          customers(name, phone, email),
-          vehicles(make, model, vehicle_number)
-        `)
+        .select("*")
         .eq("vehicle_id", vehicle.id)
         .order("created_at", { ascending: false });
       
@@ -43,18 +48,32 @@ export const useVehicleSearch = (vehicleNumber: string) => {
         throw invoicesError;
       }
       
+      console.log(`Found ${invoices?.length || 0} invoices for vehicle`);
+      
       if (!invoices || invoices.length === 0) {
-        console.log('No invoices found for vehicle');
+        console.log('No invoices found - returning vehicle with empty service history');
         return {
-          vehicle,
+          vehicle: {
+            vehicle_number: vehicle.vehicle_number,
+            make: vehicle.make,
+            model: vehicle.model,
+            vehicle_type: vehicle.vehicle_type,
+            year: vehicle.year,
+            color: vehicle.color
+          },
+          vehicleOwner: vehicle.customers ? {
+            name: vehicle.customers.name,
+            phone: vehicle.customers.phone || undefined,
+            email: vehicle.customers.email || undefined
+          } : null,
           serviceHistory: []
         };
       }
       
-      console.log('Found invoices:', invoices.length);
-      
       // Fetch invoice items for all invoices
       const invoiceIds = invoices.map(invoice => invoice.id);
+      console.log('Fetching items for invoice IDs:', invoiceIds);
+      
       const { data: invoiceItems, error: itemsError } = await supabase
         .from("invoice_items")
         .select("*")
@@ -65,81 +84,65 @@ export const useVehicleSearch = (vehicleNumber: string) => {
         throw itemsError;
       }
       
-      console.log('Raw invoice items:', invoiceItems);
+      console.log(`Found ${invoiceItems?.length || 0} invoice items`);
       
-      if (!invoiceItems || invoiceItems.length === 0) {
-        console.log('No invoice items found');
-        return {
-          vehicle,
-          serviceHistory: invoices.map(invoice => ({
-            id: invoice.id,
-            invoice_number: invoice.invoice_number,
-            created_at: invoice.created_at,
-            total: invoice.total,
-            status: invoice.status,
-            customers: invoice.customers ? {
-              name: invoice.customers.name,
-              phone: invoice.customers.phone || undefined,
-              email: invoice.customers.email || undefined
-            } : undefined,
-            kilometers: invoice.kilometers || undefined,
-            invoice_items: []
-          }))
-        };
-      }
+      // Get unique service and part IDs if items exist
+      let servicesMap = new Map();
+      let partsMap = new Map();
       
-      // Get unique service and part IDs
-      const serviceIds = [...new Set(
-        invoiceItems
-          .filter(item => item.item_type === 'service')
-          .map(item => item.item_id)
-      )];
-      
-      const partIds = [...new Set(
-        invoiceItems
-          .filter(item => item.item_type === 'part')
-          .map(item => item.item_id)
-      )];
-      
-      console.log('Service IDs:', serviceIds);
-      console.log('Part IDs:', partIds);
-      
-      // Fetch services and parts data
-      const [servicesResponse, partsResponse] = await Promise.all([
-        serviceIds.length > 0 
-          ? supabase.from("services").select("id, name, category").in("id", serviceIds)
-          : Promise.resolve({ data: [], error: null }),
-        partIds.length > 0
-          ? supabase.from("parts").select("id, name, category, part_number").in("id", partIds)
-          : Promise.resolve({ data: [], error: null })
-      ]);
-      
-      if (servicesResponse.error) {
-        console.error('Error fetching services:', servicesResponse.error);
-        throw servicesResponse.error;
-      }
-      
-      if (partsResponse.error) {
-        console.error('Error fetching parts:', partsResponse.error);
-        throw partsResponse.error;
-      }
-      
-      console.log('Services data:', servicesResponse.data);
-      console.log('Parts data:', partsResponse.data);
-      
-      // Create lookup maps
-      const servicesMap = new Map(
-        (servicesResponse.data || []).map(service => [service.id, service])
-      );
-      const partsMap = new Map(
-        (partsResponse.data || []).map(part => [part.id, part])
-      );
-      
-      // Transform the data to match the expected interface
-      const enrichedInvoices = invoices.map(invoice => {
-        const invoiceItemsForInvoice = invoiceItems.filter(item => item.invoice_id === invoice.id);
+      if (invoiceItems && invoiceItems.length > 0) {
+        const serviceIds = [...new Set(
+          invoiceItems
+            .filter(item => item.item_type === 'service')
+            .map(item => item.item_id)
+        )];
         
-        console.log(`Processing invoice ${invoice.invoice_number}, items:`, invoiceItemsForInvoice);
+        const partIds = [...new Set(
+          invoiceItems
+            .filter(item => item.item_type === 'part')
+            .map(item => item.item_id)
+        )];
+        
+        console.log('Service IDs to fetch:', serviceIds);
+        console.log('Part IDs to fetch:', partIds);
+        
+        // Fetch services and parts data in parallel
+        const [servicesResponse, partsResponse] = await Promise.all([
+          serviceIds.length > 0 
+            ? supabase.from("services").select("id, name, category").in("id", serviceIds)
+            : Promise.resolve({ data: [], error: null }),
+          partIds.length > 0
+            ? supabase.from("parts").select("id, name, category, part_number").in("id", partIds)
+            : Promise.resolve({ data: [], error: null })
+        ]);
+        
+        if (servicesResponse.error) {
+          console.error('Error fetching services:', servicesResponse.error);
+          throw servicesResponse.error;
+        }
+        
+        if (partsResponse.error) {
+          console.error('Error fetching parts:', partsResponse.error);
+          throw partsResponse.error;
+        }
+        
+        console.log('Services data:', servicesResponse.data);
+        console.log('Parts data:', partsResponse.data);
+        
+        // Create lookup maps
+        servicesMap = new Map(
+          (servicesResponse.data || []).map(service => [service.id, service])
+        );
+        partsMap = new Map(
+          (partsResponse.data || []).map(part => [part.id, part])
+        );
+      }
+      
+      // Transform invoices with enriched item data
+      const enrichedInvoices = invoices.map(invoice => {
+        const invoiceItemsForInvoice = invoiceItems?.filter(item => item.invoice_id === invoice.id) || [];
+        
+        console.log(`Processing invoice ${invoice.invoice_number} with ${invoiceItemsForInvoice.length} items`);
         
         const transformedItems = invoiceItemsForInvoice.map(item => {
           const baseItem = {
@@ -170,28 +173,41 @@ export const useVehicleSearch = (vehicleNumber: string) => {
           return baseItem;
         });
         
-        console.log(`Transformed items for ${invoice.invoice_number}:`, transformedItems);
-        
         return {
           id: invoice.id,
           invoice_number: invoice.invoice_number,
           created_at: invoice.created_at,
           total: invoice.total,
           status: invoice.status,
-          customers: invoice.customers ? {
-            name: invoice.customers.name,
-            phone: invoice.customers.phone || undefined,
-            email: invoice.customers.email || undefined
+          customers: vehicle.customers ? {
+            name: vehicle.customers.name,
+            phone: vehicle.customers.phone || undefined,
+            email: vehicle.customers.email || undefined
           } : undefined,
           kilometers: invoice.kilometers || undefined,
           invoice_items: transformedItems
         };
       });
       
-      console.log('Final enriched invoices:', enrichedInvoices);
+      console.log('=== Final Result ===');
+      console.log('Vehicle owner:', vehicle.customers);
+      console.log('Service history count:', enrichedInvoices.length);
+      console.log('First invoice items:', enrichedInvoices[0]?.invoice_items);
       
       return {
-        vehicle,
+        vehicle: {
+          vehicle_number: vehicle.vehicle_number,
+          make: vehicle.make,
+          model: vehicle.model,
+          vehicle_type: vehicle.vehicle_type,
+          year: vehicle.year,
+          color: vehicle.color
+        },
+        vehicleOwner: vehicle.customers ? {
+          name: vehicle.customers.name,
+          phone: vehicle.customers.phone || undefined,
+          email: vehicle.customers.email || undefined
+        } : null,
         serviceHistory: enrichedInvoices
       };
     },

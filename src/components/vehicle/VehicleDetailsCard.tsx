@@ -14,6 +14,11 @@ interface SearchResult {
     year?: number;
     color?: string;
   };
+  vehicleOwner: {
+    name: string;
+    phone?: string;
+    email?: string;
+  } | null;
   serviceHistory: Array<{
     id: string;
     invoice_number: string;
@@ -51,10 +56,7 @@ interface VehicleDetailsCardProps {
 }
 
 const VehicleDetailsCard = ({ searchResult }: VehicleDetailsCardProps) => {
-  const { vehicle, serviceHistory } = searchResult;
-  
-  // Get the owner information from the most recent service record
-  const vehicleOwner = serviceHistory && serviceHistory.length > 0 ? serviceHistory[0].customers : null;
+  const { vehicle, vehicleOwner, serviceHistory } = searchResult;
 
   return (
     <Card>

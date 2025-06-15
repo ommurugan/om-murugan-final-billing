@@ -12,6 +12,11 @@ interface SearchResult {
     year?: number;
     color?: string;
   };
+  vehicleOwner: {
+    name: string;
+    phone?: string;
+    email?: string;
+  } | null;
   serviceHistory: Array<{
     id: string;
     invoice_number: string;
