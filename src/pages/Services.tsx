@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { toast } from "sonner";
 import { useServices, useCreateService, useUpdateService, useDeleteService, Service } from "@/hooks/useServices";
 import { useParts, useCreatePart, useUpdatePart, useDeletePart, Part } from "@/hooks/useParts";
+import { formatDuration } from "@/utils/formatDuration";
 
 const Services = () => {
   const [showAddServiceForm, setShowAddServiceForm] = useState(false);
@@ -474,7 +474,7 @@ const Services = () => {
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Duration:</span>
-                              <span>{service.estimated_time} minutes</span>
+                              <span>{formatDuration(service.estimated_time)}</span>
                             </div>
                           </div>
                         </CardContent>
