@@ -1,9 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Car } from "lucide-react";
-import VehicleOwnerCard from "./VehicleOwnerCard";
-import VehicleInfoCard from "./VehicleInfoCard";
-import ServiceHistoryCard from "./ServiceHistoryCard";
+import VehicleDetailsCard from "./VehicleDetailsCard";
 
 interface SearchResult {
   vehicle: {
@@ -26,6 +24,23 @@ interface SearchResult {
       email?: string;
     };
     kilometers?: number;
+    invoice_items?: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      unit_price: number;
+      total: number;
+      item_type: string;
+      services?: {
+        name: string;
+        category: string;
+      };
+      parts?: {
+        name: string;
+        category: string;
+        part_number?: string;
+      };
+    }>;
   }>;
 }
 
@@ -44,16 +59,6 @@ const VehicleSearchResults = ({
   error, 
   hasSearched 
 }: VehicleSearchResultsProps) => {
-  // Get the owner information from the most recent service record
-  const getVehicleOwner = () => {
-    if (searchResult?.serviceHistory && searchResult.serviceHistory.length > 0) {
-      return searchResult.serviceHistory[0].customers;
-    }
-    return null;
-  };
-
-  const vehicleOwner = getVehicleOwner();
-
   if (isLoading) {
     return (
       <Card>
@@ -94,13 +99,7 @@ const VehicleSearchResults = ({
   }
 
   if (searchResult && searchResult.vehicle) {
-    return (
-      <div className="space-y-6">
-        {vehicleOwner && <VehicleOwnerCard owner={vehicleOwner} />}
-        <VehicleInfoCard vehicle={searchResult.vehicle} />
-        <ServiceHistoryCard serviceHistory={searchResult.serviceHistory} />
-      </div>
-    );
+    return <VehicleDetailsCard searchResult={searchResult} />;
   }
 
   return null;

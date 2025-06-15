@@ -20,13 +20,18 @@ export const useVehicleSearch = (vehicleNumber: string) => {
       
       if (vehicleError || !vehicle) return null;
       
-      // Then find all invoices for this vehicle
+      // Then find all invoices for this vehicle with detailed information
       const { data: invoices, error: invoicesError } = await supabase
         .from("invoices")
         .select(`
           *,
           customers(name, phone, email),
-          vehicles(make, model, vehicle_number)
+          vehicles(make, model, vehicle_number),
+          invoice_items(
+            *,
+            services(name, category),
+            parts(name, category, part_number)
+          )
         `)
         .eq("vehicle_id", vehicle.id)
         .order("created_at", { ascending: false });
