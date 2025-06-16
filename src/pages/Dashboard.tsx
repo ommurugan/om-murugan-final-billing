@@ -17,6 +17,10 @@ import MobileSidebar from "@/components/MobileSidebar";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useCustomers } from "@/hooks/useCustomers";
+import TodaysRevenueModal from "@/components/dashboard/TodaysRevenueModal";
+import VehiclesServicedModal from "@/components/dashboard/VehiclesServicedModal";
+import ActiveCustomersModal from "@/components/dashboard/ActiveCustomersModal";
+import PendingInvoicesModal from "@/components/dashboard/PendingInvoicesModal";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +30,12 @@ const Dashboard = () => {
     month: 'long',
     day: 'numeric'
   }));
+
+  // Modal states
+  const [showRevenueModal, setShowRevenueModal] = useState(false);
+  const [showVehiclesModal, setShowVehiclesModal] = useState(false);
+  const [showCustomersModal, setShowCustomersModal] = useState(false);
+  const [showPendingModal, setShowPendingModal] = useState(false);
 
   const { data: invoices = [] } = useInvoices();
   const { data: customers = [] } = useCustomers();
@@ -40,7 +50,53 @@ const Dashboard = () => {
     .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
     .length;
 
-  const pendingInvoices = invoices.filter(inv => inv.status === 'pending').length;
+  const pendingInvoices = invoices.filter(inv => inv.status === 'pending' || inv.status === 'draft').length;
+
+  // Prepare data for modals
+  const todaysPaidInvoices = paidInvoices.filter(inv => 
+    new Date(inv.createdAt).toDateString() === new Date().toDateString()
+  );
+
+  const revenueItems = todaysPaidInvoices.map(invoice => ({
+    id: invoice.id,
+    vehicleInfo: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''}`.trim() || 'Unknown Vehicle',
+    services: invoice.items?.filter(item => item.type === 'service').map(item => item.name) || [],
+    parts: invoice.items?.filter(item => item.type === 'part').map(item => item.name) || [],
+    amount: invoice.total,
+    customerName: (invoice as any).customers?.name || 'Unknown Customer'
+  }));
+
+  const todaysServicedVehicles = invoices
+    .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
+    .map(invoice => ({
+      id: invoice.id,
+      customerName: (invoice as any).customers?.name || 'Unknown Customer',
+      vehicleName: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''}`.trim() || 'Unknown Vehicle',
+      vehicleNumber: (invoice as any).vehicles?.vehicle_number || 'N/A',
+      services: invoice.items?.filter(item => item.type === 'service').map(item => item.name) || [],
+      parts: invoice.items?.filter(item => item.type === 'part').map(item => item.name) || []
+    }));
+
+  const activeCustomersData = customers.map(customer => ({
+    id: customer.id,
+    customerName: customer.name,
+    vehicleName: 'Multiple Vehicles', // This would need to be calculated from actual vehicle data
+    vehicleNumber: 'Various',
+    totalSpent: invoices
+      .filter(inv => inv.customerId === customer.id && inv.status === 'paid')
+      .reduce((sum, inv) => sum + inv.total, 0)
+  }));
+
+  const pendingInvoicesData = invoices
+    .filter(inv => inv.status === 'pending' || inv.status === 'draft')
+    .map(invoice => ({
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: (invoice as any).customers?.name || 'Unknown Customer',
+      vehicleInfo: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''}`.trim() || 'Unknown Vehicle',
+      amount: invoice.total,
+      createdAt: invoice.createdAt
+    }));
 
   const stats = [
     {
@@ -48,28 +104,32 @@ const Dashboard = () => {
       value: `₹${todayRevenue.toLocaleString()}`,
       change: todayRevenue > 0 ? "+100%" : "0%",
       icon: DollarSign,
-      color: "text-green-600"
+      color: "text-green-600",
+      onClick: () => setShowRevenueModal(true)
     },
     {
       title: "Vehicles Serviced",
       value: todayVehicles.toString(),
       change: todayVehicles > 0 ? "+100%" : "0%",
       icon: Car,
-      color: "text-blue-600"
+      color: "text-blue-600",
+      onClick: () => setShowVehiclesModal(true)
     },
     {
       title: "Active Customers",
       value: customers.length.toString(),
       change: customers.length > 0 ? "+100%" : "0%",
       icon: Users,
-      color: "text-purple-600"
+      color: "text-purple-600",
+      onClick: () => setShowCustomersModal(true)
     },
     {
       title: "Pending Invoices",
       value: pendingInvoices.toString(),
       change: pendingInvoices > 0 ? "+100%" : "0%",
       icon: Receipt,
-      color: "text-orange-600"
+      color: "text-orange-600",
+      onClick: () => setShowPendingModal(true)
     }
   ];
 
@@ -111,7 +171,11 @@ const Dashboard = () => {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={index} 
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={stat.onClick}
+              >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">
                     {stat.title}
@@ -121,7 +185,7 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
                   <div className="flex items-center gap-1 text-sm">
-                    <span className="text-gray-500">Current total</span>
+                    <span className="text-gray-500">Click for details</span>
                   </div>
                 </CardContent>
               </Card>
@@ -201,6 +265,31 @@ const Dashboard = () => {
       </div>
       
       <BottomNavigation />
+
+      {/* Modals */}
+      <TodaysRevenueModal
+        isOpen={showRevenueModal}
+        onClose={() => setShowRevenueModal(false)}
+        revenueItems={revenueItems}
+      />
+      
+      <VehiclesServicedModal
+        isOpen={showVehiclesModal}
+        onClose={() => setShowVehiclesModal(false)}
+        servicedVehicles={todaysServicedVehicles}
+      />
+      
+      <ActiveCustomersModal
+        isOpen={showCustomersModal}
+        onClose={() => setShowCustomersModal(false)}
+        activeCustomers={activeCustomersData}
+      />
+      
+      <PendingInvoicesModal
+        isOpen={showPendingModal}
+        onClose={() => setShowPendingModal(false)}
+        pendingInvoices={pendingInvoicesData}
+      />
     </div>
   );
 };

@@ -14,7 +14,7 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
   useEffect(() => {
     // Set status bar to match splash screen background (mobile only)
     if (isNative) {
-      setStatusBarColor('#1d4ed8', false);
+      setStatusBarColor('#ffffff', true);
     }
 
     // Start blinking animation after initial display
@@ -22,7 +22,7 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
       setShowContent(prev => !prev);
     }, 500); // Blink every 500ms
 
-    // Stop blinking and start fade out after 2.5 seconds
+    // Stop blinking and start fade out after 4 seconds
     const fadeTimer = setTimeout(() => {
       clearInterval(blinkInterval);
       setShowContent(true); // Ensure content is visible before fade out
@@ -35,7 +35,7 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
           onComplete();
         }, 300);
       }, 100);
-    }, 2500);
+    }, 4000);
 
     return () => {
       clearInterval(blinkInterval);
@@ -45,19 +45,19 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
 
   if (!isVisible) {
     return (
-      <div className="fixed inset-0 bg-blue-600 flex items-center justify-center animate-fade-out z-50">
+      <div className="fixed inset-0 bg-white flex items-center justify-center animate-fade-out z-50">
         <div className="text-center">
-          <div className="mb-8">
+          <div className="mb-8 flex justify-center">
             <img 
-              src="/lovable-uploads/73f3aed2-5b00-4709-9094-18858bd49b6c.png" 
+              src="/lovable-uploads/8ffc0c8a-e3aa-4cf5-864c-ca3b24b0b31b.png" 
               alt="OM MURUGAN AUTO WORKS" 
-              className="w-40 h-40 mx-auto rounded-2xl shadow-2xl object-contain"
+              className="w-48 h-48 object-contain"
             />
           </div>
-          <h1 className="text-white text-3xl font-bold mb-2">
+          <h1 className="text-gray-900 text-3xl font-bold mb-2">
             OM MURUGAN AUTO WORKS
           </h1>
-          <p className="text-blue-100 text-lg">
+          <p className="text-gray-600 text-lg">
             Professional Auto Services
           </p>
         </div>
@@ -66,20 +66,20 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-blue-600 flex items-center justify-center animate-fade-in z-50">
+    <div className="fixed inset-0 bg-white flex items-center justify-center animate-fade-in z-50">
       <div className="text-center">
-        <div className={`mb-8 transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-30'}`}>
+        <div className={`mb-8 flex justify-center transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-30'}`}>
           <img 
-            src="/lovable-uploads/73f3aed2-5b00-4709-9094-18858bd49b6c.png" 
+            src="/lovable-uploads/8ffc0c8a-e3aa-4cf5-864c-ca3b24b0b31b.png" 
             alt="OM MURUGAN AUTO WORKS" 
-            className="w-40 h-40 mx-auto rounded-2xl shadow-2xl object-contain"
+            className="w-48 h-48 object-contain"
           />
         </div>
         <div className={`transition-opacity duration-300 ${showContent ? 'opacity-100' : 'opacity-30'}`}>
-          <h1 className="text-white text-3xl font-bold mb-2">
+          <h1 className="text-gray-900 text-3xl font-bold mb-2">
             OM MURUGAN AUTO WORKS
           </h1>
-          <p className="text-blue-100 text-lg">
+          <p className="text-gray-600 text-lg">
             Professional Auto Services
           </p>
         </div>
