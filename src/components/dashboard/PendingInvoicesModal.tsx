@@ -1,8 +1,10 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Receipt, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Receipt, Calendar, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface PendingInvoice {
   id: string;
@@ -11,6 +13,7 @@ interface PendingInvoice {
   vehicleInfo: string;
   amount: number;
   createdAt: string;
+  status: string;
 }
 
 interface PendingInvoicesModalProps {
@@ -20,6 +23,14 @@ interface PendingInvoicesModalProps {
 }
 
 const PendingInvoicesModal = ({ isOpen, onClose, pendingInvoices }: PendingInvoicesModalProps) => {
+  const navigate = useNavigate();
+
+  const handleRegenerateBill = (invoiceId: string) => {
+    // Navigate to invoices page with the specific invoice for editing
+    navigate(`/invoices?edit=${invoiceId}`);
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -53,11 +64,29 @@ const PendingInvoicesModal = ({ isOpen, onClose, pendingInvoices }: PendingInvoi
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right space-y-2">
                       <p className="text-lg font-bold text-gray-900">₹{invoice.amount.toLocaleString()}</p>
-                      <Badge variant="outline" className="text-orange-600 border-orange-600">
-                        Draft
-                      </Badge>
+                      <div className="flex flex-col gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            invoice.status === 'draft' 
+                              ? "text-gray-600 border-gray-600" 
+                              : "text-orange-600 border-orange-600"
+                          }
+                        >
+                          {invoice.status === 'draft' ? 'Draft' : 'Pending'}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRegenerateBill(invoice.id)}
+                          className="text-xs"
+                        >
+                          <RefreshCw className="h-3 w-3 mr-1" />
+                          Regenerate
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

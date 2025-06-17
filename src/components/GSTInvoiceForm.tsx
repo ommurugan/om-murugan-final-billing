@@ -186,13 +186,26 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     return itemsTotal + laborCharges + extraTotal;
   };
 
-  const calculateTotal = () => {
+  const calculateGSTAmounts = () => {
     const subtotal = calculateSubtotal();
     const discountAmount = (subtotal * discount) / 100;
     const afterDiscount = subtotal - discountAmount;
-    const taxAmount = (afterDiscount * taxRate) / 100;
-    return afterDiscount + taxAmount;
+    const totalGSTAmount = (afterDiscount * taxRate) / 100;
+    const sgstAmount = totalGSTAmount / 2;
+    const cgstAmount = totalGSTAmount / 2;
+    
+    return {
+      subtotal,
+      discountAmount,
+      afterDiscount,
+      sgstAmount,
+      cgstAmount,
+      totalGSTAmount,
+      total: afterDiscount + totalGSTAmount
+    };
   };
+
+  const { subtotal, discountAmount, afterDiscount, sgstAmount, cgstAmount, totalGSTAmount, total } = calculateGSTAmounts();
 
   const generateInvoiceNumber = () => {
     const date = new Date();
@@ -204,7 +217,6 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   };
 
   const createInvoiceObject = (status: Invoice['status']) => {
-    const total = calculateTotal();
     const payment: Payment | undefined = paymentAmount > 0 ? {
       id: Date.now().toString(),
       invoiceId: "",
@@ -221,10 +233,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       customerId: selectedCustomer!.id,
       vehicleId: selectedVehicle!.id,
       items: invoiceItems,
-      subtotal: calculateSubtotal(),
+      subtotal,
       discount,
       taxRate,
-      taxAmount: (calculateSubtotal() - (calculateSubtotal() * discount) / 100) * taxRate / 100,
+      taxAmount: totalGSTAmount,
       extraCharges,
       total,
       status: payment && payment.amount >= total ? 'paid' : status,
@@ -238,11 +250,32 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     };
   };
 
-  const handleSaveDraft = () => {
-    if (!selectedCustomer || !selectedVehicle) {
-      toast.error("Please select customer and vehicle before saving draft");
-      return;
+  const validateForm = () => {
+    if (!selectedCustomer) {
+      toast.error("Please select a GST customer");
+      return false;
     }
+    
+    if (!selectedVehicle) {
+      toast.error("Please select a vehicle");
+      return false;
+    }
+    
+    if (invoiceItems.length === 0) {
+      toast.error("Please add at least one service or part");
+      return false;
+    }
+
+    if (!selectedCustomer.gstNumber) {
+      toast.error("GST number is required for GST invoice");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSaveDraft = () => {
+    if (!validateForm()) return;
 
     const invoice = createInvoiceObject('draft');
     onSave(invoice);
@@ -250,15 +283,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   };
 
   const handleCreateInvoice = () => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part");
-      return;
-    }
-
-    if (!selectedCustomer.gstNumber) {
-      toast.error("GST number is required for GST invoice");
-      return;
-    }
+    if (!validateForm()) return;
 
     const invoice = createInvoiceObject('pending');
     onSave(invoice);
@@ -266,17 +291,13 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   };
 
   const handlePrintPreview = () => {
-    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
-      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
-      return;
-    }
+    if (!validateForm()) return;
     setShowPrintPreview(true);
   };
 
   useEffect(() => {
-    const total = calculateTotal();
     setPaymentAmount(total);
-  }, [invoiceItems, laborCharges, discount, taxRate, extraCharges]);
+  }, [total]);
 
   if (showPrintPreview && selectedCustomer && selectedVehicle) {
     const previewInvoice = createInvoiceObject('draft');
@@ -353,7 +374,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Car className="h-5 w-5" />
-              Vehicle Selection
+              Vehicle Selection & Kilometers
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -392,24 +413,22 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
               </div>
             )}
             
-            {selectedVehicle && (
-              <div className="mt-4">
-                <Label className="flex items-center gap-2">
-                  <Gauge className="h-4 w-4" />
-                  Current Kilometers
-                </Label>
-                <Input
-                  type="number"
-                  value={kilometers}
-                  onChange={(e) => setKilometers(parseInt(e.target.value) || 0)}
-                  placeholder="Enter current kilometers"
-                  className="mt-2"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Record the vehicle's current kilometer reading
-                </p>
-              </div>
-            )}
+            <div>
+              <Label className="flex items-center gap-2">
+                <Gauge className="h-4 w-4" />
+                Current Kilometers
+              </Label>
+              <Input
+                type="number"
+                value={kilometers}
+                onChange={(e) => setKilometers(parseInt(e.target.value) || 0)}
+                placeholder="Enter current kilometers"
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Record the vehicle's current kilometer reading
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -620,7 +639,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           </CardContent>
         </Card>
 
-        {/* Payment & Invoice Summary */}
+        {/* Payment & Invoice Summary with SGST/CGST */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -632,22 +651,26 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>₹{calculateSubtotal().toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
                   <span>Discount ({discount}%):</span>
-                  <span>-₹{((calculateSubtotal() * discount) / 100).toFixed(2)}</span>
+                  <span>-₹{discountAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span>GST ({taxRate}%):</span>
-                <span>₹{(((calculateSubtotal() - (calculateSubtotal() * discount) / 100) * taxRate) / 100).toFixed(2)}</span>
+                <span>SGST ({taxRate/2}%):</span>
+                <span>₹{sgstAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>CGST ({taxRate/2}%):</span>
+                <span>₹{cgstAmount.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total:</span>
-                <span>₹{calculateTotal().toFixed(2)}</span>
+                <span>₹{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -680,11 +703,11 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   type="number"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(parseFloat(e.target.value) || 0)}
-                  max={calculateTotal()}
+                  max={total}
                 />
-                {paymentAmount < calculateTotal() && (
+                {paymentAmount < total && (
                   <p className="text-sm text-orange-600 mt-1">
-                    Partial payment: ₹{(calculateTotal() - paymentAmount).toFixed(2)} remaining
+                    Partial payment: ₹{(total - paymentAmount).toFixed(2)} remaining
                   </p>
                 )}
               </div>

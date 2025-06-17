@@ -1,89 +1,112 @@
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, User, Eye, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Phone, Mail, MapPin, Edit, Trash2, Car, FileText } from "lucide-react";
 import { Customer } from "@/types/billing";
+import { useVehicles } from "@/hooks/useVehicles";
 
 interface CustomerCardProps {
   customer: Customer;
   onEdit: (customer: Customer) => void;
   onDelete: (customerId: string) => void;
-  isDeleting: boolean;
 }
 
-const CustomerCard = ({ customer, onEdit, onDelete, isDeleting }: CustomerCardProps) => {
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
+const CustomerCard = ({ customer, onEdit, onDelete }: CustomerCardProps) => {
+  const { data: vehiclesData = [] } = useVehicles(customer.id);
+
+  const vehicles = vehiclesData.map(v => ({
+    id: v.id,
+    make: v.make,
+    model: v.model,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: v.vehicle_type
+  }));
 
   return (
-    <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-12 w-12">
-            <AvatarFallback className="bg-blue-100 text-blue-600">
-              {getInitials(customer.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-gray-900">{customer.name}</h3>
-              <Badge variant="default">Active</Badge>
-              {customer.gstNumber && (
-                <Badge variant="secondary">GST</Badge>
-              )}
-            </div>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span>{customer.phone}</span>
-              </div>
-              {customer.email && (
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>{customer.email}</span>
-                </div>
-              )}
-              {customer.address && (
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>{customer.address}</span>
-                </div>
-              )}
-              {customer.gstNumber && (
-                <div className="text-xs text-gray-500">
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{customer.name}</h3>
+            {customer.gstNumber && (
+              <div className="flex items-center gap-2 mt-1">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-600">
                   GST: {customer.gstNumber}
-                </div>
-              )}
-            </div>
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-        
-        <div className="flex flex-col items-end gap-2">
-          <div className="text-right text-sm">
-            <p className="text-gray-500">Joined: {new Date(customer.createdAt).toLocaleDateString()}</p>
-          </div>
-          <div className="flex gap-1">
-            <Button size="sm" variant="ghost">
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onEdit(customer)}>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEdit(customer)}
+            >
               <Edit className="h-4 w-4" />
             </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="text-red-600 hover:text-red-700"
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => onDelete(customer.id)}
-              disabled={isDeleting}
+              className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2 text-gray-600">
+            <Phone className="h-4 w-4" />
+            <span className="text-sm">{customer.phone}</span>
+          </div>
+          {customer.email && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <Mail className="h-4 w-4" />
+              <span className="text-sm">{customer.email}</span>
+            </div>
+          )}
+          {customer.address && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm">{customer.address}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Vehicles Section */}
+        {vehicles.length > 0 && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Car className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Vehicles</span>
+            </div>
+            <div className="space-y-1">
+              {vehicles.map((vehicle) => (
+                <div key={vehicle.id} className="text-xs bg-gray-50 p-2 rounded">
+                  <span className="font-medium">{vehicle.make} {vehicle.model}</span>
+                  <span className="text-gray-600 ml-2">• {vehicle.vehicleNumber}</span>
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {vehicle.vehicleType}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center">
+          <Badge variant="secondary">
+            Total Spent: ₹{customer.totalSpent?.toLocaleString() || '0'}
+          </Badge>
+          <span className="text-xs text-gray-500">
+            {new Date(customer.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -16,8 +16,9 @@ export const useInvoices = (type?: 'gst' | 'non-gst') => {
         .from("invoices")
         .select(`
           *,
-          customers(name, phone, email, gst_number),
-          vehicles(make, model, vehicle_number)
+          customers(id, name, phone, email, gst_number),
+          vehicles(id, make, model, vehicle_number, vehicle_type, customer_id),
+          invoice_items(id, name, item_type, quantity, unit_price, discount, total)
         `)
         .order("created_at", { ascending: false });
       
@@ -36,7 +37,16 @@ export const useInvoices = (type?: 'gst' | 'non-gst') => {
         invoiceType: invoice.invoice_type,
         customerId: invoice.customer_id,
         vehicleId: invoice.vehicle_id,
-        items: [], // Will be populated separately when needed
+        items: invoice.invoice_items?.map((item: any) => ({
+          id: item.id,
+          type: item.item_type,
+          itemId: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          discount: item.discount,
+          total: item.total
+        })) || [],
         subtotal: invoice.subtotal,
         discount: invoice.discount,
         taxRate: invoice.tax_rate,
@@ -98,6 +108,29 @@ export const useCreateInvoice = () => {
       if (error) {
         console.error("Database error:", error);
         throw error;
+      }
+
+      // Also insert invoice items if they exist
+      if (invoice.items && invoice.items.length > 0) {
+        const invoiceItems = invoice.items.map(item => ({
+          invoice_id: data.id,
+          item_id: item.itemId,
+          name: item.name,
+          item_type: item.type,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          discount: item.discount,
+          total: item.total
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("invoice_items")
+          .insert(invoiceItems);
+
+        if (itemsError) {
+          console.error("Error inserting invoice items:", itemsError);
+          throw itemsError;
+        }
       }
       
       console.log("Invoice created successfully:", data);

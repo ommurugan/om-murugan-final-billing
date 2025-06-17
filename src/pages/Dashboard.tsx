@@ -50,6 +50,7 @@ const Dashboard = () => {
     .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
     .length;
 
+  // Include both pending and draft invoices as pending
   const pendingInvoices = invoices.filter(inv => inv.status === 'pending' || inv.status === 'draft').length;
 
   // Prepare data for modals
@@ -59,7 +60,7 @@ const Dashboard = () => {
 
   const revenueItems = todaysPaidInvoices.map(invoice => ({
     id: invoice.id,
-    vehicleInfo: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''}`.trim() || 'Unknown Vehicle',
+    vehicleInfo: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''} - ${(invoice as any).vehicles?.vehicle_number || ''}`.trim() || 'Unknown Vehicle',
     services: invoice.items?.filter(item => item.type === 'service').map(item => item.name) || [],
     parts: invoice.items?.filter(item => item.type === 'part').map(item => item.name) || [],
     amount: invoice.total,
@@ -77,16 +78,30 @@ const Dashboard = () => {
       parts: invoice.items?.filter(item => item.type === 'part').map(item => item.name) || []
     }));
 
-  const activeCustomersData = customers.map(customer => ({
-    id: customer.id,
-    customerName: customer.name,
-    vehicleName: 'Multiple Vehicles', // This would need to be calculated from actual vehicle data
-    vehicleNumber: 'Various',
-    totalSpent: invoices
-      .filter(inv => inv.customerId === customer.id && inv.status === 'paid')
-      .reduce((sum, inv) => sum + inv.total, 0)
-  }));
+  const activeCustomersData = customers.map(customer => {
+    // Calculate total spent by this customer
+    const customerInvoices = invoices.filter(inv => inv.customerId === customer.id && inv.status === 'paid');
+    const totalSpent = customerInvoices.reduce((sum, inv) => sum + inv.total, 0);
+    
+    // Get the most recent vehicle for this customer
+    const recentInvoice = customerInvoices[0];
+    const vehicleName = recentInvoice 
+      ? `${(recentInvoice as any).vehicles?.make || ''} ${(recentInvoice as any).vehicles?.model || ''}`.trim()
+      : 'No Vehicle';
+    const vehicleNumber = recentInvoice 
+      ? (recentInvoice as any).vehicles?.vehicle_number || 'N/A'
+      : 'N/A';
 
+    return {
+      id: customer.id,
+      customerName: customer.name,
+      vehicleName,
+      vehicleNumber,
+      totalSpent
+    };
+  });
+
+  // Include both pending and draft invoices
   const pendingInvoicesData = invoices
     .filter(inv => inv.status === 'pending' || inv.status === 'draft')
     .map(invoice => ({
@@ -95,7 +110,8 @@ const Dashboard = () => {
       customerName: (invoice as any).customers?.name || 'Unknown Customer',
       vehicleInfo: `${(invoice as any).vehicles?.make || ''} ${(invoice as any).vehicles?.model || ''}`.trim() || 'Unknown Vehicle',
       amount: invoice.total,
-      createdAt: invoice.createdAt
+      createdAt: invoice.createdAt,
+      status: invoice.status
     }));
 
   const stats = [
