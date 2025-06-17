@@ -40,15 +40,24 @@ const Dashboard = () => {
   const { data: invoices = [] } = useInvoices();
   const { data: customers = [] } = useCustomers();
 
+  console.log('All invoices:', invoices);
+
   // Calculate real stats from actual data
   const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+  console.log('Paid invoices:', paidInvoices);
+  
   const todayRevenue = paidInvoices
     .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
     .reduce((sum, inv) => sum + inv.total, 0);
   
+  console.log('Today revenue calculation:', todayRevenue);
+  
+  // Only count completed/paid invoices as serviced vehicles (not drafts)
   const todayVehicles = invoices
-    .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
-    .length;
+    .filter(inv => 
+      new Date(inv.createdAt).toDateString() === new Date().toDateString() && 
+      inv.status === 'paid'
+    ).length;
 
   // Include both pending and draft invoices as pending
   const pendingInvoices = invoices.filter(inv => inv.status === 'pending' || inv.status === 'draft').length;
@@ -67,8 +76,12 @@ const Dashboard = () => {
     customerName: (invoice as any).customers?.name || 'Unknown Customer'
   }));
 
+  // Only show paid/completed vehicles as serviced
   const todaysServicedVehicles = invoices
-    .filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString())
+    .filter(inv => 
+      new Date(inv.createdAt).toDateString() === new Date().toDateString() && 
+      inv.status === 'paid'
+    )
     .map(invoice => ({
       id: invoice.id,
       customerName: (invoice as any).customers?.name || 'Unknown Customer',

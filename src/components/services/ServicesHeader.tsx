@@ -2,6 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import UserProfileButton from "@/components/UserProfileButton";
 
 interface ServicesHeaderProps {
   searchTerm: string;
@@ -13,6 +14,7 @@ const ServicesHeader = ({ searchTerm, onSearchChange }: ServicesHeaderProps) => 
     <header className="bg-white shadow-sm border-b px-6 py-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Services & Parts</h1>
+        <UserProfileButton />
       </div>
       <Card className="mt-6">
         <CardContent className="pt-6">

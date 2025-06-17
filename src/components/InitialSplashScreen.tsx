@@ -18,14 +18,14 @@ const InitialSplashScreen = ({ onComplete }: InitialSplashScreenProps) => {
       setStatusBarColor('#ffffff', true);
     }
 
-    // Start blinking animation - exactly 5 blinks
+    // Start blinking animation - exactly 4 blinks
     const blinkInterval = setInterval(() => {
       setShowContent(prev => !prev);
       setBlinkCount(prev => {
         const newCount = prev + 1;
-        if (newCount >= 10) { // 10 state changes = 5 complete blinks
+        if (newCount >= 8) { // 8 state changes = 4 complete blinks
           clearInterval(blinkInterval);
-          // Start fade out immediately after 5 blinks
+          // Start fade out immediately after 4 blinks
           setTimeout(() => {
             setIsVisible(false);
             // Wait for fade out animation to complete before calling onComplete
