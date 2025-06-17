@@ -50,7 +50,6 @@ const CustomerListContent = ({
               customer={customer}
               onEdit={onEditCustomer}
               onDelete={onDeleteCustomer}
-              isDeleting={isDeleting}
             />
           )}
         </div>
