@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Invoice } from "@/types/billing";
 import InvoicePrintPreview from "./InvoicePrintPreview";
 import CustomerSection from "./invoice/CustomerSection";
@@ -20,8 +21,14 @@ const NonGSTInvoiceForm = ({
   onCancel,
   existingInvoice
 }: NonGSTInvoiceFormProps) => {
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+
   const formState = useNonGSTInvoiceForm({
-    onSave,
+    onSave: (invoice: Invoice) => {
+      onSave(invoice);
+      // Auto-show print preview after successful creation
+      setShowPrintPreview(true);
+    },
     onCancel,
     existingInvoice
   });
@@ -38,7 +45,6 @@ const NonGSTInvoiceForm = ({
     notes,
     paymentMethod,
     paymentAmount,
-    showPrintPreview,
     subtotal,
     total,
     createInvoiceMutation,
@@ -52,7 +58,6 @@ const NonGSTInvoiceForm = ({
     setNotes,
     setPaymentMethod,
     setPaymentAmount,
-    setShowPrintPreview,
     addService,
     addPart,
     removeItem,
@@ -68,7 +73,11 @@ const NonGSTInvoiceForm = ({
     invoiceItems,
     createInvoiceObject,
     createInvoiceMutation,
-    onSave
+    onSave: (invoice: Invoice) => {
+      onSave(invoice);
+      // Auto-show print preview after successful creation
+      setShowPrintPreview(true);
+    }
   });
 
   const handlePrintPreview = () => {

@@ -32,7 +32,7 @@ const GSTInvoiceManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
-  const { data: invoices = [], isLoading } = useInvoices('gst');
+  const { data: invoices = [], isLoading, refetch } = useInvoices('gst');
 
   const getCustomerName = (invoice: any) => {
     return invoice.customers?.name || "Unknown Customer";
@@ -99,7 +99,12 @@ const GSTInvoiceManagement = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const handleSaveInvoice = (invoice: Invoice) => {
+  const handleSaveInvoice = async (invoice: Invoice) => {
+    console.log("GST Invoice saved:", invoice);
+    
+    // Refresh the invoices list to show the new invoice
+    await refetch();
+    
     toast.success("GST Invoice saved successfully!");
     setShowCreateForm(false);
     setSelectedInvoice(null);
@@ -112,6 +117,7 @@ const GSTInvoiceManagement = () => {
 
   const handleDeleteInvoice = (invoiceId: string) => {
     toast.success("Invoice deleted successfully!");
+    // TODO: Implement actual delete functionality
   };
 
   const handlePrintInvoice = (invoice: Invoice) => {
