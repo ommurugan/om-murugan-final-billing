@@ -54,13 +54,13 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
         return;
       }
 
-      // Create vehicle
+      // Create vehicle - convert year to number
       const vehicleData = {
         customer_id: newCustomer.id,
         make,
         model,
         vehicle_number: vehicleNumber,
-        year,
+        year: year ? parseInt(year) : undefined,
         vehicle_type: vehicleType,
         engine_number: "",
         chassis_number: "",
