@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
-import { createCustomer } from "@/lib/api/customers/utils";
-import { createVehicle } from "@/lib/api/vehicles/utils";
+import { useCreateCustomer } from "@/hooks/useCustomers";
+import { useCreateVehicle } from "@/hooks/useVehicles";
 
 interface GSTCustomerQuickAddProps {
   onCustomerAdded: (customer: any) => void;
@@ -26,23 +27,27 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
   const [year, setYear] = useState("");
   const [vehicleType, setVehicleType] = useState<'car' | 'bike' | 'scooter' | 'van' | 'truck'>('car');
 
+  const createCustomer = useCreateCustomer();
+  const createVehicle = useCreateVehicle();
+
   const handleSubmit = async () => {
     if (!name || !phone || !make || !model || !vehicleNumber || !vehicleType || !gstNumber) {
-      toast.error("Please fill in all fields");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
       // Create customer
-      const newCustomer = await createCustomer({
+      const customerData = {
         name,
         phone,
         email,
         gstNumber,
         totalSpent: 0,
-        isGstRegistered: true,
         address: ""
-      });
+      };
+
+      const newCustomer = await createCustomer.mutateAsync(customerData);
 
       if (!newCustomer) {
         toast.error("Failed to create customer");
@@ -50,7 +55,7 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
       }
 
       // Create vehicle
-      const newVehicle = await createVehicle({
+      const vehicleData = {
         customer_id: newCustomer.id,
         make,
         model,
@@ -60,10 +65,11 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
         engine_number: "",
         chassis_number: "",
         color: ""
-      });
+      };
+
+      const newVehicle = await createVehicle.mutateAsync(vehicleData);
 
       if (!newVehicle) {
-        // Optionally delete the customer if vehicle creation fails
         toast.error("Failed to create vehicle");
         return;
       }
@@ -83,7 +89,7 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
       setYear("");
       setVehicleType('car');
 
-      toast.success("Customer and vehicle added successfully!");
+      toast.success("GST Customer and vehicle added successfully!");
     } catch (error: any) {
       console.error("Error creating customer or vehicle:", error);
       toast.error(error?.message || "Failed to create customer and vehicle");
@@ -174,8 +180,8 @@ const GSTCustomerQuickAdd = ({ onCustomerAdded }: GSTCustomerQuickAddProps) => {
         </div>
 
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            Add Customer
+          <Button type="submit" onClick={handleSubmit} disabled={createCustomer.isPending}>
+            {createCustomer.isPending ? "Adding..." : "Add Customer"}
           </Button>
         </DialogFooter>
       </DialogContent>

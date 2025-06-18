@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
@@ -9,7 +10,9 @@ import { useCustomerForm } from "@/hooks/useCustomerForm";
 import { useCustomerSubmission } from "@/hooks/useCustomerSubmission";
 import CustomerFormSection from "@/components/customer/CustomerFormSection";
 import CustomerVehicleFormSection from "@/components/customer/CustomerVehicleFormSection";
-import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Separator } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface CustomerQuickAddProps {
   onCustomerAdded: (customer: Customer) => void;
@@ -98,7 +101,7 @@ const CustomerQuickAdd = ({ onCustomerAdded }: CustomerQuickAddProps) => {
         </div>
 
         <div className="flex gap-2 pt-4">
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} onClick={handleSubmit}>
             {isLoading ? "Adding..." : "Add Customer"}
           </Button>
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
