@@ -5,273 +5,110 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Car, User, Receipt, CreditCard, Printer, Mail, Save, Gauge, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
-import InvoicePrintPreview from "./InvoicePrintPreview";
-import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
-import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
+import { Invoice, Customer, Vehicle } from "@/types/billing";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
-import { useCreateInvoice } from "@/hooks/useInvoices";
+import { useCreateInvoice } from "@/hooks/useInvoiceCreation";
+import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
+import InvoiceActionButtons from "./invoice/InvoiceActionButtons";
+import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
+
 interface GSTInvoiceFormProps {
   onSave: (invoice: Invoice) => void;
   onCancel: () => void;
   existingInvoice?: Invoice;
 }
-const GSTInvoiceForm = ({
-  onSave,
-  onCancel,
-  existingInvoice
-}: GSTInvoiceFormProps) => {
-  const {
-    data: customersData = []
-  } = useCustomers();
-  const [customers, setCustomers] = useState<Customer[]>([]);
+
+const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormProps) => {
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [kilometers, setKilometers] = useState<number>(0);
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [invoiceItems, setInvoiceItems] = useState<any[]>([]);
+  const [laborCharges, setLaborCharges] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
+  const [taxRate, setTaxRate] = useState<number>(18);
+  const [extraCharges, setExtraCharges] = useState<{ name: string; amount: number }[]>([]);
+  const [notes, setNotes] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
-  // Create invoice mutation
+  const { data: customers = [] } = useCustomers();
+  const { data: vehicles = [] } = useVehicles();
+  const { data: services = [] } = useServices();
+  const { data: parts = [] } = useParts();
   const createInvoiceMutation = useCreateInvoice();
 
-  // Fetch vehicles for the selected customer
-  const {
-    data: vehiclesData = []
-  } = useVehicles(selectedCustomer?.id);
-
-  // Fetch services and parts
-  const {
-    data: servicesData = []
-  } = useServices();
-  const {
-    data: partsData = []
-  } = useParts();
-  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
-  const [laborCharges, setLaborCharges] = useState(0);
-  const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState(18); // Default GST rate
-  const [extraCharges, setExtraCharges] = useState<Array<{
-    name: string;
-    amount: number;
-  }>>([]);
-  const [notes, setNotes] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
-  const [paymentAmount, setPaymentAmount] = useState(0);
-
-  // Update customers and filter GST customers when data changes
   useEffect(() => {
-    const gstCustomers = customersData.filter(customer => customer.gstNumber && customer.gstNumber.trim() !== '');
-    setCustomers(gstCustomers);
-  }, [customersData]);
-
-  // Transform database vehicles to match our interface
-  const transformedVehicles: Vehicle[] = vehiclesData.map(v => ({
-    id: v.id,
-    customerId: v.customer_id,
-    make: v.make,
-    model: v.model,
-    year: v.year,
-    vehicleNumber: v.vehicle_number,
-    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter' || 'car',
-    engineNumber: v.engine_number,
-    chassisNumber: v.chassis_number,
-    color: v.color,
-    createdAt: v.created_at
-  }));
-
-  // Transform database services to match our interface
-  const transformedServices: Service[] = servicesData.map(s => ({
-    id: s.id,
-    name: s.name,
-    category: s.category,
-    basePrice: Number(s.base_price),
-    estimatedTime: s.estimated_time,
-    description: s.description,
-    isActive: s.is_active
-  }));
-
-  // Transform database parts to match our interface
-  const transformedParts: Part[] = partsData.map(p => ({
-    id: p.id,
-    name: p.name,
-    category: p.category,
-    price: Number(p.price),
-    stockQuantity: p.stock_quantity,
-    minStockLevel: p.min_stock_level,
-    supplier: p.supplier,
-    partNumber: p.part_number,
-    isActive: p.is_active
-  }));
-  const customerVehicles = selectedCustomer ? transformedVehicles.filter(v => v.customerId === selectedCustomer.id) : [];
-  const handleCustomerAdded = (newCustomer: Customer) => {
-    setCustomers(prev => [...prev, newCustomer]);
-    setSelectedCustomer(newCustomer);
-  };
-  const addService = (serviceId: string) => {
-    const service = transformedServices.find(s => s.id === serviceId);
-    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
-      const newItem: InvoiceItem = {
-        id: Date.now().toString(),
-        type: 'service',
-        itemId: service.id,
-        name: service.name,
-        quantity: 1,
-        unitPrice: service.basePrice,
-        discount: 0,
-        total: service.basePrice
-      };
-      setInvoiceItems([...invoiceItems, newItem]);
+    if (existingInvoice) {
+      setSelectedCustomer(customers.find(c => c.id === existingInvoice.customerId) || null);
+      setSelectedVehicle(vehicles.find(v => v.id === existingInvoice.vehicleId) || null);
+      setKilometers(existingInvoice.kilometers || 0);
+      setInvoiceItems(existingInvoice.items || []);
+      setLaborCharges(existingInvoice.laborCharges || 0);
+      setDiscount(existingInvoice.discount || 0);
+      setTaxRate(existingInvoice.taxRate || 18);
+      setExtraCharges(existingInvoice.extraCharges || []);
+      setNotes(existingInvoice.notes || "");
+      setPaymentMethod(existingInvoice.paymentMethod || "cash");
+      setPaymentAmount(existingInvoice.paymentAmount || 0);
     }
-  };
-  const addPart = (partId: string) => {
-    const part = transformedParts.find(p => p.id === partId);
-    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
-      const newItem: InvoiceItem = {
-        id: Date.now().toString(),
-        type: 'part',
-        itemId: part.id,
-        name: part.name,
-        quantity: 1,
-        unitPrice: part.price,
-        discount: 0,
-        total: part.price
-      };
-      setInvoiceItems([...invoiceItems, newItem]);
-    }
-  };
-  const removeItem = (itemId: string) => {
-    setInvoiceItems(invoiceItems.filter(item => item.id !== itemId));
-  };
-  const updateItemQuantity = (itemId: string, quantity: number) => {
-    setInvoiceItems(items => items.map(item => item.id === itemId ? {
-      ...item,
-      quantity,
-      total: (item.unitPrice - item.discount) * quantity
-    } : item));
-  };
-  const updateItemDiscount = (itemId: string, discount: number) => {
-    setInvoiceItems(items => items.map(item => item.id === itemId ? {
-      ...item,
-      discount,
-      total: (item.unitPrice - discount) * item.quantity
-    } : item));
-  };
-  const addExtraCharge = () => {
-    setExtraCharges([...extraCharges, {
-      name: "",
-      amount: 0
-    }]);
-  };
-  const updateExtraCharge = (index: number, field: 'name' | 'amount', value: string | number) => {
-    const updated = [...extraCharges];
-    updated[index] = {
-      ...updated[index],
-      [field]: value
-    };
-    setExtraCharges(updated);
-  };
-  const removeExtraCharge = (index: number) => {
-    setExtraCharges(extraCharges.filter((_, i) => i !== index));
-  };
-  const calculateSubtotal = () => {
-    const itemsTotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
-    const extraTotal = extraCharges.reduce((sum, charge) => sum + charge.amount, 0);
-    return itemsTotal + laborCharges + extraTotal;
-  };
-  const calculateGSTAmounts = () => {
-    const subtotal = calculateSubtotal();
-    const discountAmount = subtotal * discount / 100;
-    const afterDiscount = subtotal - discountAmount;
-    const totalGSTAmount = afterDiscount * taxRate / 100;
-    const sgstAmount = totalGSTAmount / 2;
-    const cgstAmount = totalGSTAmount / 2;
-    return {
-      subtotal,
-      discountAmount,
-      afterDiscount,
-      sgstAmount,
-      cgstAmount,
-      totalGSTAmount,
-      total: afterDiscount + totalGSTAmount
-    };
-  };
-  const {
-    subtotal,
-    discountAmount,
-    afterDiscount,
-    sgstAmount,
-    cgstAmount,
-    totalGSTAmount,
-    total
-  } = calculateGSTAmounts();
+  }, [existingInvoice, customers, vehicles]);
+
+  const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0) + laborCharges + extraCharges.reduce((sum, charge) => sum + charge.amount, 0);
+  const discountAmount = (subtotal * discount) / 100;
+  const taxableAmount = subtotal - discountAmount;
+  const taxAmount = (taxableAmount * taxRate) / 100;
+  const total = taxableAmount + taxAmount;
+
   const generateInvoiceNumber = () => {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `GST-INV-${year}${month}${day}-${random}`;
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const randomNum = Math.floor(Math.random() * 1000);
+    return `GST-INV-${dateStr}-${randomNum}`;
   };
-  const createInvoiceObject = (status: Invoice['status']) => {
-    const payment: Payment | undefined = paymentAmount > 0 ? {
-      id: Date.now().toString(),
-      invoiceId: "",
-      amount: paymentAmount,
-      method: paymentMethod,
-      status: 'completed',
-      paidAt: new Date().toISOString()
-    } : undefined;
+
+  const createInvoiceObject = (status: Invoice['status']): Invoice => {
     return {
-      id: existingInvoice?.id || Date.now().toString(),
+      id: existingInvoice?.id || crypto.randomUUID(),
       invoiceNumber: existingInvoice?.invoiceNumber || generateInvoiceNumber(),
-      invoiceType: 'gst' as const,
+      invoiceType: 'gst',
       customerId: selectedCustomer!.id,
       vehicleId: selectedVehicle!.id,
       items: invoiceItems,
       subtotal,
       discount,
       taxRate,
-      taxAmount: totalGSTAmount,
+      taxAmount,
       extraCharges,
       total,
-      status: payment && payment.amount >= total ? 'paid' : status,
+      status,
       createdAt: existingInvoice?.createdAt || new Date().toISOString(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      paidAt: payment && payment.amount >= total ? new Date().toISOString() : undefined,
-      notes,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       laborCharges,
-      payments: payment ? [payment] : [],
-      kilometers
+      payments: existingInvoice?.payments || [],
+      kilometers,
+      notes
     };
   };
-  const validateForm = () => {
-    if (!selectedCustomer) {
-      toast.error("Please select a GST customer");
-      return false;
+
+  const handleCustomerAdded = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    if (customer.vehicles && customer.vehicles.length > 0) {
+      setSelectedVehicle(customer.vehicles[0]);
     }
-    if (!selectedVehicle) {
-      toast.error("Please select a vehicle");
-      return false;
-    }
-    if (invoiceItems.length === 0) {
-      toast.error("Please add at least one service or part");
-      return false;
-    }
-    if (!selectedCustomer.gstNumber) {
-      toast.error("GST number is required for GST invoice");
-      return false;
-    }
-    return true;
   };
+
   const handleSaveDraft = async () => {
-    if (!validateForm()) return;
+    if (!selectedCustomer || !selectedVehicle) {
+      toast.error("Please select customer and vehicle before saving draft");
+      return;
+    }
+
     try {
       const invoice = createInvoiceObject('draft');
       await createInvoiceMutation.mutateAsync(invoice);
@@ -282,323 +119,331 @@ const GSTInvoiceForm = ({
       toast.error("Failed to save draft");
     }
   };
+
   const handleCreateInvoice = async () => {
-    if (!validateForm()) return;
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part");
+      return;
+    }
+
     try {
       const invoice = createInvoiceObject('pending');
       await createInvoiceMutation.mutateAsync(invoice);
       onSave(invoice);
+      setShowPrintPreview(true); // Show print preview after creation
       toast.success("GST Invoice created successfully!");
-
-      // Auto-show print preview after successful creation
-      setShowPrintPreview(true);
     } catch (error) {
       console.error("Error creating invoice:", error);
       toast.error("Failed to create invoice");
     }
   };
+
   const handlePrintPreview = () => {
-    if (!validateForm()) return;
+    if (!selectedCustomer || !selectedVehicle || invoiceItems.length === 0) {
+      toast.error("Please fill in customer, vehicle, and at least one service/part to preview");
+      return;
+    }
     setShowPrintPreview(true);
   };
-  useEffect(() => {
-    setPaymentAmount(total);
-  }, [total]);
+
+  const addService = () => {
+    const newService = {
+      id: crypto.randomUUID(),
+      type: 'service' as const,
+      itemId: '',
+      name: '',
+      quantity: 1,
+      unitPrice: 0,
+      discount: 0,
+      total: 0
+    };
+    setInvoiceItems([...invoiceItems, newService]);
+  };
+
+  const addPart = () => {
+    const newPart = {
+      id: crypto.randomUUID(),
+      type: 'part' as const,
+      itemId: '',
+      name: '',
+      quantity: 1,
+      unitPrice: 0,
+      discount: 0,
+      total: 0
+    };
+    setInvoiceItems([...invoiceItems, newPart]);
+  };
+
+  const removeItem = (id: string) => {
+    setInvoiceItems(invoiceItems.filter(item => item.id !== id));
+  };
+
+  const updateItemQuantity = (id: string, quantity: number) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === id) {
+        const total = quantity * item.unitPrice - item.discount;
+        return { ...item, quantity, total };
+      }
+      return item;
+    }));
+  };
+
+  const updateItemDiscount = (id: string, discount: number) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === id) {
+        const total = item.quantity * item.unitPrice - discount;
+        return { ...item, discount, total };
+      }
+      return item;
+    }));
+  };
+
   if (showPrintPreview && selectedCustomer && selectedVehicle) {
     const previewInvoice = createInvoiceObject('draft');
-    return <ProfessionalInvoicePrint 
-      invoice={previewInvoice} 
-      customer={selectedCustomer} 
-      vehicle={selectedVehicle} 
-      onClose={() => setShowPrintPreview(false)} 
-    />;
+    return (
+      <ProfessionalInvoicePrint
+        invoice={previewInvoice}
+        customer={selectedCustomer}
+        vehicle={selectedVehicle}
+        onClose={() => setShowPrintPreview(false)}
+      />
+    );
   }
-  return <div className="space-y-6">
-      {/* Customer & Vehicle Selection */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              GST Customer Selection
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Select GST Customer</Label>
-                <GSTCustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
-              </div>
-              <Select onValueChange={value => {
-              const customer = customers.find(c => c.id === value);
-              setSelectedCustomer(customer || null);
-              setSelectedVehicle(null);
-            }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a GST customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.length === 0 ? <SelectItem value="no-customers" disabled>
-                      No GST customers found
-                    </SelectItem> : customers.map(customer => <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} - {customer.phone}
-                      </SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedCustomer && <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="font-medium">{selectedCustomer.name}</p>
-                <p className="text-sm text-gray-600">{selectedCustomer.phone}</p>
-                <p className="text-sm text-gray-600">{selectedCustomer.email}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-600">
-                    GST: {selectedCustomer.gstNumber}
-                  </span>
-                </div>
-                <Badge variant="secondary">
-                  Total Spent: ₹{selectedCustomer.totalSpent.toLocaleString()}
-                </Badge>
-              </div>}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
-              Vehicle Selection & Kilometers
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Select Vehicle</Label>
-              <Select onValueChange={value => {
-              const vehicle = customerVehicles.find(v => v.id === value);
-              setSelectedVehicle(vehicle || null);
-            }} disabled={!selectedCustomer}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a vehicle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customerVehicles.length === 0 ? <SelectItem value="no-vehicles" disabled>
-                      {selectedCustomer ? "No vehicles found for this customer" : "Select a customer first"}
-                    </SelectItem> : customerVehicles.map(vehicle => <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
-                      </SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedVehicle && <div className="p-3 bg-green-50 rounded-lg">
-                <p className="font-medium">{selectedVehicle.make} {selectedVehicle.model}</p>
-                <p className="text-sm text-gray-600">{selectedVehicle.vehicleNumber}</p>
-                <Badge variant="secondary">{selectedVehicle.vehicleType}</Badge>
-              </div>}
-            
-            <div>
-              <Label className="flex items-center gap-2">
-                <Gauge className="h-4 w-4" />
-                Current Kilometers
-              </Label>
-              <Input type="number" value={kilometers} onChange={e => setKilometers(parseInt(e.target.value) || 0)} placeholder="Enter current kilometers" className="mt-2" />
-              <p className="text-xs text-gray-500 mt-1">
-                Record the vehicle's current kilometer reading
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Services & Parts */}
+  return (
+    <div className="space-y-6">
+      {/* Customer Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Services & Parts</CardTitle>
+          <CardTitle>Customer & Vehicle Details</CardTitle>
+          <CardDescription>Select customer and vehicle for this GST invoice</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="services" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="services">Services</TabsTrigger>
-              <TabsTrigger value="parts">Parts</TabsTrigger>
-              <TabsTrigger value="selected">Selected Items ({invoiceItems.length})</TabsTrigger>
-            </TabsList>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Label htmlFor="customer">Customer</Label>
+              <Select 
+                value={selectedCustomer?.id || ""} 
+                onValueChange={(value) => {
+                  const customer = customers.find(c => c.id === value);
+                  setSelectedCustomer(customer || null);
+                  setSelectedVehicle(null);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.filter(c => c.gstNumber).map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name} - {customer.gstNumber}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <GSTCustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
+          </div>
 
-            <TabsContent value="services" className="space-y-4">
-              {transformedServices.length === 0 ? <div className="text-center py-8 text-gray-500">
-                  <p>No services available. Please add services first.</p>
-                </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {transformedServices.map(service => <div key={service.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">{service.name}</h4>
-                          <p className="text-sm text-gray-600">{service.category}</p>
-                          <p className="text-lg font-semibold text-blue-600">₹{service.basePrice}</p>
-                        </div>
-                        <Button size="sm" onClick={() => addService(service.id)} disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>)}
-                </div>}
-            </TabsContent>
+          {selectedCustomer && (
+            <div>
+              <Label htmlFor="vehicle">Vehicle</Label>
+              <Select 
+                value={selectedVehicle?.id || ""} 
+                onValueChange={(value) => {
+                  const vehicle = vehicles.find(v => v.id === value && v.customerId === selectedCustomer.id);
+                  setSelectedVehicle(vehicle || null);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a vehicle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicles
+                    .filter(v => v.customerId === selectedCustomer.id)
+                    .map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-            <TabsContent value="parts" className="space-y-4">
-              {transformedParts.length === 0 ? <div className="text-center py-8 text-gray-500">
-                  <p>No parts available. Please add parts first.</p>
-                </div> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {transformedParts.map(part => <div key={part.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-medium">{part.name}</h4>
-                          <p className="text-sm text-gray-600">{part.category}</p>
-                          <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
-                          <p className="text-xs text-gray-500">Stock: {part.stockQuantity}</p>
-                        </div>
-                        <Button size="sm" onClick={() => addPart(part.id)} disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>)}
-                </div>}
-            </TabsContent>
-
-            <TabsContent value="selected" className="space-y-4">
-              {invoiceItems.length === 0 ? <p className="text-gray-500 text-center py-8">No items selected</p> : <div className="space-y-3">
-                  {invoiceItems.map(item => <div key={item.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{item.name}</h4>
-                          <p className="text-sm text-gray-600 capitalize">{item.type}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <Input type="number" value={item.quantity} onChange={e => updateItemQuantity(item.id, parseInt(e.target.value) || 1)} className="w-16 text-center" min="1" />
-                            <p className="text-xs text-gray-500">Qty</p>
-                          </div>
-                          <div className="text-right">
-                            <Input type="number" value={item.discount} onChange={e => updateItemDiscount(item.id, parseFloat(e.target.value) || 0)} className="w-20 text-center" min="0" />
-                            <p className="text-xs text-gray-500">Discount</p>
-                          </div>
-                          <div className="text-right min-w-[80px]">
-                            <p className="font-semibold">₹{item.total}</p>
-                            <p className="text-xs text-gray-500">Total</p>
-                          </div>
-                          <Button size="sm" variant="ghost" onClick={() => removeItem(item.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>)}
-                </div>}
-            </TabsContent>
-          </Tabs>
+          <div>
+            <Label htmlFor="kilometers">Current Kilometers</Label>
+            <Input
+              id="kilometers"
+              type="number"
+              value={kilometers}
+              onChange={(e) => setKilometers(Number(e.target.value))}
+              placeholder="Enter current kilometers"
+            />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Additional Charges with GST Selection */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Additional Charges</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Labor Charges</Label>
-              <Input type="number" value={laborCharges} onChange={e => setLaborCharges(parseFloat(e.target.value) || 0)} placeholder="Enter labor charges" />
-            </div>
+      {/* Services and Parts Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Services & Parts</CardTitle>
+          <CardDescription>Add services and parts for this invoice</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button onClick={addService} variant="outline">Add Service</Button>
+            <Button onClick={addPart} variant="outline">Add Part</Button>
+          </div>
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Extra Charges</Label>
-                <Button size="sm" variant="outline" onClick={addExtraCharge}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add
+          {invoiceItems.map((item, index) => (
+            <div key={item.id} className="grid grid-cols-6 gap-2 items-end p-4 border rounded">
+              <div>
+                <Label>Type</Label>
+                <Select 
+                  value={item.type} 
+                  onValueChange={(value: 'service' | 'part') => {
+                    setInvoiceItems(invoiceItems.map(i => 
+                      i.id === item.id ? { ...i, type: value, itemId: '', name: '' } : i
+                    ));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="service">Service</SelectItem>
+                    <SelectItem value="part">Part</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Item</Label>
+                <Select 
+                  value={item.itemId} 
+                  onValueChange={(value) => {
+                    const selectedItem = item.type === 'service' 
+                      ? services.find(s => s.id === value)
+                      : parts.find(p => p.id === value);
+                    
+                    if (selectedItem) {
+                      const unitPrice = selectedItem.price || 0;
+                      const total = item.quantity * unitPrice - item.discount;
+                      setInvoiceItems(invoiceItems.map(i => 
+                        i.id === item.id 
+                          ? { ...i, itemId: value, name: selectedItem.name, unitPrice, total }
+                          : i
+                      ));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Select ${item.type}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(item.type === 'service' ? services : parts).map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.name} - ₹{option.price}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => updateItemQuantity(item.id, Number(e.target.value))}
+                  min="1"
+                />
+              </div>
+
+              <div>
+                <Label>Unit Price</Label>
+                <Input
+                  type="number"
+                  value={item.unitPrice}
+                  onChange={(e) => {
+                    const unitPrice = Number(e.target.value);
+                    const total = item.quantity * unitPrice - item.discount;
+                    setInvoiceItems(invoiceItems.map(i => 
+                      i.id === item.id ? { ...i, unitPrice, total } : i
+                    ));
+                  }}
+                />
+              </div>
+
+              <div>
+                <Label>Discount</Label>
+                <Input
+                  type="number"
+                  value={item.discount}
+                  onChange={(e) => updateItemDiscount(item.id, Number(e.target.value))}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <Label>Total</Label>
+                  <div className="text-lg font-semibold">₹{item.total.toFixed(2)}</div>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => removeItem(item.id)}
+                >
+                  Remove
                 </Button>
               </div>
-              {extraCharges.map((charge, index) => <div key={index} className="flex gap-2 mb-2">
-                  <Input placeholder="Charge name" value={charge.name} onChange={e => updateExtraCharge(index, 'name', e.target.value)} />
-                  <Input type="number" placeholder="Amount" value={charge.amount} onChange={e => updateExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)} className="w-32" />
-                  <Button size="sm" variant="ghost" onClick={() => removeExtraCharge(index)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>)}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Payment Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="labor-charges">Labor Charges</Label>
+              <Input
+                id="labor-charges"
+                type="number"
+                value={laborCharges}
+                onChange={(e) => setLaborCharges(Number(e.target.value))}
+              />
             </div>
 
             <div>
-              <Label>Discount (%)</Label>
-              <Input type="number" value={discount} onChange={e => setDiscount(parseFloat(e.target.value) || 0)} placeholder="Enter discount percentage" min="0" max="100" />
+              <Label htmlFor="discount">Discount (%)</Label>
+              <Input
+                id="discount"
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value))}
+                max="100"
+              />
             </div>
 
             <div>
-              <Label>GST Rate (%)</Label>
-              <Select value={taxRate.toString()} onValueChange={value => setTaxRate(parseFloat(value))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">0% (Exempted)</SelectItem>
-                  <SelectItem value="5">5%</SelectItem>
-                  <SelectItem value="12">12%</SelectItem>
-                  <SelectItem value="18">18%</SelectItem>
-                  <SelectItem value="28">28%</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="tax-rate">GST Rate (%)</Label>
+              <Input
+                id="tax-rate"
+                type="number"
+                value={taxRate}
+                onChange={(e) => setTaxRate(Number(e.target.value))}
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>GST Invoice Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>₹{subtotal.toFixed(2)}</span>
-            </div>
-            {discount > 0 && <div className="flex justify-between text-green-600">
-                <span>Discount ({discount}%):</span>
-                <span>-₹{discountAmount.toFixed(2)}</span>
-              </div>}
-            <div className="flex justify-between">
-              <span>After Discount:</span>
-              <span>₹{afterDiscount.toFixed(2)}</span>
-            </div>
-            {taxRate > 0 && <>
-                <div className="flex justify-between text-sm">
-                  <span>CGST ({(taxRate / 2).toFixed(1)}%):</span>
-                  <span>₹{cgstAmount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>SGST ({(taxRate / 2).toFixed(1)}%):</span>
-                  <span>₹{sgstAmount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>Total GST:</span>
-                  <span>₹{totalGSTAmount.toFixed(2)}</span>
-                </div>
-              </>}
-            <Separator />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total Amount:</span>
-              <span>₹{total.toFixed(2)}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Payment & Notes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Payment Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div>
-              <Label>Payment Method</Label>
-              <Select value={paymentMethod} onValueChange={(value: Payment['method']) => setPaymentMethod(value)}>
+              <Label htmlFor="payment-method">Payment Method</Label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -607,84 +452,58 @@ const GSTInvoiceForm = ({
                   <SelectItem value="card">Card</SelectItem>
                   <SelectItem value="upi">UPI</SelectItem>
                   <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="cheque">Cheque</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Payment Amount</Label>
-              <Input type="number" value={paymentAmount} onChange={e => setPaymentAmount(parseFloat(e.target.value) || 0)} placeholder="Enter payment amount" />
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Additional notes for the invoice..."
+            />
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add any additional notes..." rows={4} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Display Selected Customer and Vehicle Details at Bottom */}
-      {(selectedCustomer || selectedVehicle) && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-800">Selected Details for GST Invoice</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {selectedCustomer && (
-                <div>
-                  <h4 className="font-semibold text-blue-800 mb-2">Customer Details:</h4>
-                  <div className="space-y-1 text-sm">
-                    <p><strong>Name:</strong> {selectedCustomer.name}</p>
-                    <p><strong>Phone:</strong> {selectedCustomer.phone}</p>
-                    {selectedCustomer.email && <p><strong>Email:</strong> {selectedCustomer.email}</p>}
-                    {selectedCustomer.gstNumber && <p><strong>GST Number:</strong> {selectedCustomer.gstNumber}</p>}
-                  </div>
-                </div>
-              )}
-              {selectedVehicle && (
-                <div>
-                  <h4 className="font-semibold text-blue-800 mb-2">Vehicle Details:</h4>
-                  <div className="space-y-1 text-sm">
-                    <p><strong>Vehicle:</strong> {selectedVehicle.make} {selectedVehicle.model}</p>
-                    <p><strong>Registration:</strong> {selectedVehicle.vehicleNumber}</p>
-                    <p><strong>Type:</strong> {selectedVehicle.vehicleType}</p>
-                    {selectedVehicle.year && <p><strong>Year:</strong> {selectedVehicle.year}</p>}
-                  </div>
-                </div>
-              )}
+            {discount > 0 && (
+              <div className="flex justify-between text-red-600">
+                <span>Discount ({discount}%):</span>
+                <span>-₹{discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>CGST ({(taxRate / 2).toFixed(1)}%):</span>
+              <span>₹{(taxAmount / 2).toFixed(2)}</span>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Action Buttons */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={handleSaveDraft} variant="outline" disabled={createInvoiceMutation.isPending}>
-              <Save className="h-4 w-4 mr-2" />
-              Save as Draft
-            </Button>
-            <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700" disabled={createInvoiceMutation.isPending}>
-              <Receipt className="h-4 w-4 mr-2" />
-              {createInvoiceMutation.isPending ? 'Creating...' : 'Create GST Invoice'}
-            </Button>
-            <Button onClick={handlePrintPreview} variant="outline">
-              <Printer className="h-4 w-4 mr-2" />
-              Print Preview
-            </Button>
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
+            <div className="flex justify-between">
+              <span>SGST ({(taxRate / 2).toFixed(1)}%):</span>
+              <span>₹{(taxAmount / 2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xl font-bold border-t pt-2">
+              <span>Total:</span>
+              <span>₹{total.toFixed(2)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </div>;
+
+      <InvoiceActionButtons
+        onSaveDraft={handleSaveDraft}
+        onCreateInvoice={handleCreateInvoice}
+        onPrintPreview={handlePrintPreview}
+        onCancel={onCancel}
+        isLoading={createInvoiceMutation.isPending}
+        showSaveDraft={true}
+      />
+    </div>
+  );
 };
+
 export default GSTInvoiceForm;

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -121,7 +120,82 @@ const GSTInvoiceManagement = () => {
   };
 
   const handlePrintInvoice = (invoice: Invoice) => {
-    toast.info("Print functionality will be implemented with PDF generation");
+    // Find the customer and vehicle for this invoice
+    const customer = invoices.find(inv => inv.id === invoice.id)?.customers;
+    const vehicle = invoices.find(inv => inv.id === invoice.id)?.vehicles;
+    
+    if (customer && vehicle) {
+      // Create a temporary print preview component
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Invoice ${invoice.invoiceNumber}</title>
+              <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .invoice-details { margin-bottom: 20px; }
+                .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                .table th, .table td { border: 1px solid #000; padding: 8px; text-align: left; }
+                .table th { background-color: #f0f0f0; }
+                .total { text-align: right; font-weight: bold; font-size: 18px; }
+                @media print { 
+                  .no-print { display: none; } 
+                  @page { margin: 0.5in; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1>OM MURUGAN AUTO WORKS</h1>
+                <h2>GST INVOICE</h2>
+                <p>Invoice: ${invoice.invoiceNumber}</p>
+              </div>
+              <div class="invoice-details">
+                <p><strong>Customer:</strong> ${customer.name}</p>
+                <p><strong>GST Number:</strong> ${customer.gst_number || 'N/A'}</p>
+                <p><strong>Vehicle:</strong> ${vehicle.make} ${vehicle.model} - ${vehicle.vehicle_number}</p>
+                <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${invoice.items.map(item => `
+                    <tr>
+                      <td>${item.name}</td>
+                      <td>${item.quantity}</td>
+                      <td>₹${item.unitPrice.toFixed(2)}</td>
+                      <td>₹${item.total.toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div class="total">
+                <p>Subtotal: ₹${invoice.subtotal.toFixed(2)}</p>
+                <p>CGST: ₹${(invoice.taxAmount / 2).toFixed(2)}</p>
+                <p>SGST: ₹${(invoice.taxAmount / 2).toFixed(2)}</p>
+                <p><strong>Total: ₹${invoice.total.toFixed(2)}</strong></p>
+              </div>
+              <div class="no-print" style="margin-top: 20px;">
+                <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Print Invoice</button>
+                <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Close</button>
+              </div>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+      }
+    } else {
+      toast.error("Unable to find customer or vehicle details for printing");
+    }
   };
 
   const handleEmailInvoice = (invoice: Invoice) => {

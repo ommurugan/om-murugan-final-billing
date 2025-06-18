@@ -27,7 +27,9 @@ const NonGSTInvoiceForm = ({
     onSave: (invoice: Invoice) => {
       onSave(invoice);
       // Auto-show print preview after successful creation
-      setShowPrintPreview(true);
+      if (invoice.status !== 'draft') {
+        setShowPrintPreview(true);
+      }
     },
     onCancel,
     existingInvoice
@@ -76,7 +78,9 @@ const NonGSTInvoiceForm = ({
     onSave: (invoice: Invoice) => {
       onSave(invoice);
       // Auto-show print preview after successful creation
-      setShowPrintPreview(true);
+      if (invoice.status !== 'draft') {
+        setShowPrintPreview(true);
+      }
     }
   });
 
