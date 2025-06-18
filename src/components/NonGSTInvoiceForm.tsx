@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Invoice } from "@/types/billing";
-import InvoicePrintPreview from "./InvoicePrintPreview";
+import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
 import CustomerSection from "./invoice/CustomerSection";
 import ServicesSection from "./invoice/ServicesSection";
 import PaymentSection from "./invoice/PaymentSection";
@@ -90,7 +90,7 @@ const NonGSTInvoiceForm = ({
   if (showPrintPreview && selectedCustomer && selectedVehicle) {
     const previewInvoice = createInvoiceObject('draft');
     return (
-      <InvoicePrintPreview
+      <ProfessionalInvoicePrint
         invoice={previewInvoice}
         customer={selectedCustomer}
         vehicle={selectedVehicle}
@@ -146,6 +146,7 @@ const NonGSTInvoiceForm = ({
         onPrintPreview={handlePrintPreview}
         onCancel={onCancel}
         isLoading={createInvoiceMutation.isPending}
+        showSaveDraft={false} // Hide Save as Draft for non-GST invoices
       />
     </div>
   );

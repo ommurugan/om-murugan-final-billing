@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { useCustomerForm } from "@/hooks/useCustomerForm";
 import { useCustomerSubmission } from "@/hooks/useCustomerSubmission";
 import CustomerFormSection from "@/components/customer/CustomerFormSection";
 import CustomerVehicleFormSection from "@/components/customer/CustomerVehicleFormSection";
+import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, Separator } from "@/components/ui/select";
 
 interface CustomerQuickAddProps {
   onCustomerAdded: (customer: Customer) => void;
@@ -17,6 +17,7 @@ interface CustomerQuickAddProps {
 
 const CustomerQuickAdd = ({ onCustomerAdded }: CustomerQuickAddProps) => {
   const [open, setOpen] = useState(false);
+  const [vehicleType, setVehicleType] = useState<'car' | 'bike' | 'scooter' | 'van' | 'truck'>('car');
   const { formData, updateFormData, resetForm, validateForm } = useCustomerForm();
   const { submitForm, isLoading } = useCustomerSubmission();
 
@@ -42,37 +43,68 @@ const CustomerQuickAdd = ({ onCustomerAdded }: CustomerQuickAddProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Plus className="h-4 w-4 mr-1" />
+        <Button variant="outline" size="sm">
+          <Plus className="h-4 w-4 mr-2" />
           Add Customer
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Customer</DialogTitle>
+          <DialogTitle>Add New Customer & Vehicle</DialogTitle>
+          <DialogDescription>
+            Add a new customer and their vehicle details
+          </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-120px)] pr-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <div className="grid gap-4 py-4">
+          {/* Customer Details */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Customer Information</h4>
             <CustomerFormSection 
               formData={formData}
               onUpdateField={updateFormData}
             />
-            
-            <CustomerVehicleFormSection 
-              formData={formData}
-              onUpdateField={updateFormData}
-            />
+          </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Adding..." : "Add Customer"}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
+          <Separator />
+
+          {/* Vehicle Details */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Vehicle Information</h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="vehicle-type">Vehicle Type</Label>
+                <Select value={vehicleType} onValueChange={(value: 'car' | 'bike' | 'scooter' | 'van' | 'truck') => setVehicleType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select vehicle type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="car">Car</SelectItem>
+                    <SelectItem value="bike">Bike</SelectItem>
+                    <SelectItem value="scooter">Scooter</SelectItem>
+                    <SelectItem value="van">Van</SelectItem>
+                    <SelectItem value="truck">Truck</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <CustomerVehicleFormSection 
+                formData={formData}
+                onUpdateField={updateFormData}
+              />
             </div>
-          </form>
-        </ScrollArea>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-4">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Adding..." : "Add Customer"}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Customer, Vehicle, Service, Part, Invoice, InvoiceItem, Payment } from "@/types/billing";
 import InvoicePrintPreview from "./InvoicePrintPreview";
 import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
+import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useServices } from "@/hooks/useServices";
@@ -305,7 +306,12 @@ const GSTInvoiceForm = ({
   }, [total]);
   if (showPrintPreview && selectedCustomer && selectedVehicle) {
     const previewInvoice = createInvoiceObject('draft');
-    return <InvoicePrintPreview invoice={previewInvoice} customer={selectedCustomer} vehicle={selectedVehicle} onClose={() => setShowPrintPreview(false)} />;
+    return <ProfessionalInvoicePrint 
+      invoice={previewInvoice} 
+      customer={selectedCustomer} 
+      vehicle={selectedVehicle} 
+      onClose={() => setShowPrintPreview(false)} 
+    />;
   }
   return <div className="space-y-6">
       {/* Customer & Vehicle Selection */}
@@ -622,11 +628,49 @@ const GSTInvoiceForm = ({
         </Card>
       </div>
 
+      {/* Display Selected Customer and Vehicle Details at Bottom */}
+      {(selectedCustomer || selectedVehicle) && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-800">Selected Details for GST Invoice</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {selectedCustomer && (
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-2">Customer Details:</h4>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Name:</strong> {selectedCustomer.name}</p>
+                    <p><strong>Phone:</strong> {selectedCustomer.phone}</p>
+                    {selectedCustomer.email && <p><strong>Email:</strong> {selectedCustomer.email}</p>}
+                    {selectedCustomer.gstNumber && <p><strong>GST Number:</strong> {selectedCustomer.gstNumber}</p>}
+                  </div>
+                </div>
+              )}
+              {selectedVehicle && (
+                <div>
+                  <h4 className="font-semibold text-blue-800 mb-2">Vehicle Details:</h4>
+                  <div className="space-y-1 text-sm">
+                    <p><strong>Vehicle:</strong> {selectedVehicle.make} {selectedVehicle.model}</p>
+                    <p><strong>Registration:</strong> {selectedVehicle.vehicleNumber}</p>
+                    <p><strong>Type:</strong> {selectedVehicle.vehicleType}</p>
+                    {selectedVehicle.year && <p><strong>Year:</strong> {selectedVehicle.year}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
-            
+            <Button onClick={handleSaveDraft} variant="outline" disabled={createInvoiceMutation.isPending}>
+              <Save className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
             <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700" disabled={createInvoiceMutation.isPending}>
               <Receipt className="h-4 w-4 mr-2" />
               {createInvoiceMutation.isPending ? 'Creating...' : 'Create GST Invoice'}

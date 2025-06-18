@@ -9,6 +9,7 @@ interface InvoiceActionButtonsProps {
   onPrintPreview: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  showSaveDraft?: boolean; // Add this prop to control visibility
 }
 
 const InvoiceActionButtons = ({
@@ -16,16 +17,19 @@ const InvoiceActionButtons = ({
   onCreateInvoice,
   onPrintPreview,
   onCancel,
-  isLoading = false
+  isLoading = false,
+  showSaveDraft = true // Default to true for backward compatibility
 }: InvoiceActionButtonsProps) => {
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-wrap gap-3">
-          <Button onClick={onSaveDraft} variant="outline" disabled={isLoading}>
-            <Save className="h-4 w-4 mr-2" />
-            Save as Draft
-          </Button>
+          {showSaveDraft && (
+            <Button onClick={onSaveDraft} variant="outline" disabled={isLoading}>
+              <Save className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
+          )}
           <Button onClick={onCreateInvoice} className="bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
             <Receipt className="h-4 w-4 mr-2" />
             Create Invoice
