@@ -36,9 +36,9 @@ const GSTInvoiceManagement = () => {
   // Transform the invoice data to include customer and vehicle details
   const invoices = invoicesData.map(invoice => ({
     ...invoice,
-    customerName: invoice.customers?.name || "Unknown Customer",
-    customerGST: invoice.customers?.gst_number || "",
-    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : "Unknown Vehicle"
+    customerName: invoice.customer?.name || "Unknown Customer",
+    customerGST: invoice.customer?.gst_number || "",
+    vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : "Unknown Vehicle"
   }));
 
   const getCustomerName = (invoice: any) => {
