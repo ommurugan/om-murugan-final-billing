@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,23 +40,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     createdAt: v.created_at
   }));
 
-  // Transform customers to match TypeScript interface
-  const transformedCustomers = customers.map(c => ({
-    id: c.id,
-    name: c.name,
-    phone: c.phone,
-    email: c.email,
-    address: c.address,
-    gstNumber: c.gst_number,
-    createdAt: c.created_at,
-    lastServiceDate: undefined,
-    totalSpent: 0,
-    loyaltyPoints: 0,
-    notes: c.notes
-  }));
-
-  // Filter customers to only show those with GST numbers
-  const gstCustomers = transformedCustomers.filter(customer => customer.gstNumber);
+  // Filter customers to only show those with GST numbers - customers are already transformed by useCustomers hook
+  const gstCustomers = customers.filter(customer => customer.gstNumber);
 
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
@@ -162,8 +146,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         if (selectedItem) {
           // Handle property name differences between database and interface
           const unitPrice = item.type === 'service' 
-            ? selectedItem.base_price 
-            : selectedItem.price;
+            ? (selectedItem as any).base_price 
+            : (selectedItem as any).price;
           const newTotal = (unitPrice * item.quantity) - item.discount;
           return {
             ...item,
