@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,12 +34,12 @@ const GSTInvoiceManagement = () => {
 
   const { data: invoicesData = [], isLoading, refetch } = useInvoices('gst');
 
-  // Transform the invoice data to include customer and vehicle details
-  const invoices = invoicesData.map(invoice => ({
+  // Transform the invoice data to include customer and vehicle details from the database query
+  const invoices = invoicesData.map((invoice: any) => ({
     ...invoice,
-    customerName: invoice.customer?.name || "Unknown Customer",
-    customerGST: invoice.customer?.gst_number || "",
-    vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : "Unknown Vehicle"
+    customerName: invoice.customers?.name || "Unknown Customer",
+    customerGST: invoice.customers?.gst_number || "",
+    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : "Unknown Vehicle"
   }));
 
   const getCustomerName = (invoice: any) => {
