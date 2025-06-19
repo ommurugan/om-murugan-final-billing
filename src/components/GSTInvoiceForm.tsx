@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,13 +21,43 @@ interface GSTInvoiceFormProps {
 
 const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormProps) => {
   const { data: customers = [] } = useCustomers();
-  const { data: vehicles = [] } = useVehicles();
+  const { data: dbVehicles = [] } = useVehicles();
   const { data: services = [] } = useServices();
   const { data: parts = [] } = useParts();
   const createInvoiceMutation = useCreateInvoice();
 
+  // Transform database vehicles to match TypeScript interface
+  const vehicles = dbVehicles.map(v => ({
+    id: v.id,
+    customerId: v.customer_id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
+    engineNumber: v.engine_number,
+    chassisNumber: v.chassis_number,
+    color: v.color,
+    createdAt: v.created_at
+  }));
+
+  // Transform customers to match TypeScript interface
+  const transformedCustomers = customers.map(c => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    email: c.email,
+    address: c.address,
+    gstNumber: c.gst_number,
+    createdAt: c.created_at,
+    lastServiceDate: undefined,
+    totalSpent: 0,
+    loyaltyPoints: 0,
+    notes: c.notes
+  }));
+
   // Filter customers to only show those with GST numbers
-  const gstCustomers = customers.filter(customer => customer.gstNumber);
+  const gstCustomers = transformedCustomers.filter(customer => customer.gstNumber);
 
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
@@ -129,7 +160,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           : parts.find(p => p.id === value);
         
         if (selectedItem) {
-          const unitPrice = item.type === 'service' ? selectedItem.base_price : selectedItem.price;
+          // Handle property name differences between database and interface
+          const unitPrice = item.type === 'service' 
+            ? selectedItem.base_price 
+            : selectedItem.price;
           const newTotal = (unitPrice * item.quantity) - item.discount;
           return {
             ...item,
@@ -175,20 +209,30 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       discount: discountAmount,
       taxRate,
       taxAmount,
+      extraCharges: [],
       total,
       status: 'pending' as const,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       notes,
       laborCharges,
+      payments: [],
       kilometers
     };
 
     try {
       if (existingInvoice) {
-        onSave({ ...invoiceData, id: existingInvoice.id, createdAt: existingInvoice.createdAt });
+        onSave({ 
+          ...invoiceData, 
+          id: existingInvoice.id, 
+          createdAt: existingInvoice.createdAt 
+        });
       } else {
         const result = await createInvoiceMutation.mutateAsync(invoiceData);
-        onSave({ ...invoiceData, id: result.id, createdAt: result.created_at });
+        onSave({ 
+          ...invoiceData, 
+          id: result.id, 
+          createdAt: result.created_at 
+        });
       }
     } catch (error) {
       console.error("Error saving invoice:", error);
