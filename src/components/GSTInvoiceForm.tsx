@@ -12,7 +12,9 @@ import { useVehicles } from "@/hooks/useVehicles";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
 import { useCreateInvoice } from "@/hooks/useCreateInvoice";
-import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
+import GSTCustomerSelection from "./gst-invoice/GSTCustomerSelection";
+import GSTServicesPartsSection from "./gst-invoice/GSTServicesPartsSection";
+import GSTPaymentSection from "./gst-invoice/GSTPaymentSection";
 import InvoiceActionButtons from "./invoice/InvoiceActionButtons";
 import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
 
@@ -165,7 +167,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       const invoice = createInvoiceObject('pending');
       await createInvoiceMutation.mutateAsync(invoice);
       onSave(invoice);
-      setShowPrintPreview(true); // Show print preview after creation
+      setShowPrintPreview(true);
       toast.success("GST Invoice created successfully!");
     } catch (error) {
       console.error("Error creating invoice:", error);
@@ -233,6 +235,37 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     }));
   };
 
+  const handleItemSelect = (itemId: string, value: string) => {
+    const item = invoiceItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    const selectedItem = item.type === 'service' 
+      ? services.find(s => s.id === value)
+      : parts.find(p => p.id === value);
+    
+    if (selectedItem) {
+      const unitPrice = item.type === 'service' 
+        ? (selectedItem as any).base_price || 0 
+        : (selectedItem as any).price || 0;
+      const total = item.quantity * unitPrice - item.discount;
+      setInvoiceItems(invoiceItems.map(i => 
+        i.id === itemId 
+          ? { ...i, itemId: value, name: selectedItem.name, unitPrice, total }
+          : i
+      ));
+    }
+  };
+
+  const handleUnitPriceChange = (itemId: string, unitPrice: number) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === itemId) {
+        const total = item.quantity * unitPrice - item.discount;
+        return { ...item, unitPrice, total };
+      }
+      return item;
+    }));
+  };
+
   if (showPrintPreview && selectedCustomer && selectedVehicle) {
     const previewInvoice = createInvoiceObject('draft');
     return (
@@ -253,69 +286,18 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           <CardTitle>Customer & Vehicle Details</CardTitle>
           <CardDescription>Select customer and vehicle for this GST invoice</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <Label htmlFor="customer">Customer</Label>
-              <Select 
-                value={selectedCustomer?.id || ""} 
-                onValueChange={(value) => {
-                  const customer = customers.find(c => c.id === value);
-                  setSelectedCustomer(customer || null);
-                  setSelectedVehicle(null);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.filter(c => c.gstNumber).map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.gstNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <GSTCustomerQuickAdd onCustomerAdded={handleCustomerAdded} />
-          </div>
-
-          {selectedCustomer && (
-            <div>
-              <Label htmlFor="vehicle">Vehicle</Label>
-              <Select 
-                value={selectedVehicle?.id || ""} 
-                onValueChange={(value) => {
-                  const vehicle = vehicles.find(v => v.id === value && v.customerId === selectedCustomer.id);
-                  setSelectedVehicle(vehicle || null);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a vehicle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicles
-                    .filter(v => v.customerId === selectedCustomer.id)
-                    .map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div>
-            <Label htmlFor="kilometers">Current Kilometers</Label>
-            <Input
-              id="kilometers"
-              type="number"
-              value={kilometers}
-              onChange={(e) => setKilometers(Number(e.target.value))}
-              placeholder="Enter current kilometers"
-            />
-          </div>
+        <CardContent>
+          <GSTCustomerSelection
+            customers={customers}
+            vehicles={vehicles}
+            selectedCustomer={selectedCustomer}
+            selectedVehicle={selectedVehicle}
+            kilometers={kilometers}
+            onCustomerChange={setSelectedCustomer}
+            onVehicleChange={setSelectedVehicle}
+            onKilometersChange={setKilometers}
+            onCustomerAdded={handleCustomerAdded}
+          />
         </CardContent>
       </Card>
 
@@ -325,118 +307,19 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           <CardTitle>Services & Parts</CardTitle>
           <CardDescription>Add services and parts for this invoice</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Button onClick={addService} variant="outline">Add Service</Button>
-            <Button onClick={addPart} variant="outline">Add Part</Button>
-          </div>
-
-          {invoiceItems.map((item, index) => (
-            <div key={item.id} className="grid grid-cols-6 gap-2 items-end p-4 border rounded">
-              <div>
-                <Label>Type</Label>
-                <Select 
-                  value={item.type} 
-                  onValueChange={(value: 'service' | 'part') => {
-                    setInvoiceItems(invoiceItems.map(i => 
-                      i.id === item.id ? { ...i, type: value, itemId: '', name: '' } : i
-                    ));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="service">Service</SelectItem>
-                    <SelectItem value="part">Part</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Item</Label>
-                <Select 
-                  value={item.itemId} 
-                  onValueChange={(value) => {
-                    const selectedItem = item.type === 'service' 
-                      ? services.find(s => s.id === value)
-                      : parts.find(p => p.id === value);
-                    
-                    if (selectedItem) {
-                      const unitPrice = item.type === 'service' 
-                        ? (selectedItem as any).base_price || 0 
-                        : (selectedItem as any).price || 0;
-                      const total = item.quantity * unitPrice - item.discount;
-                      setInvoiceItems(invoiceItems.map(i => 
-                        i.id === item.id 
-                          ? { ...i, itemId: value, name: selectedItem.name, unitPrice, total }
-                          : i
-                      ));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Select ${item.type}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(item.type === 'service' ? services : parts).map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.name} - ₹{item.type === 'service' ? (option as any).base_price : (option as any).price}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Quantity</Label>
-                <Input
-                  type="number"
-                  value={item.quantity}
-                  onChange={(e) => updateItemQuantity(item.id, Number(e.target.value))}
-                  min="1"
-                />
-              </div>
-
-              <div>
-                <Label>Unit Price</Label>
-                <Input
-                  type="number"
-                  value={item.unitPrice}
-                  onChange={(e) => {
-                    const unitPrice = Number(e.target.value);
-                    const total = item.quantity * unitPrice - item.discount;
-                    setInvoiceItems(invoiceItems.map(i => 
-                      i.id === item.id ? { ...i, unitPrice, total } : i
-                    ));
-                  }}
-                />
-              </div>
-
-              <div>
-                <Label>Discount</Label>
-                <Input
-                  type="number"
-                  value={item.discount}
-                  onChange={(e) => updateItemDiscount(item.id, Number(e.target.value))}
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Label>Total</Label>
-                  <div className="text-lg font-semibold">₹{item.total.toFixed(2)}</div>
-                </div>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => removeItem(item.id)}
-                >
-                  Remove
-                </Button>
-              </div>
-            </div>
-          ))}
+        <CardContent>
+          <GSTServicesPartsSection
+            invoiceItems={invoiceItems}
+            services={services}
+            parts={parts}
+            onAddService={addService}
+            onAddPart={addPart}
+            onRemoveItem={removeItem}
+            onUpdateQuantity={updateItemQuantity}
+            onUpdateDiscount={updateItemDiscount}
+            onItemSelect={handleItemSelect}
+            onUnitPriceChange={handleUnitPriceChange}
+          />
         </CardContent>
       </Card>
 
@@ -445,89 +328,23 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         <CardHeader>
           <CardTitle>Payment Details</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="labor-charges">Labor Charges</Label>
-              <Input
-                id="labor-charges"
-                type="number"
-                value={laborCharges}
-                onChange={(e) => setLaborCharges(Number(e.target.value))}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="discount">Discount (%)</Label>
-              <Input
-                id="discount"
-                type="number"
-                value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
-                max="100"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="tax-rate">GST Rate (%)</Label>
-              <Input
-                id="tax-rate"
-                type="number"
-                value={taxRate}
-                onChange={(e) => setTaxRate(Number(e.target.value))}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="payment-method">Payment Method</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="upi">UPI</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes for the invoice..."
-            />
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>₹{subtotal.toFixed(2)}</span>
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-red-600">
-                <span>Discount ({discount}%):</span>
-                <span>-₹{discountAmount.toFixed(2)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span>CGST ({(taxRate / 2).toFixed(1)}%):</span>
-              <span>₹{(taxAmount / 2).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>SGST ({(taxRate / 2).toFixed(1)}%):</span>
-              <span>₹{(taxAmount / 2).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-xl font-bold border-t pt-2">
-              <span>Total:</span>
-              <span>₹{total.toFixed(2)}</span>
-            </div>
-          </div>
+        <CardContent>
+          <GSTPaymentSection
+            laborCharges={laborCharges}
+            discount={discount}
+            taxRate={taxRate}
+            paymentMethod={paymentMethod}
+            notes={notes}
+            subtotal={subtotal}
+            discountAmount={discountAmount}
+            taxAmount={taxAmount}
+            total={total}
+            onLaborChargesChange={setLaborCharges}
+            onDiscountChange={setDiscount}
+            onTaxRateChange={setTaxRate}
+            onPaymentMethodChange={setPaymentMethod}
+            onNotesChange={setNotes}
+          />
         </CardContent>
       </Card>
 
