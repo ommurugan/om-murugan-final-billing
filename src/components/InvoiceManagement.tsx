@@ -194,6 +194,11 @@ const InvoiceManagement = () => {
     toast.info("Email functionality will be implemented");
   };
 
+  const handleViewInvoice = (invoice: Invoice) => {
+    // For now, redirect to edit - this can be enhanced later with a view modal
+    handleEditInvoice(invoice);
+  };
+
   const invoiceStats = {
     total: invoices.length,
     paid: invoices.filter(inv => inv.status === 'paid').length,
@@ -439,6 +444,7 @@ const InvoiceManagement = () => {
                 invoice={invoice}
                 customerName={getCustomerName(invoice.customerId)}
                 vehicleInfo={getVehicleInfo(invoice.vehicleId)}
+                onView={handleViewInvoice}
                 onEdit={handleEditInvoice}
                 onDelete={handleDeleteInvoice}
                 onPrint={handlePrintInvoice}
