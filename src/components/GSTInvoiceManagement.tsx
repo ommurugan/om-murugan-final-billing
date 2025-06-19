@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,15 +35,15 @@ const GSTInvoiceManagement = () => {
   const { data: invoices = [], isLoading, refetch } = useInvoices('gst');
 
   const getCustomerName = (invoice: any) => {
-    return invoice.customers?.name || "Unknown Customer";
+    return invoice.customer?.name || "Unknown Customer";
   };
 
   const getCustomerGST = (invoice: any) => {
-    return invoice.customers?.gst_number || "";
+    return invoice.customer?.gst_number || "";
   };
 
   const getVehicleInfo = (invoice: any) => {
-    const vehicle = invoice.vehicles;
+    const vehicle = invoice.vehicle;
     return vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle";
   };
 
@@ -121,8 +122,9 @@ const GSTInvoiceManagement = () => {
 
   const handlePrintInvoice = (invoice: Invoice) => {
     // Find the customer and vehicle for this invoice
-    const customer = invoices.find(inv => inv.id === invoice.id)?.customers;
-    const vehicle = invoices.find(inv => inv.id === invoice.id)?.vehicles;
+    const invoiceData = invoices.find(inv => inv.id === invoice.id);
+    const customer = invoiceData?.customer;
+    const vehicle = invoiceData?.vehicle;
     
     if (customer && vehicle) {
       // Create a temporary print preview component

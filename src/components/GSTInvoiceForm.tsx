@@ -11,7 +11,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
-import { useCreateInvoice } from "@/hooks/useInvoiceCreation";
+import { useCreateInvoice } from "@/hooks/useCreateInvoice";
 import GSTCustomerQuickAdd from "./GSTCustomerQuickAdd";
 import InvoiceActionButtons from "./invoice/InvoiceActionButtons";
 import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
@@ -54,8 +54,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       setTaxRate(existingInvoice.taxRate || 18);
       setExtraCharges(existingInvoice.extraCharges || []);
       setNotes(existingInvoice.notes || "");
-      setPaymentMethod(existingInvoice.paymentMethod || "cash");
-      setPaymentAmount(existingInvoice.paymentAmount || 0);
+      setPaymentMethod("cash");
+      setPaymentAmount(0);
     }
   }, [existingInvoice, customers, vehicles]);
 
@@ -98,8 +98,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
 
   const handleCustomerAdded = (customer: Customer) => {
     setSelectedCustomer(customer);
-    if (customer.vehicles && customer.vehicles.length > 0) {
-      setSelectedVehicle(customer.vehicles[0]);
+    // Find vehicles for this customer
+    const customerVehicles = vehicles.filter(v => v.customer_id === customer.id);
+    if (customerVehicles.length > 0) {
+      setSelectedVehicle(customerVehicles[0]);
     }
   };
 
@@ -234,9 +236,9 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.filter(c => c.gstNumber).map((customer) => (
+                  {customers.filter(c => c.gst_number).map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.gstNumber}
+                      {customer.name} - {customer.gst_number}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -251,7 +253,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
               <Select 
                 value={selectedVehicle?.id || ""} 
                 onValueChange={(value) => {
-                  const vehicle = vehicles.find(v => v.id === value && v.customerId === selectedCustomer.id);
+                  const vehicle = vehicles.find(v => v.id === value && v.customer_id === selectedCustomer.id);
                   setSelectedVehicle(vehicle || null);
                 }}
               >
@@ -260,10 +262,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                 </SelectTrigger>
                 <SelectContent>
                   {vehicles
-                    .filter(v => v.customerId === selectedCustomer.id)
+                    .filter(v => v.customer_id === selectedCustomer.id)
                     .map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
+                        {vehicle.make} {vehicle.model} - {vehicle.vehicle_number}
                       </SelectItem>
                     ))}
                 </SelectContent>
@@ -328,7 +330,9 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                       : parts.find(p => p.id === value);
                     
                     if (selectedItem) {
-                      const unitPrice = selectedItem.price || 0;
+                      const unitPrice = item.type === 'service' 
+                        ? (selectedItem as any).base_price || 0 
+                        : (selectedItem as any).price || 0;
                       const total = item.quantity * unitPrice - item.discount;
                       setInvoiceItems(invoiceItems.map(i => 
                         i.id === item.id 
@@ -344,7 +348,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   <SelectContent>
                     {(item.type === 'service' ? services : parts).map((option) => (
                       <SelectItem key={option.id} value={option.id}>
-                        {option.name} - ₹{option.price}
+                        {option.name} - ₹{item.type === 'service' ? (option as any).base_price : (option as any).price}
                       </SelectItem>
                     ))}
                   </SelectContent>
