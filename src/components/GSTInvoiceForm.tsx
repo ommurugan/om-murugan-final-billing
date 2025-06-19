@@ -37,16 +37,49 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const [paymentMethod, setPaymentMethod] = useState<string>("cash");
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
-  const { data: customers = [] } = useCustomers();
-  const { data: vehicles = [] } = useVehicles();
+  const { data: customersData = [] } = useCustomers();
+  const { data: vehiclesData = [] } = useVehicles();
   const { data: services = [] } = useServices();
   const { data: parts = [] } = useParts();
   const createInvoiceMutation = useCreateInvoice();
 
+  // Transform database customers to match our interface
+  const customers: Customer[] = customersData.map(c => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    email: c.email,
+    address: c.address,
+    gstNumber: c.gst_number,
+    createdAt: c.created_at,
+    totalSpent: 0,
+    loyaltyPoints: 0,
+    notes: c.notes
+  }));
+
+  // Transform database vehicles to match our interface
+  const vehicles: Vehicle[] = vehiclesData.map(v => ({
+    id: v.id,
+    customerId: v.customer_id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
+    engineNumber: v.engine_number,
+    chassisNumber: v.chassis_number,
+    color: v.color,
+    createdAt: v.created_at
+  }));
+
   useEffect(() => {
     if (existingInvoice) {
-      setSelectedCustomer(customers.find(c => c.id === existingInvoice.customerId) || null);
-      setSelectedVehicle(vehicles.find(v => v.id === existingInvoice.vehicleId) || null);
+      const customer = customers.find(c => c.id === existingInvoice.customerId);
+      const vehicle = vehicles.find(v => v.id === existingInvoice.vehicleId);
+      
+      if (customer) setSelectedCustomer(customer);
+      if (vehicle) setSelectedVehicle(vehicle);
+      
       setKilometers(existingInvoice.kilometers || 0);
       setInvoiceItems(existingInvoice.items || []);
       setLaborCharges(existingInvoice.laborCharges || 0);
@@ -99,7 +132,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const handleCustomerAdded = (customer: Customer) => {
     setSelectedCustomer(customer);
     // Find vehicles for this customer
-    const customerVehicles = vehicles.filter(v => v.customer_id === customer.id);
+    const customerVehicles = vehicles.filter(v => v.customerId === customer.id);
     if (customerVehicles.length > 0) {
       setSelectedVehicle(customerVehicles[0]);
     }
@@ -236,9 +269,9 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.filter(c => c.gst_number).map((customer) => (
+                  {customers.filter(c => c.gstNumber).map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.gst_number}
+                      {customer.name} - {customer.gstNumber}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -253,7 +286,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
               <Select 
                 value={selectedVehicle?.id || ""} 
                 onValueChange={(value) => {
-                  const vehicle = vehicles.find(v => v.id === value && v.customer_id === selectedCustomer.id);
+                  const vehicle = vehicles.find(v => v.id === value && v.customerId === selectedCustomer.id);
                   setSelectedVehicle(vehicle || null);
                 }}
               >
@@ -262,10 +295,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
                 </SelectTrigger>
                 <SelectContent>
                   {vehicles
-                    .filter(v => v.customer_id === selectedCustomer.id)
+                    .filter(v => v.customerId === selectedCustomer.id)
                     .map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.make} {vehicle.model} - {vehicle.vehicle_number}
+                        {vehicle.make} {vehicle.model} - {vehicle.vehicleNumber}
                       </SelectItem>
                     ))}
                 </SelectContent>

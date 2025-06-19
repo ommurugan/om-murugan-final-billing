@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,19 +31,26 @@ const GSTInvoiceManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
-  const { data: invoices = [], isLoading, refetch } = useInvoices('gst');
+  const { data: invoicesData = [], isLoading, refetch } = useInvoices('gst');
+
+  // Transform the invoice data to include customer and vehicle details
+  const invoices = invoicesData.map(invoice => ({
+    ...invoice,
+    customerName: invoice.customers?.name || "Unknown Customer",
+    customerGST: invoice.customers?.gst_number || "",
+    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : "Unknown Vehicle"
+  }));
 
   const getCustomerName = (invoice: any) => {
-    return invoice.customer?.name || "Unknown Customer";
+    return invoice.customerName || "Unknown Customer";
   };
 
   const getCustomerGST = (invoice: any) => {
-    return invoice.customer?.gst_number || "";
+    return invoice.customerGST || "";
   };
 
   const getVehicleInfo = (invoice: any) => {
-    const vehicle = invoice.vehicle;
-    return vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle";
+    return invoice.vehicleInfo || "Unknown Vehicle";
   };
 
   const getStatusColor = (status: Invoice['status']) => {
@@ -121,13 +127,11 @@ const GSTInvoiceManagement = () => {
   };
 
   const handlePrintInvoice = (invoice: Invoice) => {
-    // Find the customer and vehicle for this invoice
-    const invoiceData = invoices.find(inv => inv.id === invoice.id);
-    const customer = invoiceData?.customer;
-    const vehicle = invoiceData?.vehicle;
+    // Find the invoice with customer and vehicle data
+    const invoiceData = invoicesData.find(inv => inv.id === invoice.id);
     
-    if (customer && vehicle) {
-      // Create a temporary print preview component
+    if (invoiceData) {
+      // Create a temporary print window with the invoice data
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(`
@@ -155,9 +159,9 @@ const GSTInvoiceManagement = () => {
                 <p>Invoice: ${invoice.invoiceNumber}</p>
               </div>
               <div class="invoice-details">
-                <p><strong>Customer:</strong> ${customer.name}</p>
-                <p><strong>GST Number:</strong> ${customer.gst_number || 'N/A'}</p>
-                <p><strong>Vehicle:</strong> ${vehicle.make} ${vehicle.model} - ${vehicle.vehicle_number}</p>
+                <p><strong>Customer:</strong> ${getCustomerName(invoice)}</p>
+                <p><strong>GST Number:</strong> ${getCustomerGST(invoice) || 'N/A'}</p>
+                <p><strong>Vehicle:</strong> ${getVehicleInfo(invoice)}</p>
                 <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
               </div>
               <table class="table">
@@ -196,7 +200,7 @@ const GSTInvoiceManagement = () => {
         printWindow.document.close();
       }
     } else {
-      toast.error("Unable to find customer or vehicle details for printing");
+      toast.error("Unable to find invoice details for printing");
     }
   };
 
