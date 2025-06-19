@@ -65,7 +65,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">OM MURUGAN AUTO WORKS</h1>
                 <p className="text-lg text-gray-600 mb-1">Complete Auto Care Solutions</p>
                 <p className="text-sm text-gray-600">Phone: +91 98765 43210 | Email: info@ommurugan.com</p>
-                <p className="text-sm text-gray-600">Address: Your Business Address Here</p>
+                <p className="text-sm text-gray-600">Bank: SBI | A/C: 1234567890 | IFSC: SBIN0001234</p>
               </div>
             </div>
             <div className="text-right">
@@ -75,7 +75,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                 </h2>
               </div>
               {invoice.invoiceType === 'gst' && (
-                <p className="text-sm text-gray-600">GSTIN: YOUR_GST_NUMBER</p>
+                <p className="text-sm text-gray-600">GSTIN: 33AAAAA0000A1Z5</p>
               )}
             </div>
           </div>

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Printer, 
-  Mail, 
   Eye,
   Edit,
   Trash2,
@@ -23,7 +22,6 @@ interface GSTInvoiceListProps {
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onPrint: (invoice: Invoice) => void;
-  onEmail: (invoice: Invoice) => void;
   onCreateFirst: () => void;
   getCustomerName: (invoice: any) => string;
   getCustomerGST: (invoice: any) => string;
@@ -36,7 +34,6 @@ const GSTInvoiceList = ({
   onEdit,
   onDelete,
   onPrint,
-  onEmail,
   onCreateFirst,
   getCustomerName,
   getCustomerGST,
@@ -126,9 +123,6 @@ const GSTInvoiceList = ({
                       <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)} title="Print Invoice">
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)} title="Email Invoice">
-                        <Mail className="h-4 w-4" />
-                      </Button>
                       <Button 
                         size="sm" 
                         variant="ghost" 
@@ -180,7 +174,7 @@ const GSTInvoiceList = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onPrint={onPrint}
-                onEmail={onEmail}
+                showEmailButton={false}
               />
             ))}
           </div>

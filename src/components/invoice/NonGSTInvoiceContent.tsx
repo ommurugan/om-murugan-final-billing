@@ -23,7 +23,6 @@ interface NonGSTInvoiceContentProps {
   onView: (invoice: Invoice) => void;
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
-  onEmail: (invoice: Invoice) => void;
   onPrint: (invoice: Invoice) => void;
   onCreateFirst: () => void;
 }
@@ -41,7 +40,6 @@ const NonGSTInvoiceContent = ({
   onView,
   onEdit,
   onDelete,
-  onEmail,
   onPrint,
   onCreateFirst
 }: NonGSTInvoiceContentProps) => {
@@ -87,8 +85,8 @@ const NonGSTInvoiceContent = ({
         onEdit={onEdit}
         onDelete={onDelete}
         onPrint={onPrint}
-        onEmail={onEmail}
         onCreateFirst={onCreateFirst}
+        showEmailButton={false}
       />
 
       {/* Mobile Invoices List */}
@@ -120,8 +118,8 @@ const NonGSTInvoiceContent = ({
                 onView={onView}
                 onEdit={onEdit} 
                 onDelete={onDelete} 
-                onPrint={onPrint} 
-                onEmail={onEmail} 
+                onPrint={onPrint}
+                showEmailButton={false}
               />
             ))}
           </div>

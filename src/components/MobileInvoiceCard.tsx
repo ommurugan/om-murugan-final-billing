@@ -1,21 +1,19 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
-  Eye,
-  Edit,
-  Printer,
+  Eye, 
+  Edit, 
+  Trash2, 
+  Printer, 
   Mail,
-  Trash2,
-  CheckCircle,
   Clock,
+  CheckCircle,
   AlertCircle,
   X
 } from "lucide-react";
 import { Invoice } from "@/types/billing";
-import { useMobileFeatures } from "@/hooks/useMobileFeatures";
-import { ImpactStyle } from "@capacitor/haptics";
 
 interface MobileInvoiceCardProps {
   invoice: Invoice;
@@ -25,7 +23,8 @@ interface MobileInvoiceCardProps {
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onPrint: (invoice: Invoice) => void;
-  onEmail: (invoice: Invoice) => void;
+  onEmail?: (invoice: Invoice) => void;
+  showEmailButton?: boolean;
 }
 
 const MobileInvoiceCard = ({
@@ -36,10 +35,9 @@ const MobileInvoiceCard = ({
   onEdit,
   onDelete,
   onPrint,
-  onEmail
+  onEmail,
+  showEmailButton = true
 }: MobileInvoiceCardProps) => {
-  const { triggerHaptic } = useMobileFeatures();
-
   const getStatusColor = (status: Invoice['status']) => {
     switch (status) {
       case 'paid': return 'default';
@@ -53,90 +51,62 @@ const MobileInvoiceCard = ({
 
   const getStatusIcon = (status: Invoice['status']) => {
     switch (status) {
-      case 'paid': return <CheckCircle className="h-4 w-4" />;
-      case 'pending': return <Clock className="h-4 w-4" />;
-      case 'overdue': return <AlertCircle className="h-4 w-4" />;
-      case 'draft': return <Edit className="h-4 w-4" />;
-      case 'cancelled': return <X className="h-4 w-4" />;
-      default: return <Clock className="h-4 w-4" />;
+      case 'paid': return <CheckCircle className="h-3 w-3" />;
+      case 'pending': return <Clock className="h-3 w-3" />;
+      case 'overdue': return <AlertCircle className="h-3 w-3" />;
+      case 'draft': return <Edit className="h-3 w-3" />;
+      case 'cancelled': return <X className="h-3 w-3" />;
+      default: return <Clock className="h-3 w-3" />;
     }
   };
 
-  const handleAction = async (action: () => void, hapticStyle: ImpactStyle = ImpactStyle.Light) => {
-    await triggerHaptic(hapticStyle);
-    action();
-  };
-
   return (
-    <Card className="mb-4 transition-all duration-200 hover:shadow-md active:scale-[0.98]">
+    <Card>
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-              {invoice.invoiceNumber}
-            </h3>
-            <p className="text-sm text-gray-600 mb-1">{customerName}</p>
-            <p className="text-xs text-gray-500">{vehicleInfo}</p>
-          </div>
-          <div className="text-right ml-4">
-            <p className="font-bold text-lg text-gray-900 mb-1">
-              ₹{invoice.total.toFixed(2)}
-            </p>
-            <Badge variant={getStatusColor(invoice.status)} className="capitalize">
-              <div className="flex items-center gap-1">
-                {getStatusIcon(invoice.status)}
-                {invoice.status}
-              </div>
+        <div className="space-y-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-medium text-gray-900">{invoice.invoiceNumber}</p>
+              <p className="text-sm text-gray-600">{customerName}</p>
+              <p className="text-xs text-gray-500">{vehicleInfo}</p>
+            </div>
+            <Badge variant={getStatusColor(invoice.status)} className="capitalize flex items-center gap-1">
+              {getStatusIcon(invoice.status)}
+              {invoice.status}
             </Badge>
           </div>
-        </div>
-
-        <div className="flex justify-between items-center text-xs text-gray-500 mb-4">
-          <span>Created: {new Date(invoice.createdAt).toLocaleDateString()}</span>
-          {invoice.status === 'overdue' && (
-            <span className="text-red-500">
-              Due: {new Date(invoice.dueDate).toLocaleDateString()}
-            </span>
-          )}
-        </div>
-
-        <div className="grid grid-cols-4 gap-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => handleAction(() => onView(invoice))} 
-            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
-          >
-            <Eye className="h-4 w-4" />
-            <span className="text-xs">View</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => handleAction(() => onEdit(invoice))} 
-            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
-          >
-            <Edit className="h-4 w-4" />
-            <span className="text-xs">Edit</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => handleAction(() => onPrint(invoice))} 
-            className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
-          >
-            <Printer className="h-4 w-4" />
-            <span className="text-xs">Print</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => handleAction(() => onDelete(invoice.id), ImpactStyle.Medium)}
-            className="h-12 flex flex-col gap-1 text-red-500 hover:text-red-700 transition-all duration-150 active:scale-95"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="text-xs">Delete</span>
-          </Button>
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-bold text-lg">₹{invoice.total.toFixed(2)}</p>
+              <p className="text-xs text-gray-500">{new Date(invoice.createdAt).toLocaleDateString()}</p>
+            </div>
+            
+            <div className="flex gap-1">
+              <Button size="sm" variant="ghost" onClick={() => onView(invoice)}>
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)}>
+                <Printer className="h-4 w-4" />
+              </Button>
+              {showEmailButton && onEmail && (
+                <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)}>
+                  <Mail className="h-4 w-4" />
+                </Button>
+              )}
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => onDelete(invoice.id)}
+                className="text-red-500"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

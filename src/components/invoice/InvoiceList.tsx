@@ -1,18 +1,17 @@
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
+  Printer, 
   Eye,
   Edit,
-  Mail,
   Trash2,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  X,
   Receipt,
-  Printer
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  X
 } from "lucide-react";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
 
@@ -24,8 +23,8 @@ interface InvoiceListProps {
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onPrint: (invoice: Invoice) => void;
-  onEmail: (invoice: Invoice) => void;
   onCreateFirst: () => void;
+  showEmailButton?: boolean;
 }
 
 const InvoiceList = ({
@@ -36,8 +35,8 @@ const InvoiceList = ({
   onEdit,
   onDelete,
   onPrint,
-  onEmail,
-  onCreateFirst
+  onCreateFirst,
+  showEmailButton = true
 }: InvoiceListProps) => {
   const getCustomerName = (customerId: string) => {
     return customers.find(c => c.id === customerId)?.name || "Unknown Customer";
@@ -82,12 +81,15 @@ const InvoiceList = ({
             <div className="text-center py-8">
               <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No non-GST invoices found</p>
-              <Button onClick={onCreateFirst} className="mt-4 bg-blue-600 hover:bg-blue-700">
+              <Button 
+                onClick={onCreateFirst} 
+                className="mt-4 bg-blue-600 hover:bg-blue-700"
+              >
                 Create First Non-GST Invoice
               </Button>
             </div>
           ) : (
-            invoices.map(invoice => (
+            invoices.map((invoice) => (
               <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -100,7 +102,6 @@ const InvoiceList = ({
                     </p>
                     <p className="text-xs text-gray-500">
                       Created: {new Date(invoice.createdAt).toLocaleDateString()}
-                      {invoice.kilometers && <span className="ml-2">• KM: {invoice.kilometers.toLocaleString()}</span>}
                       {invoice.status === 'overdue' && (
                         <span className="text-red-500 ml-2">
                           Due: {new Date(invoice.dueDate).toLocaleDateString()}
@@ -126,13 +127,10 @@ const InvoiceList = ({
                     <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)} title="Print Invoice">
                       <Printer className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)} title="Email Invoice">
-                      <Mail className="h-4 w-4" />
-                    </Button>
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      onClick={() => onDelete(invoice.id)} 
+                      onClick={() => onDelete(invoice.id)}
                       className="text-red-500 hover:text-red-700"
                       title="Delete Invoice"
                     >
