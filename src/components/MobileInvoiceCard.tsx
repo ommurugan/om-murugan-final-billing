@@ -21,6 +21,7 @@ interface MobileInvoiceCardProps {
   invoice: Invoice;
   customerName: string;
   vehicleInfo: string;
+  onView: (invoice: Invoice) => void;
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onPrint: (invoice: Invoice) => void;
@@ -31,6 +32,7 @@ const MobileInvoiceCard = ({
   invoice,
   customerName,
   vehicleInfo,
+  onView,
   onEdit,
   onDelete,
   onPrint,
@@ -102,7 +104,7 @@ const MobileInvoiceCard = ({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => handleAction(() => onEdit(invoice))} 
+            onClick={() => handleAction(() => onView(invoice))} 
             className="h-12 flex flex-col gap-1 transition-all duration-150 active:scale-95"
           >
             <Eye className="h-4 w-4" />

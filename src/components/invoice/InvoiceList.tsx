@@ -11,7 +11,8 @@ import {
   Clock,
   AlertCircle,
   X,
-  Receipt
+  Receipt,
+  Printer
 } from "lucide-react";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
 
@@ -19,8 +20,10 @@ interface InvoiceListProps {
   invoices: Invoice[];
   customers: Customer[];
   vehicles: Vehicle[];
+  onView: (invoice: Invoice) => void;
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
+  onPrint: (invoice: Invoice) => void;
   onEmail: (invoice: Invoice) => void;
   onCreateFirst: () => void;
 }
@@ -29,8 +32,10 @@ const InvoiceList = ({
   invoices,
   customers,
   vehicles,
+  onView,
   onEdit,
   onDelete,
+  onPrint,
   onEmail,
   onCreateFirst
 }: InvoiceListProps) => {
@@ -112,13 +117,16 @@ const InvoiceList = ({
                     </Badge>
                   </div>
                   <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)}>
+                    <Button size="sm" variant="ghost" onClick={() => onView(invoice)} title="View Invoice">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)}>
+                    <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)} title="Edit Invoice">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)}>
+                    <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)} title="Print Invoice">
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)} title="Email Invoice">
                       <Mail className="h-4 w-4" />
                     </Button>
                     <Button 
@@ -126,6 +134,7 @@ const InvoiceList = ({
                       variant="ghost" 
                       onClick={() => onDelete(invoice.id)} 
                       className="text-red-500 hover:text-red-700"
+                      title="Delete Invoice"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -20,6 +20,7 @@ interface NonGSTInvoiceContentProps {
   onSearchChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   onDateFilterChange: (value: string) => void;
+  onView: (invoice: Invoice) => void;
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onEmail: (invoice: Invoice) => void;
@@ -37,6 +38,7 @@ const NonGSTInvoiceContent = ({
   onSearchChange,
   onStatusFilterChange,
   onDateFilterChange,
+  onView,
   onEdit,
   onDelete,
   onEmail,
@@ -81,8 +83,10 @@ const NonGSTInvoiceContent = ({
         invoices={filteredInvoices}
         customers={customers}
         vehicles={vehicles}
+        onView={onView}
         onEdit={onEdit}
         onDelete={onDelete}
+        onPrint={onPrint}
         onEmail={onEmail}
         onCreateFirst={onCreateFirst}
       />
@@ -113,6 +117,7 @@ const NonGSTInvoiceContent = ({
                 invoice={invoice} 
                 customerName={getCustomerName(invoice.customerId)} 
                 vehicleInfo={getVehicleInfo(invoice.vehicleId)} 
+                onView={onView}
                 onEdit={onEdit} 
                 onDelete={onDelete} 
                 onPrint={onPrint} 

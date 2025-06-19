@@ -19,6 +19,7 @@ import MobileInvoiceCard from "../MobileInvoiceCard";
 
 interface GSTInvoiceListProps {
   invoices: any[];
+  onView: (invoice: Invoice) => void;
   onEdit: (invoice: Invoice) => void;
   onDelete: (invoiceId: string) => void;
   onPrint: (invoice: Invoice) => void;
@@ -31,6 +32,7 @@ interface GSTInvoiceListProps {
 
 const GSTInvoiceList = ({
   invoices,
+  onView,
   onEdit,
   onDelete,
   onPrint,
@@ -115,16 +117,16 @@ const GSTInvoiceList = ({
                       </Badge>
                     </div>
                     <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)}>
+                      <Button size="sm" variant="ghost" onClick={() => onView(invoice)} title="View Invoice">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)}>
+                      <Button size="sm" variant="ghost" onClick={() => onEdit(invoice)} title="Edit Invoice">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)}>
+                      <Button size="sm" variant="ghost" onClick={() => onPrint(invoice)} title="Print Invoice">
                         <Printer className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)}>
+                      <Button size="sm" variant="ghost" onClick={() => onEmail(invoice)} title="Email Invoice">
                         <Mail className="h-4 w-4" />
                       </Button>
                       <Button 
@@ -132,6 +134,7 @@ const GSTInvoiceList = ({
                         variant="ghost" 
                         onClick={() => onDelete(invoice.id)}
                         className="text-red-500 hover:text-red-700"
+                        title="Delete Invoice"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -173,6 +176,7 @@ const GSTInvoiceList = ({
                 invoice={invoice}
                 customerName={getCustomerName(invoice)}
                 vehicleInfo={getVehicleInfo(invoice)}
+                onView={onView}
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onPrint={onPrint}

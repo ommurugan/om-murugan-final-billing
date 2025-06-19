@@ -7,25 +7,49 @@ import GSTInvoiceHeader from "./gst-invoice/GSTInvoiceHeader";
 import GSTInvoiceStats from "./gst-invoice/GSTInvoiceStats";
 import GSTInvoiceFilters from "./gst-invoice/GSTInvoiceFilters";
 import GSTInvoiceList from "./gst-invoice/GSTInvoiceList";
+import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useInvoiceStats } from "@/hooks/useInvoiceStats";
 import { useInvoiceFilters } from "@/hooks/useInvoiceFilters";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useVehicles } from "@/hooks/useVehicles";
 
 const GSTInvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
 
   const { data: invoicesData = [], isLoading, refetch } = useInvoices('gst');
+  const { data: customers = [] } = useCustomers();
+  const { data: dbVehicles = [] } = useVehicles();
+
+  // Transform database vehicles to match TypeScript interface
+  const vehicles = dbVehicles.map(v => ({
+    id: v.id,
+    customerId: v.customer_id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
+    engineNumber: v.engine_number,
+    chassisNumber: v.chassis_number,
+    color: v.color,
+    createdAt: v.created_at
+  }));
 
   // Transform the invoice data to include customer and vehicle details from the database query
   const invoices = invoicesData.map((invoice: any) => ({
     ...invoice,
-    customerName: invoice.customers?.name || "Unknown Customer",
-    customerGST: invoice.customers?.gst_number || "",
-    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : "Unknown Vehicle"
+    customerName: invoice.customers?.name || customers.find(c => c.id === invoice.customerId)?.name || "Unknown Customer",
+    customerGST: invoice.customers?.gst_number || customers.find(c => c.id === invoice.customerId)?.gstNumber || "",
+    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : 
+                 vehicles.find(v => v.id === invoice.vehicleId) ? 
+                 `${vehicles.find(v => v.id === invoice.vehicleId)?.make} ${vehicles.find(v => v.id === invoice.vehicleId)?.model}` : 
+                 "Unknown Vehicle"
   }));
 
   const getCustomerName = (invoice: any) => {
@@ -61,6 +85,11 @@ const GSTInvoiceManagement = () => {
     setSelectedInvoice(null);
   };
 
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setShowViewModal(true);
+  };
+
   const handleEditInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setShowCreateForm(true);
@@ -79,6 +108,9 @@ const GSTInvoiceManagement = () => {
       // Create a temporary print window with the invoice data
       const printWindow = window.open('', '_blank');
       if (printWindow) {
+        const customer = customers.find(c => c.id === invoice.customerId);
+        const vehicle = vehicles.find(v => v.id === invoice.vehicleId);
+        
         printWindow.document.write(`
           <html>
             <head>
@@ -215,6 +247,7 @@ const GSTInvoiceManagement = () => {
       
       <GSTInvoiceList
         invoices={filteredInvoices}
+        onView={handleViewInvoice}
         onEdit={handleEditInvoice}
         onDelete={handleDeleteInvoice}
         onPrint={handlePrintInvoice}
@@ -224,6 +257,24 @@ const GSTInvoiceManagement = () => {
         getCustomerGST={getCustomerGST}
         getVehicleInfo={getVehicleInfo}
       />
+
+      {/* View Invoice Modal */}
+      {showViewModal && selectedInvoice && (
+        <InvoiceViewModal
+          invoice={selectedInvoice}
+          customer={customers.find(c => c.id === selectedInvoice.customerId)}
+          vehicle={vehicles.find(v => v.id === selectedInvoice.vehicleId)}
+          onClose={() => {
+            setShowViewModal(false);
+            setSelectedInvoice(null);
+          }}
+          onEdit={() => {
+            setShowViewModal(false);
+            setShowCreateForm(true);
+          }}
+          onPrint={() => handlePrintInvoice(selectedInvoice)}
+        />
+      )}
     </div>
   );
 };
