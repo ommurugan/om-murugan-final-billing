@@ -181,10 +181,6 @@ const GSTInvoiceManagement = () => {
     }
   };
 
-  const handleEmailInvoice = (invoice: Invoice) => {
-    toast.info("Email functionality will be implemented");
-  };
-
   const handleCreateFirst = () => {
     setShowCreateForm(true);
   };
@@ -251,7 +247,6 @@ const GSTInvoiceManagement = () => {
         onEdit={handleEditInvoice}
         onDelete={handleDeleteInvoice}
         onPrint={handlePrintInvoice}
-        onEmail={handleEmailInvoice}
         onCreateFirst={handleCreateFirst}
         getCustomerName={getCustomerName}
         getCustomerGST={getCustomerGST}

@@ -171,10 +171,6 @@ const NonGSTInvoiceManagement = () => {
     }
   };
 
-  const handleEmailInvoice = (invoice: Invoice) => {
-    toast.info("Email functionality will be implemented");
-  };
-
   const handleCreateFirst = () => {
     setShowCreateForm(true);
   };
@@ -234,7 +230,6 @@ const NonGSTInvoiceManagement = () => {
         onView={handleViewInvoice}
         onEdit={handleEditInvoice}
         onDelete={handleDeleteInvoice}
-        onEmail={handleEmailInvoice}
         onPrint={handlePrintInvoice}
         onCreateFirst={handleCreateFirst}
       />
