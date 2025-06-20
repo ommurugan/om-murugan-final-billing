@@ -16,6 +16,7 @@ interface InvoiceItem {
   unitPrice: number;
   discount: number;
   total: number;
+  hsnCode?: string;
 }
 
 interface GSTServicesPartsSectionProps {
@@ -29,6 +30,8 @@ interface GSTServicesPartsSectionProps {
   onUpdateDiscount: (id: string, discount: number) => void;
   onItemSelect: (itemId: string, value: string) => void;
   onUnitPriceChange: (itemId: string, price: number) => void;
+  gstRate: number;
+  onGstRateChange: (rate: number) => void;
 }
 
 const GSTServicesPartsSection = ({
@@ -41,12 +44,28 @@ const GSTServicesPartsSection = ({
   onUpdateQuantity,
   onUpdateDiscount,
   onItemSelect,
-  onUnitPriceChange
+  onUnitPriceChange,
+  gstRate,
+  onGstRateChange
 }: GSTServicesPartsSectionProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Services & Parts</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>Services & Parts</span>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="gst-rate" className="text-sm font-medium">GST Rate:</Label>
+            <Select value={gstRate.toString()} onValueChange={(value) => onGstRateChange(Number(value))}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="18">18%</SelectItem>
+                <SelectItem value="28">28%</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="services" className="space-y-4">
@@ -64,9 +83,9 @@ const GSTServicesPartsSection = ({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {services.map(service => (
-                  <div key={service.id} className="p-4 border rounded-lg">
+                  <div key={service.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-medium">{service.name}</h4>
                         <p className="text-sm text-gray-600">{service.category}</p>
                         <p className="text-lg font-semibold text-blue-600">₹{service.base_price}</p>
@@ -77,7 +96,7 @@ const GSTServicesPartsSection = ({
                       <Button 
                         size="sm" 
                         onClick={() => onAddService(service.id)}
-                        disabled={invoiceItems.some(item => item.itemId === service.id && item.type === 'service')}
+                        className="ml-2"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -96,9 +115,9 @@ const GSTServicesPartsSection = ({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {parts.map(part => (
-                  <div key={part.id} className="p-4 border rounded-lg">
+                  <div key={part.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-medium">{part.name}</h4>
                         <p className="text-sm text-gray-600">{part.category}</p>
                         <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
@@ -108,7 +127,7 @@ const GSTServicesPartsSection = ({
                       <Button 
                         size="sm" 
                         onClick={() => onAddPart(part.id)}
-                        disabled={invoiceItems.some(item => item.itemId === part.id && item.type === 'part')}
+                        className="ml-2"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -125,33 +144,14 @@ const GSTServicesPartsSection = ({
             ) : (
               <div className="space-y-3">
                 {invoiceItems.map(item => (
-                  <div key={item.id} className="p-4 border rounded-lg">
+                  <div key={item.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600 capitalize">{item.type}</p>
-                        <div className="mt-2">
-                          <Label htmlFor={`item-${item.id}`} className="text-sm">Item</Label>
-                          <Select value={item.itemId} onValueChange={(value) => onItemSelect(item.id, value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select item" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {item.type === 'service' ? 
-                                services.map(service => (
-                                  <SelectItem key={service.id} value={service.id}>
-                                    {service.name} - ₹{service.base_price}
-                                  </SelectItem>
-                                )) :
-                                parts.map(part => (
-                                  <SelectItem key={part.id} value={part.id}>
-                                    {part.name} - ₹{part.price}
-                                  </SelectItem>
-                                ))
-                              }
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {item.hsnCode && (
+                          <p className="text-xs text-gray-500">HSN: {item.hsnCode}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
@@ -171,6 +171,7 @@ const GSTServicesPartsSection = ({
                             onChange={(e) => onUnitPriceChange(item.id, parseFloat(e.target.value) || 0)}
                             className="w-20 text-center"
                             min="0"
+                            step="0.01"
                           />
                           <p className="text-xs text-gray-500">Price</p>
                         </div>
@@ -181,11 +182,12 @@ const GSTServicesPartsSection = ({
                             onChange={(e) => onUpdateDiscount(item.id, parseFloat(e.target.value) || 0)}
                             className="w-20 text-center"
                             min="0"
+                            step="0.01"
                           />
                           <p className="text-xs text-gray-500">Discount</p>
                         </div>
                         <div className="text-right min-w-[80px]">
-                          <p className="font-semibold">₹{item.total}</p>
+                          <p className="font-semibold">₹{item.total.toFixed(2)}</p>
                           <p className="text-xs text-gray-500">Total</p>
                         </div>
                         <Button size="sm" variant="ghost" onClick={() => onRemoveItem(item.id)}>

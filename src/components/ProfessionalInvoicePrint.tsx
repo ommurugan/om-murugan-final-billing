@@ -159,7 +159,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                 </td>
                 {invoice.invoiceType === 'gst' && (
                   <td className="border border-gray-800 p-2 text-center text-sm">
-                    {item.type === 'service' ? '998314' : '998313'}
+                    {item.type === 'service' ? '998314' : (item.hsnCode || '998313')}
                   </td>
                 )}
                 <td className="border border-gray-800 p-2 text-center text-sm">{item.quantity}</td>
@@ -301,6 +301,27 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             top: 0;
             width: 100%;
             padding: 20px;
+          }
+          
+          /* Hide browser-generated content */
+          @page {
+            margin: 0.5in;
+            size: A4;
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+          
+          /* Remove browser headers and footers */
+          body::before,
+          body::after {
+            display: none !important;
+          }
+          
+          /* Ensure clean print layout */
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
           }
         }
       `}</style>

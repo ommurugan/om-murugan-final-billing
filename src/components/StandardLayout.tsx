@@ -31,13 +31,13 @@ const StandardLayout = ({ title, children }: StandardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-gray-50" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <header className="bg-white shadow-sm border-b">
+          <header className="bg-white shadow-sm border-b sticky top-0 z-40">
             <div className="flex justify-between items-center px-4 md:px-6 py-4">
               <div className="flex items-center gap-3">
-                <SidebarTrigger />
+                <SidebarTrigger className="h-8 w-8" />
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h1>
               </div>
               
@@ -48,7 +48,7 @@ const StandardLayout = ({ title, children }: StandardLayoutProps) => {
                     variant="outline"
                     size="sm"
                     onClick={handleLogout}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4" />
                     <span className="hidden sm:inline">Logout</span>
