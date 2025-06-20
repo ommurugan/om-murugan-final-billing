@@ -50,6 +50,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(18);
+  const [gstRate, setGstRate] = useState(18); // Add GST rate state
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [notes, setNotes] = useState("");
 
@@ -66,6 +67,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       setLaborCharges(existingInvoice.laborCharges || 0);
       setDiscount(existingInvoice.discount || 0);
       setTaxRate(existingInvoice.taxRate || 18);
+      setGstRate(existingInvoice.taxRate || 18); // Set GST rate from existing invoice
       setNotes(existingInvoice.notes || "");
     }
   }, [existingInvoice, gstCustomers, vehicles]);
@@ -84,32 +86,40 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const taxAmount = (taxableAmount * taxRate) / 100;
   const total = taxableAmount + taxAmount;
 
-  const addService = () => {
-    const newItem = {
-      id: `service-${Date.now()}`,
-      type: 'service',
-      itemId: '',
-      name: '',
-      quantity: 1,
-      unitPrice: 0,
-      discount: 0,
-      total: 0
-    };
-    setInvoiceItems([...invoiceItems, newItem]);
+  const addService = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (service) {
+      const newItem = {
+        id: `service-${Date.now()}`,
+        type: 'service' as const,
+        itemId: serviceId,
+        name: service.name,
+        quantity: 1,
+        unitPrice: (service as any).base_price || 0,
+        discount: 0,
+        total: (service as any).base_price || 0,
+        hsnCode: '998314' // Default HSN for services
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
   };
 
-  const addPart = () => {
-    const newItem = {
-      id: `part-${Date.now()}`,
-      type: 'part',
-      itemId: '',
-      name: '',
-      quantity: 1,
-      unitPrice: 0,
-      discount: 0,
-      total: 0
-    };
-    setInvoiceItems([...invoiceItems, newItem]);
+  const addPart = (partId: string) => {
+    const part = parts.find(p => p.id === partId);
+    if (part) {
+      const newItem = {
+        id: `part-${Date.now()}`,
+        type: 'part' as const,
+        itemId: partId,
+        name: part.name,
+        quantity: 1,
+        unitPrice: (part as any).price || 0,
+        discount: 0,
+        total: (part as any).price || 0,
+        hsnCode: (part as any).hsn_code || (part as any).part_number || '998313'
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
   };
 
   const removeItem = (id) => {
@@ -149,12 +159,16 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             ? (selectedItem as any).base_price 
             : (selectedItem as any).price;
           const newTotal = (unitPrice * item.quantity) - item.discount;
+          const hsnCode = item.type === 'service' 
+            ? '998314'
+            : (selectedItem as any).hsn_code || (selectedItem as any).part_number || '998313';
           return {
             ...item,
             itemId: value,
             name: selectedItem.name,
             unitPrice,
-            total: newTotal
+            total: newTotal,
+            hsnCode
           };
         }
       }
@@ -245,25 +259,20 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Services & Parts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <GSTServicesPartsSection
-            invoiceItems={invoiceItems}
-            services={services}
-            parts={parts}
-            onAddService={addService}
-            onAddPart={addPart}
-            onRemoveItem={removeItem}
-            onUpdateQuantity={updateQuantity}
-            onUpdateDiscount={updateDiscount}
-            onItemSelect={handleItemSelect}
-            onUnitPriceChange={handleUnitPriceChange}
-          />
-        </CardContent>
-      </Card>
+      <GSTServicesPartsSection
+        invoiceItems={invoiceItems}
+        services={services}
+        parts={parts}
+        onAddService={addService}
+        onAddPart={addPart}
+        onRemoveItem={removeItem}
+        onUpdateQuantity={updateQuantity}
+        onUpdateDiscount={updateDiscount}
+        onItemSelect={handleItemSelect}
+        onUnitPriceChange={handleUnitPriceChange}
+        gstRate={gstRate}
+        onGstRateChange={setGstRate}
+      />
 
       <Card>
         <CardHeader>
@@ -273,7 +282,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           <GSTPaymentSection
             laborCharges={laborCharges}
             discount={discount}
-            taxRate={taxRate}
+            taxRate={gstRate}
             paymentMethod={paymentMethod}
             notes={notes}
             subtotal={subtotal}
@@ -282,7 +291,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             total={total}
             onLaborChargesChange={setLaborCharges}
             onDiscountChange={setDiscount}
-            onTaxRateChange={setTaxRate}
+            onTaxRateChange={setGstRate}
             onPaymentMethodChange={setPaymentMethod}
             onNotesChange={setNotes}
           />

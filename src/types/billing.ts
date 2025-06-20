@@ -57,6 +57,7 @@ export interface InvoiceItem {
   unitPrice: number;
   discount: number;
   total: number;
+  hsnCode?: string;
 }
 
 export interface Payment {
