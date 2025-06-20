@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Sidebar from "@/components/Sidebar";
+import StandardLayout from "@/components/StandardLayout";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
 import ServicesHeader from "@/components/services/ServicesHeader";
@@ -28,29 +28,26 @@ const Services = () => {
 
   if (servicesError || partsError) {
     return (
-      <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
-        <div className="flex-1 flex items-center justify-center">
+      <StandardLayout title="Services & Parts">
+        <div className="flex items-center justify-center py-8">
           <div className="text-center">
             <p className="text-red-600 mb-4">Error loading data</p>
             <Button onClick={() => window.location.reload()}>Retry</Button>
           </div>
         </div>
-      </div>
+      </StandardLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      
-      <div className="flex-1 overflow-auto">
+    <StandardLayout title="Services & Parts">
+      <div className="p-4 md:p-6 pb-20 md:pb-6">
         <ServicesHeader 
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
 
-        <div className="p-6">
+        <div className="mt-6">
           <Tabs defaultValue="services" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="services">Services Catalog</TabsTrigger>
@@ -73,7 +70,7 @@ const Services = () => {
           </Tabs>
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 };
 

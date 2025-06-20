@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import BottomNavigation from "@/components/BottomNavigation";
-import StandardHeader from "@/components/StandardHeader";
+import StandardLayout from "@/components/StandardLayout";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useUpdateCustomer } from "@/hooks/useUpdateCustomer";
 import { useDeleteCustomer } from "@/hooks/useDeleteCustomer";
@@ -59,49 +58,45 @@ const Customers = () => {
 
   if (isLoading) {
     return (
-      <StandardHeader title="Customers">
+      <StandardLayout title="Customers">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </StandardHeader>
+      </StandardLayout>
     );
   }
 
   return (
-    <StandardHeader title="Customers">
-      <div className="w-full">
-        <div className="p-4 md:p-6 pb-20 md:pb-6 max-w-full">
-          {/* Search and Stats */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-            <div className="lg:col-span-3">
-              <CustomerSearch 
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-              />
-            </div>
-            <div>
-              <CustomerStats totalCustomers={customers.length} />
-            </div>
+    <StandardLayout title="Customers">
+      <div className="p-4 md:p-6 pb-20 md:pb-6">
+        {/* Search and Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          <div className="lg:col-span-3">
+            <CustomerSearch 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
           </div>
-
-          {/* Customers List */}
-          <CustomerList
-            customers={customers}
-            filteredCustomers={filteredCustomers}
-            editingCustomer={editingCustomer}
-            onEditCustomer={handleEditCustomer}
-            onUpdateCustomer={handleUpdateCustomer}
-            onCancelEdit={handleCancelEdit}
-            onDeleteCustomer={handleDeleteCustomer}
-            onEditingCustomerChange={handleEditingCustomerChange}
-            isUpdating={updateCustomerMutation.isPending}
-            isDeleting={deleteCustomerMutation.isPending}
-          />
+          <div>
+            <CustomerStats totalCustomers={customers.length} />
+          </div>
         </div>
+
+        {/* Customers List */}
+        <CustomerList
+          customers={customers}
+          filteredCustomers={filteredCustomers}
+          editingCustomer={editingCustomer}
+          onEditCustomer={handleEditCustomer}
+          onUpdateCustomer={handleUpdateCustomer}
+          onCancelEdit={handleCancelEdit}
+          onDeleteCustomer={handleDeleteCustomer}
+          onEditingCustomerChange={handleEditingCustomerChange}
+          isUpdating={updateCustomerMutation.isPending}
+          isDeleting={deleteCustomerMutation.isPending}
+        />
       </div>
-      
-      <BottomNavigation />
-    </StandardHeader>
+    </StandardLayout>
   );
 };
 
