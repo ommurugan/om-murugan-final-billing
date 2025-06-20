@@ -1,9 +1,7 @@
-
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { LayoutDashboard, Receipt, Users, Wrench, BarChart3, LogOut } from "lucide-react";
-
 const menuItems = [{
   icon: LayoutDashboard,
   label: "Dashboard",
@@ -25,15 +23,16 @@ const menuItems = [{
   label: "Reports",
   path: "/reports"
 }];
-
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
-  const { setOpenMobile } = useSidebar();
-
+  const {
+    signOut
+  } = useAuth();
+  const {
+    setOpenMobile
+  } = useSidebar();
   const isActive = (path: string) => location.pathname === path;
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -42,14 +41,11 @@ export function AppSidebar() {
       console.error('Logout error:', error);
     }
   };
-
   const handleNavigation = (path: string) => {
     navigate(path);
     setOpenMobile(false); // Close sidebar on mobile after navigation
   };
-
-  return (
-    <Sidebar className="border-r border-gray-200 bg-white">
+  return <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarHeader className="border-b border-gray-200">
         <div className="flex items-center space-x-3 p-4">
           <div className="p-2 bg-white rounded-lg">
@@ -67,36 +63,17 @@ export function AppSidebar() {
           <SidebarGroupLabel className="text-gray-700 font-medium text-sm px-4 py-2">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {menuItems.map(item => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton 
-                    isActive={isActive(item.path)} 
-                    onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-md transition-colors ${
-                      isActive(item.path) 
-                        ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                  >
+              {menuItems.map(item => <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton isActive={isActive(item.path)} onClick={() => handleNavigation(item.path)} className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-md transition-colors ${isActive(item.path) ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'}`}>
                     <item.icon className="h-5 w-5" />
                     <span className="font-medium text-sm">{item.label}</span>
                   </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                </SidebarMenuItem>)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="border-t border-gray-200 p-4">
-        <SidebarMenuButton 
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-md transition-colors text-red-600 hover:bg-red-50"
-        >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium text-sm">Logout</span>
-        </SidebarMenuButton>
-      </SidebarFooter>
-    </Sidebar>
-  );
+      
+    </Sidebar>;
 }
