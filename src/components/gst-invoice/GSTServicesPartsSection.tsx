@@ -27,6 +27,8 @@ interface GSTServicesPartsSectionProps {
   onRemoveItem: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
   onUpdateDiscount: (id: string, discount: number) => void;
+  onItemSelect: (itemId: string, value: string) => void;
+  onUnitPriceChange: (itemId: string, price: number) => void;
 }
 
 const GSTServicesPartsSection = ({
@@ -37,7 +39,9 @@ const GSTServicesPartsSection = ({
   onAddPart,
   onRemoveItem,
   onUpdateQuantity,
-  onUpdateDiscount
+  onUpdateDiscount,
+  onItemSelect,
+  onUnitPriceChange
 }: GSTServicesPartsSectionProps) => {
   return (
     <Card>
@@ -66,6 +70,9 @@ const GSTServicesPartsSection = ({
                         <h4 className="font-medium">{service.name}</h4>
                         <p className="text-sm text-gray-600">{service.category}</p>
                         <p className="text-lg font-semibold text-blue-600">₹{service.base_price}</p>
+                        {service.labor_charges > 0 && (
+                          <p className="text-sm text-green-600">Labor: ₹{service.labor_charges}</p>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
@@ -96,7 +103,7 @@ const GSTServicesPartsSection = ({
                         <p className="text-sm text-gray-600">{part.category}</p>
                         <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
                         <p className="text-xs text-gray-500">Stock: {part.stock_quantity}</p>
-                        <p className="text-xs text-gray-500">HSN: {part.part_number || '998313'}</p>
+                        <p className="text-xs text-gray-500">HSN: {part.hsn_code || part.part_number || '998313'}</p>
                       </div>
                       <Button 
                         size="sm" 
@@ -123,6 +130,28 @@ const GSTServicesPartsSection = ({
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600 capitalize">{item.type}</p>
+                        <div className="mt-2">
+                          <Label htmlFor={`item-${item.id}`} className="text-sm">Item</Label>
+                          <Select value={item.itemId} onValueChange={(value) => onItemSelect(item.id, value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {item.type === 'service' ? 
+                                services.map(service => (
+                                  <SelectItem key={service.id} value={service.id}>
+                                    {service.name} - ₹{service.base_price}
+                                  </SelectItem>
+                                )) :
+                                parts.map(part => (
+                                  <SelectItem key={part.id} value={part.id}>
+                                    {part.name} - ₹{part.price}
+                                  </SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
@@ -134,6 +163,16 @@ const GSTServicesPartsSection = ({
                             min="1"
                           />
                           <p className="text-xs text-gray-500">Qty</p>
+                        </div>
+                        <div className="text-right">
+                          <Input
+                            type="number"
+                            value={item.unitPrice}
+                            onChange={(e) => onUnitPriceChange(item.id, parseFloat(e.target.value) || 0)}
+                            className="w-20 text-center"
+                            min="0"
+                          />
+                          <p className="text-xs text-gray-500">Price</p>
                         </div>
                         <div className="text-right">
                           <Input
