@@ -60,7 +60,7 @@ export function AppSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-700 font-medium text-sm px-4 py-2">Navigation</SidebarGroupLabel>
+          
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {menuItems.map(item => <SidebarMenuItem key={item.path}>
