@@ -3,11 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Invoice } from "@/types/billing";
+import { Invoice, Customer, Vehicle } from "@/types/billing";
 import { Edit, Printer, X } from "lucide-react";
 
 interface InvoiceViewModalProps {
   invoice: Invoice;
+  customer?: Customer;
+  vehicle?: Vehicle;
   onClose: () => void;
   onEdit: () => void;
   onPrint: () => void;
@@ -15,6 +17,8 @@ interface InvoiceViewModalProps {
 
 const InvoiceViewModal = ({
   invoice,
+  customer,
+  vehicle,
   onClose,
   onEdit,
   onPrint
@@ -91,22 +95,22 @@ const InvoiceViewModal = ({
               <CardContent className="space-y-2">
                 <div>
                   <p className="text-sm text-gray-500">Name</p>
-                  <p className="font-medium">{invoice.customer?.name || 'Unknown Customer'}</p>
+                  <p className="font-medium">{customer?.name || 'Unknown Customer'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
-                  <p className="font-medium">{invoice.customer?.phone || 'N/A'}</p>
+                  <p className="font-medium">{customer?.phone || 'N/A'}</p>
                 </div>
-                {invoice.customer?.email && (
+                {customer?.email && (
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{invoice.customer.email}</p>
+                    <p className="font-medium">{customer.email}</p>
                   </div>
                 )}
-                {invoice.customer?.gstNumber && (
+                {customer?.gstNumber && (
                   <div>
                     <p className="text-sm text-gray-500">GST Number</p>
-                    <p className="font-medium">{invoice.customer.gstNumber}</p>
+                    <p className="font-medium">{customer.gstNumber}</p>
                   </div>
                 )}
               </CardContent>
@@ -120,16 +124,16 @@ const InvoiceViewModal = ({
                 <div>
                   <p className="text-sm text-gray-500">Vehicle</p>
                   <p className="font-medium">
-                    {invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : 'Unknown Vehicle'}
+                    {vehicle ? `${vehicle.make} ${vehicle.model}` : 'Unknown Vehicle'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Vehicle Number</p>
-                  <p className="font-medium">{invoice.vehicle?.vehicleNumber || 'N/A'}</p>
+                  <p className="font-medium">{vehicle?.vehicleNumber || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Type</p>
-                  <p className="font-medium capitalize">{invoice.vehicle?.vehicleType || 'N/A'}</p>
+                  <p className="font-medium capitalize">{vehicle?.vehicleType || 'N/A'}</p>
                 </div>
                 {invoice.kilometers && (
                   <div>

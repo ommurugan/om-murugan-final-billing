@@ -224,6 +224,8 @@ const NonGSTInvoiceManagement = () => {
       {showViewModal && selectedInvoice && (
         <InvoiceViewModal
           invoice={selectedInvoice}
+          customer={selectedInvoice.customer}
+          vehicle={selectedInvoice.vehicle}
           onClose={() => {
             setShowViewModal(false);
             setSelectedInvoice(null);
