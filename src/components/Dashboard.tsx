@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Chart } from "./Chart";
+import { CustomLineChart } from "./Chart";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
 import { useState } from "react";
 import InvoiceViewModal from "./invoice/InvoiceViewModal";
@@ -110,7 +109,13 @@ const Dashboard = () => {
             <CardTitle>Revenue Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <Chart data={chartData} />
+            <CustomLineChart 
+              data={chartData} 
+              dataKey="revenue" 
+              xAxisKey="name" 
+              color="#3B82F6" 
+              height={300} 
+            />
           </CardContent>
         </Card>
 

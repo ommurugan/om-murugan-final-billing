@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +47,7 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'upi' | 'netbanking'>("cash");
   const [notes, setNotes] = useState("");
 
   // Load existing invoice data if editing
@@ -201,8 +200,6 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
         </CardHeader>
         <CardContent>
           <CustomerSection
-            customers={customers}
-            vehicles={vehicles}
             selectedCustomer={selectedCustomer}
             selectedVehicle={selectedVehicle}
             kilometers={kilometers}

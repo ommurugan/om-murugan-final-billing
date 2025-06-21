@@ -3,6 +3,7 @@ import CustomerVehicleSelection from "./CustomerVehicleSelection";
 import { Customer, Vehicle } from "@/types/billing";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
+import CustomerQuickAdd from "../CustomerQuickAdd";
 
 interface CustomerSectionProps {
   selectedCustomer: Customer | null;
@@ -12,7 +13,6 @@ interface CustomerSectionProps {
   onVehicleChange: (vehicle: Vehicle | null) => void;
   onKilometersChange: (kilometers: number) => void;
   onCustomerAdded: (customer: Customer) => void;
-  CustomerQuickAddComponent: React.ComponentType<{ onCustomerAdded: (customer: Customer) => void }>;
 }
 
 const CustomerSection = ({
@@ -22,8 +22,7 @@ const CustomerSection = ({
   onCustomerChange,
   onVehicleChange,
   onKilometersChange,
-  onCustomerAdded,
-  CustomerQuickAddComponent
+  onCustomerAdded
 }: CustomerSectionProps) => {
   const { data: customersData = [] } = useCustomers();
   const { data: vehiclesData = [] } = useVehicles(selectedCustomer?.id);
@@ -54,7 +53,7 @@ const CustomerSection = ({
       onVehicleChange={onVehicleChange}
       onKilometersChange={onKilometersChange}
       onCustomerAdded={onCustomerAdded}
-      CustomerQuickAddComponent={CustomerQuickAddComponent}
+      CustomerQuickAddComponent={CustomerQuickAdd}
     />
   );
 };
