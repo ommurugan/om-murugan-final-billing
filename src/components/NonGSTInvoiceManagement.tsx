@@ -1,15 +1,17 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Eye, Edit, Trash2, FileText } from "lucide-react";
+import { Search, Plus, Eye, Edit, Trash2, FileText, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/types/billing";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
 import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import NonGSTInvoiceForm from "./NonGSTInvoiceForm";
 import { useDeleteInvoice } from "@/hooks/useInvoices";
+import InvoicePrintPreview from "./InvoicePrintPreview";
 
 const NonGSTInvoiceManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +19,7 @@ const NonGSTInvoiceManagement = () => {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
 
   // Get all invoices and filter for non-GST ones
   const { 
@@ -49,6 +52,11 @@ const NonGSTInvoiceManagement = () => {
   const handleViewInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setShowViewModal(true);
+  };
+
+  const handlePrintInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setShowPrintPreview(true);
   };
 
   const handleDeleteInvoice = async (invoiceId: string) => {
@@ -198,6 +206,14 @@ const NonGSTInvoiceManagement = () => {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => handlePrintInvoice(invoice)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        <Printer className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEditInvoice(invoice)}
                       >
                         <Edit className="h-4 w-4" />
@@ -233,7 +249,20 @@ const NonGSTInvoiceManagement = () => {
             handleEditInvoice(selectedInvoice);
           }}
           onPrint={() => {
-            toast.info("Print functionality will be implemented");
+            setShowViewModal(false);
+            handlePrintInvoice(selectedInvoice);
+          }}
+        />
+      )}
+
+      {showPrintPreview && selectedInvoice && (
+        <InvoicePrintPreview
+          invoice={selectedInvoice}
+          customer={selectedInvoice.customer}
+          vehicle={selectedInvoice.vehicle}
+          onClose={() => {
+            setShowPrintPreview(false);
+            setSelectedInvoice(null);
           }}
         />
       )}
