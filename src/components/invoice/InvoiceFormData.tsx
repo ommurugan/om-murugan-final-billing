@@ -12,7 +12,6 @@ interface InvoiceFormDataProps {
   onVehicleChange: (vehicle: Vehicle | null) => void;
   onKilometersChange: (kilometers: number) => void;
   onCustomerAdded: (customer: Customer) => void;
-  CustomerQuickAddComponent: React.ComponentType<any>;
   invoiceItems: any[];
   onAddService: (serviceId: string) => void;
   onAddPart: (partId: string) => void;
@@ -45,7 +44,6 @@ const InvoiceFormData = ({
   onVehicleChange,
   onKilometersChange,
   onCustomerAdded,
-  CustomerQuickAddComponent,
   invoiceItems,
   onAddService,
   onAddPart,
@@ -79,7 +77,6 @@ const InvoiceFormData = ({
         onVehicleChange={onVehicleChange}
         onKilometersChange={onKilometersChange}
         onCustomerAdded={onCustomerAdded}
-        CustomerQuickAddComponent={CustomerQuickAddComponent}
       />
 
       <ServicesSection

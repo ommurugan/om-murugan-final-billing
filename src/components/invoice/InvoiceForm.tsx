@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Invoice, Payment } from "@/types/billing";
 import InvoicePrintPreview from "../InvoicePrintPreview";
-import CustomerQuickAdd from "../CustomerQuickAdd";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
 import { useInvoiceCalculations } from "@/hooks/useInvoiceCalculations";
@@ -135,7 +134,6 @@ const InvoiceForm = ({ onSave, onCancel, existingInvoice }: InvoiceFormProps) =>
         onVehicleChange={setSelectedVehicle}
         onKilometersChange={setKilometers}
         onCustomerAdded={setSelectedCustomer}
-        CustomerQuickAddComponent={CustomerQuickAdd}
         invoiceItems={invoiceItems}
         onAddService={addService}
         onAddPart={addPart}
