@@ -19,11 +19,15 @@ const NonGSTInvoiceManagement = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
+  // Get all invoices and filter for non-GST ones
   const { 
-    data: invoices = [], 
+    data: allInvoices = [], 
     isLoading, 
     error 
-  } = useInvoicesWithDetails('non-gst');
+  } = useInvoicesWithDetails();
+
+  // Filter for non-GST invoices
+  const invoices = allInvoices.filter(invoice => invoice.invoiceType === 'non-gst');
 
   const { useDeleteInvoice } = useInvoices();
   const deleteInvoiceMutation = useDeleteInvoice();
@@ -220,10 +224,16 @@ const NonGSTInvoiceManagement = () => {
       {showViewModal && selectedInvoice && (
         <InvoiceViewModal
           invoice={selectedInvoice}
-          isOpen={showViewModal}
           onClose={() => {
             setShowViewModal(false);
             setSelectedInvoice(null);
+          }}
+          onEdit={() => {
+            setShowViewModal(false);
+            handleEditInvoice(selectedInvoice);
+          }}
+          onPrint={() => {
+            toast.info("Print functionality will be implemented");
           }}
         />
       )}
