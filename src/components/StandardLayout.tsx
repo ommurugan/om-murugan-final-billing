@@ -31,7 +31,7 @@ const StandardLayout = ({ title, children }: StandardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div className="min-h-screen flex w-full bg-gray-50" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
         <AppSidebar />
         <SidebarInset className="flex-1">
           <header className="bg-white shadow-sm border-b sticky top-0 z-40">

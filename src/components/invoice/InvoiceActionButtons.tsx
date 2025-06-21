@@ -10,7 +10,6 @@ interface InvoiceActionButtonsProps {
   onCancel: () => void;
   isLoading?: boolean;
   showSaveDraft?: boolean;
-  hideEmailButton?: boolean; // Add this prop to hide email functionality
 }
 
 const InvoiceActionButtons = ({
@@ -19,8 +18,7 @@ const InvoiceActionButtons = ({
   onPrintPreview,
   onCancel,
   isLoading = false,
-  showSaveDraft = true,
-  hideEmailButton = true // Default to true to hide email button
+  showSaveDraft = true
 }: InvoiceActionButtonsProps) => {
   return (
     <Card>

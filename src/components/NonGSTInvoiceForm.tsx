@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,19 +228,21 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
         <CardContent>
           <PaymentSection
             laborCharges={laborCharges}
+            extraCharges={[]}
             discount={discount}
             taxRate={taxRate}
             paymentMethod={paymentMethod}
+            paymentAmount={total}
             notes={notes}
-            subtotal={subtotal}
-            discountAmount={discountAmount}
-            taxAmount={taxAmount}
-            total={total}
             onLaborChargesChange={setLaborCharges}
+            onExtraChargesChange={() => {}}
             onDiscountChange={setDiscount}
             onTaxRateChange={setTaxRate}
             onPaymentMethodChange={setPaymentMethod}
+            onPaymentAmountChange={() => {}}
             onNotesChange={setNotes}
+            subtotal={subtotal}
+            total={total}
           />
         </CardContent>
       </Card>

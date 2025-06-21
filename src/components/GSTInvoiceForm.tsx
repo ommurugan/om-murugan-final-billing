@@ -50,7 +50,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(18);
-  const [gstRate, setGstRate] = useState(18); // Add GST rate state
+  const [gstRate, setGstRate] = useState(18); // Standard GST rate
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [notes, setNotes] = useState("");
 
@@ -67,7 +67,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       setLaborCharges(existingInvoice.laborCharges || 0);
       setDiscount(existingInvoice.discount || 0);
       setTaxRate(existingInvoice.taxRate || 18);
-      setGstRate(existingInvoice.taxRate || 18); // Set GST rate from existing invoice
+      setGstRate(existingInvoice.taxRate || 18);
       setNotes(existingInvoice.notes || "");
     }
   }, [existingInvoice, gstCustomers, vehicles]);
@@ -88,7 +88,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
 
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    if (service) {
+    if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
       const newItem = {
         id: `service-${Date.now()}`,
         type: 'service' as const,
@@ -106,7 +106,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
 
   const addPart = (partId: string) => {
     const part = parts.find(p => p.id === partId);
-    if (part) {
+    if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
       const newItem = {
         id: `part-${Date.now()}`,
         type: 'part' as const,
@@ -154,7 +154,6 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
           : parts.find(p => p.id === value);
         
         if (selectedItem) {
-          // Handle property name differences between database and interface
           const unitPrice = item.type === 'service' 
             ? (selectedItem as any).base_price 
             : (selectedItem as any).price;
@@ -203,7 +202,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       items: invoiceItems,
       subtotal,
       discount: discountAmount,
-      taxRate,
+      taxRate: gstRate, // Use gstRate instead of taxRate
       taxAmount,
       extraCharges: [],
       total,
@@ -269,7 +268,10 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         onItemSelect={handleItemSelect}
         onUnitPriceChange={handleUnitPriceChange}
         gstRate={gstRate}
-        onGstRateChange={setGstRate}
+        onGstRateChange={(rate) => {
+          setGstRate(rate);
+          setTaxRate(rate);
+        }}
       />
 
       <Card>

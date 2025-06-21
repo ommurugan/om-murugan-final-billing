@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomLineChart } from "./Chart";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
@@ -32,6 +33,7 @@ const Dashboard = () => {
   ];
 
   const handleInvoiceClick = (invoice: any) => {
+    console.log("Invoice clicked:", invoice);
     setSelectedInvoice(invoice);
     setSelectedCustomer(invoice.customer);
     setSelectedVehicle(invoice.vehicle);
@@ -134,7 +136,7 @@ const Dashboard = () => {
                   <div className="flex-1">
                     <div className="font-medium">{invoice.invoiceNumber}</div>
                     <div className="text-sm text-gray-600">
-                      {invoice.customer?.name || 'Unknown Customer'} - {invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : 'Unknown Vehicle'}
+                      {invoice.customer?.name || 'Loading...'} - {invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : 'Loading...'}
                     </div>
                     <div className="text-xs text-gray-500">
                       {formatDate(invoice.createdAt)}
@@ -159,7 +161,7 @@ const Dashboard = () => {
       </div>
 
       {/* Invoice View Modal */}
-      {showInvoiceModal && selectedInvoice && (
+      {showInvoiceModal && selectedInvoice && selectedCustomer && selectedVehicle && (
         <InvoiceViewModal
           invoice={selectedInvoice}
           customer={selectedCustomer}
