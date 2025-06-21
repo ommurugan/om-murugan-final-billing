@@ -47,14 +47,15 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             <img 
               src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
               alt="OM MURUGAN AUTO WORKS" 
-              className="h-16 w-16 mr-4"
+              className="h-16 w-16 mr-4 print:h-20 print:w-20"
+              style={{ printColorAdjust: 'exact', colorAdjust: 'exact' }}
             />
             <div>
-              <h1 className="text-3xl font-bold">OM MURUGAN AUTO WORKS</h1>
-              <p className="text-lg mt-2">Complete Auto Care Solutions</p>
+              <h1 className="text-3xl font-bold print:text-4xl">OM MURUGAN AUTO WORKS</h1>
+              <p className="text-lg mt-2 print:text-xl">Complete Auto Care Solutions</p>
             </div>
           </div>
-          <p className="text-sm">Phone: +91 98765 43210 | Email: info@ommurugan.com</p>
+          <p className="text-sm print:text-base">Phone: +91 98765 43210 | Email: info@ommurugan.com</p>
         </div>
 
         {/* Invoice Header */}
@@ -98,53 +99,60 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
         </div>
 
         {/* Items Table */}
-        <table className="w-full border-collapse border border-black mb-6">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-black p-2 text-left">Description</th>
-              <th className="border border-black p-2 text-center">HSN Code</th>
-              <th className="border border-black p-2 text-center">Qty</th>
-              <th className="border border-black p-2 text-right">Rate</th>
-              <th className="border border-black p-2 text-right">Discount</th>
-              <th className="border border-black p-2 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((item, index) => (
-              <tr key={index}>
-                <td className="border border-black p-2">
-                  {item.name}
-                  <div className="text-sm text-gray-600 capitalize">({item.type})</div>
-                </td>
-                <td className="border border-black p-2 text-center">{item.hsnCode || 'N/A'}</td>
-                <td className="border border-black p-2 text-center">{item.quantity}</td>
-                <td className="border border-black p-2 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹{item.discount.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹{item.total.toFixed(2)}</td>
+        <div className="mb-6">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border-2 border-black p-3 text-left font-bold">Description</th>
+                <th className="border-2 border-black p-3 text-center font-bold">HSN Code</th>
+                <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
+                <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
+                <th className="border-2 border-black p-3 text-right font-bold">Discount</th>
+                <th className="border-2 border-black p-3 text-right font-bold">Amount</th>
               </tr>
-            ))}
-            {invoice.laborCharges > 0 && (
+            </thead>
+            <tbody>
+              {invoice.items.map((item, index) => (
+                <tr key={index} className="print:border-none">
+                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">
+                    {item.name}
+                    <div className="text-sm text-gray-600 capitalize">({item.type})</div>
+                  </td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.hsnCode || 'N/A'}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.total.toFixed(2)}</td>
+                </tr>
+              ))}
+              {invoice.laborCharges > 0 && (
+                <tr className="print:border-none">
+                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">Labor Charges</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">998314</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
+                </tr>
+              )}
+              {invoice.extraCharges?.map((charge, index) => (
+                <tr key={`extra-${index}`} className="print:border-none">
+                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">{charge.name}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">N/A</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
               <tr>
-                <td className="border border-black p-2">Labor Charges</td>
-                <td className="border border-black p-2 text-center">998314</td>
-                <td className="border border-black p-2 text-center">1</td>
-                <td className="border border-black p-2 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹0.00</td>
-                <td className="border border-black p-2 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
+                <td className="border-2 border-black p-3" colSpan={6}></td>
               </tr>
-            )}
-            {invoice.extraCharges?.map((charge, index) => (
-              <tr key={`extra-${index}`}>
-                <td className="border border-black p-2">{charge.name}</td>
-                <td className="border border-black p-2 text-center">N/A</td>
-                <td className="border border-black p-2 text-center">1</td>
-                <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
-                <td className="border border-black p-2 text-right">₹0.00</td>
-                <td className="border border-black p-2 text-right">₹{charge.amount.toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </tfoot>
+          </table>
+        </div>
 
         {/* Totals */}
         <div className="grid grid-cols-2 gap-8 mb-8">
@@ -161,8 +169,12 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
               </div>
             )}
             <div className="flex justify-between">
-              <span>{invoice.invoiceType === 'gst' ? `GST (${invoice.taxRate}%):` : 'Tax:'}</span>
-              <span>₹{invoice.taxAmount.toFixed(2)}</span>
+              <span>CGST ({(invoice.taxRate / 2)}%):</span>
+              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>SGST ({(invoice.taxRate / 2)}%):</span>
+              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
             </div>
             <div className="border-t-2 border-black pt-2">
               <div className="flex justify-between font-bold text-lg">
@@ -205,6 +217,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           
           body * {
@@ -221,6 +234,32 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             top: 0;
             width: 100%;
             padding: 20px;
+          }
+
+          /* Remove horizontal lines between table rows in print */
+          tbody tr {
+            border-top: none !important;
+            border-bottom: none !important;
+          }
+
+          tbody td {
+            border-top: none !important;
+            border-bottom: none !important;
+          }
+
+          /* Keep only outer borders and column separators */
+          table {
+            border-collapse: separate;
+            border-spacing: 0;
+          }
+
+          /* Ensure logo is visible in print */
+          img {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            opacity: 1 !important;
+            visibility: visible !important;
           }
           
           @page {
