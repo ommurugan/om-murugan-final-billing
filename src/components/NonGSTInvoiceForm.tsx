@@ -1,14 +1,17 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Invoice } from "@/types/billing";
-import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useVehicles } from "@/hooks/useVehicles";
+import { useServices } from "@/hooks/useServices";
+import { useParts } from "@/hooks/useParts";
+import { useCreateInvoice } from "@/hooks/useInvoices";
 import CustomerSection from "./invoice/CustomerSection";
 import ServicesSection from "./invoice/ServicesSection";
 import PaymentSection from "./invoice/PaymentSection";
-import InvoiceActionButtons from "./invoice/InvoiceActionButtons";
-import CustomerQuickAdd from "./CustomerQuickAdd";
-import { useNonGSTInvoiceForm } from "@/hooks/useNonGSTInvoiceForm";
-import { useNonGSTInvoiceFormActions } from "./invoice/NonGSTInvoiceFormActions";
 
 interface NonGSTInvoiceFormProps {
   onSave: (invoice: Invoice) => void;
@@ -16,142 +19,242 @@ interface NonGSTInvoiceFormProps {
   existingInvoice?: Invoice;
 }
 
-const NonGSTInvoiceForm = ({
-  onSave,
-  onCancel,
-  existingInvoice
-}: NonGSTInvoiceFormProps) => {
-  const [showPrintPreview, setShowPrintPreview] = useState(false);
+const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceFormProps) => {
+  const { data: customers = [] } = useCustomers();
+  const { data: dbVehicles = [] } = useVehicles();
+  const { data: services = [] } = useServices();
+  const { data: parts = [] } = useParts();
+  const createInvoiceMutation = useCreateInvoice();
 
-  const formState = useNonGSTInvoiceForm({
-    onSave: (invoice: Invoice) => {
-      onSave(invoice);
-      // Auto-show print preview after successful creation
-      if (invoice.status !== 'draft') {
-        setShowPrintPreview(true);
-      }
-    },
-    onCancel,
-    existingInvoice
-  });
+  // Transform database vehicles to match TypeScript interface
+  const vehicles = dbVehicles.map(v => ({
+    id: v.id,
+    customerId: v.customer_id,
+    make: v.make,
+    model: v.model,
+    year: v.year,
+    vehicleNumber: v.vehicle_number,
+    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
+    engineNumber: v.engine_number,
+    chassisNumber: v.chassis_number,
+    color: v.color,
+    createdAt: v.created_at
+  }));
 
-  const {
-    selectedCustomer,
-    selectedVehicle,
-    kilometers,
-    invoiceItems,
-    laborCharges,
-    discount,
-    taxRate,
-    extraCharges,
-    notes,
-    paymentMethod,
-    paymentAmount,
-    subtotal,
-    total,
-    createInvoiceMutation,
-    setSelectedCustomer,
-    setSelectedVehicle,
-    setKilometers,
-    setLaborCharges,
-    setDiscount,
-    setTaxRate,
-    setExtraCharges,
-    setNotes,
-    setPaymentMethod,
-    setPaymentAmount,
-    addService,
-    addPart,
-    removeItem,
-    updateItemQuantity,
-    updateItemDiscount,
-    createInvoiceObject,
-    handleCustomerAdded
-  } = formState;
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [kilometers, setKilometers] = useState(0);
+  const [invoiceItems, setInvoiceItems] = useState<any>([]);
+  const [laborCharges, setLaborCharges] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [taxRate, setTaxRate] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [notes, setNotes] = useState("");
 
-  const formActions = useNonGSTInvoiceFormActions({
-    selectedCustomer,
-    selectedVehicle,
-    invoiceItems,
-    createInvoiceObject,
-    createInvoiceMutation,
-    onSave: (invoice: Invoice) => {
-      onSave(invoice);
-      // Auto-show print preview after successful creation
-      if (invoice.status !== 'draft') {
-        setShowPrintPreview(true);
-      }
+  // Load existing invoice data if editing
+  useEffect(() => {
+    if (existingInvoice) {
+      const customer = customers.find(c => c.id === existingInvoice.customerId);
+      const vehicle = vehicles.find(v => v.id === existingInvoice.vehicleId);
+      
+      setSelectedCustomer(customer || null);
+      setSelectedVehicle(vehicle || null);
+      setKilometers(existingInvoice.kilometers || 0);
+      setInvoiceItems(existingInvoice.items || []);
+      setLaborCharges(existingInvoice.laborCharges || 0);
+      setDiscount(existingInvoice.discount || 0);
+      setTaxRate(existingInvoice.taxRate || 0);
+      setNotes(existingInvoice.notes || "");
     }
-  });
+  }, [existingInvoice, customers, vehicles]);
 
-  const handlePrintPreview = () => {
-    const shouldShowPreview = formActions.handlePrintPreview();
-    if (shouldShowPreview) {
-      setShowPrintPreview(true);
+  const handleCustomerAdded = (newCustomer) => {
+    const addedCustomer = customers.find(c => c.createdAt === newCustomer.createdAt);
+    if (addedCustomer) {
+      setSelectedCustomer(addedCustomer);
     }
   };
 
-  if (showPrintPreview && selectedCustomer && selectedVehicle) {
-    const previewInvoice = createInvoiceObject('draft');
-    return (
-      <ProfessionalInvoicePrint
-        invoice={previewInvoice}
-        customer={selectedCustomer}
-        vehicle={selectedVehicle}
-        onClose={() => setShowPrintPreview(false)}
-      />
-    );
-  }
+  const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0) + laborCharges;
+  const discountAmount = (subtotal * discount) / 100;
+  const taxableAmount = subtotal - discountAmount;
+  const taxAmount = (taxableAmount * taxRate) / 100;
+  const total = taxableAmount + taxAmount;
+
+  const addService = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (service) {
+      const newItem = {
+        id: `service-${Date.now()}`,
+        type: 'service' as const,
+        itemId: serviceId,
+        name: service.name,
+        quantity: 1,
+        unitPrice: (service as any).base_price || 0,
+        discount: 0,
+        total: (service as any).base_price || 0,
+        hsnCode: (service as any).hsn_code || '998314'
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
+  };
+
+  const addPart = (partId: string) => {
+    const part = parts.find(p => p.id === partId);
+    if (part) {
+      const newItem = {
+        id: `part-${Date.now()}`,
+        type: 'part' as const,
+        itemId: partId,
+        name: part.name,
+        quantity: 1,
+        unitPrice: (part as any).price || 0,
+        discount: 0,
+        total: (part as any).price || 0,
+        hsnCode: (part as any).hsn_code || '998313'
+      };
+      setInvoiceItems([...invoiceItems, newItem]);
+    }
+  };
+
+  const removeItem = (id) => {
+    setInvoiceItems(invoiceItems.filter(item => item.id !== id));
+  };
+
+  const updateQuantity = (id, quantity) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === id) {
+        const newTotal = (item.unitPrice * quantity) - item.discount;
+        return { ...item, quantity, total: newTotal };
+      }
+      return item;
+    }));
+  };
+
+  const updateDiscount = (id, discount) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === id) {
+        const newTotal = (item.unitPrice * item.quantity) - discount;
+        return { ...item, discount, total: newTotal };
+      }
+      return item;
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedCustomer || !selectedVehicle) {
+      toast.error("Please select customer and vehicle");
+      return;
+    }
+
+    if (invoiceItems.length === 0) {
+      toast.error("Please add at least one service or part");
+      return;
+    }
+
+    const invoiceData = {
+      invoiceNumber: existingInvoice?.invoiceNumber || `NON-GST-${Date.now()}`,
+      invoiceType: 'non-gst' as const,
+      customerId: selectedCustomer.id,
+      vehicleId: selectedVehicle.id,
+      items: invoiceItems,
+      subtotal,
+      discount: discountAmount,
+      taxRate,
+      taxAmount,
+      extraCharges: [],
+      total,
+      status: 'pending' as const,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      notes,
+      laborCharges,
+      payments: [],
+      kilometers
+    };
+
+    try {
+      if (existingInvoice) {
+        onSave({ 
+          ...invoiceData, 
+          id: existingInvoice.id, 
+          createdAt: existingInvoice.createdAt 
+        });
+      } else {
+        const result = await createInvoiceMutation.mutateAsync(invoiceData);
+        onSave({ 
+          ...invoiceData, 
+          id: result.id, 
+          createdAt: result.created_at 
+        });
+      }
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      toast.error("Failed to save invoice");
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <CustomerSection
-        selectedCustomer={selectedCustomer}
-        selectedVehicle={selectedVehicle}
-        kilometers={kilometers}
-        onCustomerChange={setSelectedCustomer}
-        onVehicleChange={setSelectedVehicle}
-        onKilometersChange={setKilometers}
-        onCustomerAdded={handleCustomerAdded}
-        CustomerQuickAddComponent={CustomerQuickAdd}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Customer & Vehicle Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CustomerSection
+            customers={customers}
+            vehicles={vehicles}
+            selectedCustomer={selectedCustomer}
+            selectedVehicle={selectedVehicle}
+            kilometers={kilometers}
+            onCustomerChange={setSelectedCustomer}
+            onVehicleChange={setSelectedVehicle}
+            onKilometersChange={setKilometers}
+            onCustomerAdded={handleCustomerAdded}
+          />
+        </CardContent>
+      </Card>
 
       <ServicesSection
         invoiceItems={invoiceItems}
         onAddService={addService}
         onAddPart={addPart}
         onRemoveItem={removeItem}
-        onUpdateItemQuantity={updateItemQuantity}
-        onUpdateItemDiscount={updateItemDiscount}
+        onUpdateItemQuantity={updateQuantity}
+        onUpdateItemDiscount={updateDiscount}
       />
 
-      <PaymentSection
-        laborCharges={laborCharges}
-        extraCharges={extraCharges}
-        discount={discount}
-        taxRate={taxRate}
-        notes={notes}
-        paymentMethod={paymentMethod}
-        paymentAmount={paymentAmount}
-        onLaborChargesChange={setLaborCharges}
-        onExtraChargesChange={setExtraCharges}
-        onDiscountChange={setDiscount}
-        onTaxRateChange={setTaxRate}
-        onNotesChange={setNotes}
-        onPaymentMethodChange={setPaymentMethod}
-        onPaymentAmountChange={setPaymentAmount}
-        subtotal={subtotal}
-        total={total}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentSection
+            laborCharges={laborCharges}
+            discount={discount}
+            taxRate={taxRate}
+            paymentMethod={paymentMethod}
+            notes={notes}
+            subtotal={subtotal}
+            discountAmount={discountAmount}
+            taxAmount={taxAmount}
+            total={total}
+            onLaborChargesChange={setLaborCharges}
+            onDiscountChange={setDiscount}
+            onTaxRateChange={setTaxRate}
+            onPaymentMethodChange={setPaymentMethod}
+            onNotesChange={setNotes}
+          />
+        </CardContent>
+      </Card>
 
-      <InvoiceActionButtons
-        onSaveDraft={formActions.handleSaveDraft}
-        onCreateInvoice={formActions.handleCreateInvoice}
-        onPrintPreview={handlePrintPreview}
-        onCancel={onCancel}
-        isLoading={createInvoiceMutation.isPending}
-        showSaveDraft={false} // Hide Save as Draft for non-GST invoices
-      />
+      <div className="flex gap-4 justify-end">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} disabled={createInvoiceMutation.isPending}>
+          {createInvoiceMutation.isPending ? "Saving..." : existingInvoice ? "Update Invoice" : "Save Invoice"}
+        </Button>
+      </div>
     </div>
   );
 };

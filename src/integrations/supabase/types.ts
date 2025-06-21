@@ -174,6 +174,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          hsn_code: string | null
           id: string
           is_active: boolean
           min_stock_level: number
@@ -187,6 +188,7 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           min_stock_level?: number
@@ -200,6 +202,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           min_stock_level?: number
@@ -266,6 +269,7 @@ export type Database = {
           created_at: string
           description: string | null
           estimated_time: number
+          hsn_code: string | null
           id: string
           is_active: boolean
           name: string
@@ -277,6 +281,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           estimated_time?: number
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -288,6 +293,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           estimated_time?: number
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           name?: string

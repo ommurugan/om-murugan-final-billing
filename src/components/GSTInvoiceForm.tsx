@@ -98,7 +98,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (service as any).base_price || 0,
         discount: 0,
         total: (service as any).base_price || 0,
-        hsnCode: '998314' // Default HSN for services
+        hsnCode: (service as any).hsn_code || '998314'
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }
@@ -116,7 +116,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (part as any).price || 0,
         discount: 0,
         total: (part as any).price || 0,
-        hsnCode: (part as any).hsn_code || (part as any).part_number || '998313'
+        hsnCode: (part as any).hsn_code || '998313'
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }
@@ -159,9 +159,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             ? (selectedItem as any).base_price 
             : (selectedItem as any).price;
           const newTotal = (unitPrice * item.quantity) - item.discount;
-          const hsnCode = item.type === 'service' 
-            ? '998314'
-            : (selectedItem as any).hsn_code || (selectedItem as any).part_number || '998313';
+          const hsnCode = (selectedItem as any).hsn_code || (item.type === 'service' ? '998314' : '998313');
           return {
             ...item,
             itemId: value,

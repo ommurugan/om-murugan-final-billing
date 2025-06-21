@@ -159,7 +159,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                 </td>
                 {invoice.invoiceType === 'gst' && (
                   <td className="border border-gray-800 p-2 text-center text-sm">
-                    {item.type === 'service' ? '998314' : (item.hsnCode || '998313')}
+                    {item.hsnCode || (item.type === 'service' ? '998314' : '998313')}
                   </td>
                 )}
                 <td className="border border-gray-800 p-2 text-center text-sm">{item.quantity}</td>

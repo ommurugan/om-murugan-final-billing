@@ -1,3 +1,4 @@
+
 export interface Customer {
   id: string;
   name: string;
@@ -34,6 +35,7 @@ export interface Service {
   estimatedTime: number; // in minutes
   description?: string;
   isActive: boolean;
+  hsnCode?: string;
 }
 
 export interface Part {
@@ -46,6 +48,7 @@ export interface Part {
   supplier?: string;
   partNumber?: string;
   isActive: boolean;
+  hsnCode?: string;
 }
 
 export interface InvoiceItem {
