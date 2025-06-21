@@ -12,6 +12,7 @@ export interface Part {
   min_stock_level: number;
   supplier?: string;
   part_number?: string;
+  hsn_code?: string;
   is_active: boolean;
   created_at: string;
   user_id?: string;

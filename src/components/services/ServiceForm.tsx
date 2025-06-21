@@ -23,8 +23,10 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
     name: editingService?.name || "",
     description: editingService?.description || "",
     base_price: editingService?.base_price?.toString() || "",
+    labor_charges: editingService?.labor_charges?.toString() || "",
     estimated_time: editingService?.estimated_time?.toString() || "",
-    category: editingService?.category || ""
+    category: editingService?.category || "",
+    hsn_code: editingService?.hsn_code || ""
   });
 
   const [durationFormat, setDurationFormat] = useState("minutes");
@@ -61,16 +63,20 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
         name: formData.name,
         description: formData.description,
         base_price: parseFloat(formData.base_price),
+        labor_charges: parseFloat(formData.labor_charges) || 0,
         estimated_time: convertToMinutes(formData.estimated_time, durationFormat),
-        category: formData.category
+        category: formData.category,
+        hsn_code: formData.hsn_code
       });
     } else {
       onSubmit({
         name: formData.name,
         description: formData.description || undefined,
         base_price: parseFloat(formData.base_price),
+        labor_charges: parseFloat(formData.labor_charges) || 0,
         estimated_time: convertToMinutes(formData.estimated_time, durationFormat) || 60,
         category: formData.category,
+        hsn_code: formData.hsn_code,
         is_active: true
       });
     }
@@ -81,8 +87,10 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
       name: "",
       description: "",
       base_price: "",
+      labor_charges: "",
       estimated_time: "",
-      category: ""
+      category: "",
+      hsn_code: ""
     });
     setDurationFormat("minutes");
   };
@@ -103,7 +111,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -140,14 +148,33 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
               />
             </div>
             <div>
-              <Label htmlFor="serviceCategory">Category</Label>
+              <Label htmlFor="laborCharges">Labor Charges (₹)</Label>
               <Input 
-                id="serviceCategory"
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                placeholder="e.g., Maintenance, Repair"
+                id="laborCharges"
+                type="number"
+                value={formData.labor_charges}
+                onChange={(e) => setFormData({...formData, labor_charges: e.target.value})}
+                placeholder="0"
               />
             </div>
+          </div>
+          <div>
+            <Label htmlFor="serviceCategory">Category</Label>
+            <Input 
+              id="serviceCategory"
+              value={formData.category}
+              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              placeholder="e.g., Maintenance, Repair"
+            />
+          </div>
+          <div>
+            <Label htmlFor="hsnCode">HSN Code</Label>
+            <Input 
+              id="hsnCode"
+              value={formData.hsn_code}
+              onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
+              placeholder="e.g., 998314"
+            />
           </div>
           <div>
             <Label htmlFor="durationFormat">Duration Format</Label>

@@ -8,8 +8,10 @@ export interface Service {
   name: string;
   category: string;
   base_price: number;
+  labor_charges?: number;
   estimated_time: number; // in minutes
   description?: string;
+  hsn_code?: string;
   is_active: boolean;
   created_at: string;
   user_id?: string;

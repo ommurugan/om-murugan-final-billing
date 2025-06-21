@@ -24,7 +24,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
     category: editingPart?.category || "",
     supplier: editingPart?.supplier || "",
     part_number: editingPart?.part_number || "",
-    min_stock_level: editingPart?.min_stock_level?.toString() || ""
+    min_stock_level: editingPart?.min_stock_level?.toString() || "",
+    hsn_code: editingPart?.hsn_code || ""
   });
 
   const handleSubmit = () => {
@@ -37,7 +38,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
         stock_quantity: parseInt(formData.stock_quantity),
         min_stock_level: parseInt(formData.min_stock_level),
         supplier: formData.supplier,
-        part_number: formData.part_number
+        part_number: formData.part_number,
+        hsn_code: formData.hsn_code
       });
     } else {
       onSubmit({
@@ -48,6 +50,7 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
         min_stock_level: parseInt(formData.min_stock_level) || 0,
         supplier: formData.supplier || undefined,
         part_number: formData.part_number || undefined,
+        hsn_code: formData.hsn_code || undefined,
         is_active: true
       });
     }
@@ -61,7 +64,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
       category: "",
       supplier: "",
       part_number: "",
-      min_stock_level: ""
+      min_stock_level: "",
+      hsn_code: ""
     });
   };
 
@@ -74,7 +78,7 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -151,6 +155,15 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
                 placeholder="5"
               />
             </div>
+          </div>
+          <div>
+            <Label htmlFor="hsnCode">HSN Code</Label>
+            <Input 
+              id="hsnCode"
+              value={formData.hsn_code}
+              onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
+              placeholder="e.g., 998313"
+            />
           </div>
           <Button 
             onClick={handleSubmit} 

@@ -1,70 +1,47 @@
 
-import NonGSTInvoiceForm from "./NonGSTInvoiceForm";
-import NonGSTInvoiceHeader from "./invoice/NonGSTInvoiceHeader";
-import NonGSTInvoiceContent from "./invoice/NonGSTInvoiceContent";
-import NonGSTInvoiceFormHeader from "./invoice/NonGSTInvoiceFormHeader";
-import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Search, Plus, Eye, Edit, Trash2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/types/billing";
+import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
+import InvoiceViewModal from "./invoice/InvoiceViewModal";
+import NonGSTInvoiceForm from "./NonGSTInvoiceForm";
 import { useInvoices } from "@/hooks/useInvoices";
-import { useCustomers } from "@/hooks/useCustomers";
-import { useVehicles } from "@/hooks/useVehicles";
-import { useInvoiceStats } from "@/hooks/useInvoiceStats";
-import { useInvoiceFilters } from "@/hooks/useInvoiceFilters";
 
 const NonGSTInvoiceManagement = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("all");
 
-  // Use real database data
-  const { data: invoicesData = [], isLoading, refetch } = useInvoices('non-gst');
-  const { data: customers = [] } = useCustomers();
-  const { data: dbVehicles = [] } = useVehicles();
+  const { 
+    data: invoices = [], 
+    isLoading, 
+    error 
+  } = useInvoicesWithDetails('non-gst');
 
-  // Transform database vehicles to match TypeScript interface
-  const vehicles = dbVehicles.map(v => ({
-    id: v.id,
-    customerId: v.customer_id,
-    make: v.make,
-    model: v.model,
-    year: v.year,
-    vehicleNumber: v.vehicle_number,
-    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
-    engineNumber: v.engine_number,
-    chassisNumber: v.chassis_number,
-    color: v.color,
-    createdAt: v.created_at
-  }));
+  const { useDeleteInvoice } = useInvoices();
+  const deleteInvoiceMutation = useDeleteInvoice();
 
-  // Transform invoice data to include customer and vehicle details
-  const invoices = invoicesData.map((invoice: any) => ({
-    ...invoice,
-    customerName: invoice.customers?.name || "Unknown Customer",
-    vehicleInfo: invoice.vehicles ? `${invoice.vehicles.make} ${invoice.vehicles.model}` : "Unknown Vehicle"
-  }));
+  const filteredInvoices = invoices.filter(invoice =>
+    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.vehicle?.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const filteredInvoices = useInvoiceFilters({
-    invoices,
-    customers,
-    searchTerm,
-    statusFilter,
-    dateFilter
-  });
+  const handleCreateInvoice = () => {
+    setEditingInvoice(null);
+    setShowCreateForm(true);
+  };
 
-  const handleSaveInvoice = async (invoice: Invoice) => {
-    console.log("Non-GST Invoice saved:", invoice);
-    
-    // Refresh the invoices list to show the new invoice
-    await refetch();
-    
-    toast.success("Non-GST Invoice saved successfully!");
-    setShowCreateForm(false);
-    setSelectedInvoice(null);
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setShowCreateForm(true);
   };
 
   const handleViewInvoice = (invoice: Invoice) => {
@@ -72,133 +49,52 @@ const NonGSTInvoiceManagement = () => {
     setShowViewModal(true);
   };
 
-  const handleEditInvoice = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-    setShowCreateForm(true);
-  };
-
-  const handleDeleteInvoice = (invoiceId: string) => {
-    toast.success("Invoice deleted successfully!");
-    // TODO: Implement actual delete functionality
-  };
-
-  const handlePrintInvoice = (invoice: Invoice) => {
-    // Find the invoice with customer and vehicle data
-    const invoiceData = invoicesData.find(inv => inv.id === invoice.id);
-    
-    if (invoiceData) {
-      // Create a temporary print window with the invoice data
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        const customer = customers.find(c => c.id === invoice.customerId);
-        const vehicle = vehicles.find(v => v.id === invoice.vehicleId);
-        
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>Invoice ${invoice.invoiceNumber}</title>
-              <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .header { text-align: center; margin-bottom: 30px; }
-                .invoice-details { margin-bottom: 20px; }
-                .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .table th, .table td { border: 1px solid #000; padding: 8px; text-align: left; }
-                .table th { background-color: #f0f0f0; }
-                .total { text-align: right; font-weight: bold; font-size: 18px; }
-                @media print { 
-                  .no-print { display: none; } 
-                  @page { margin: 0.5in; }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <h1>OM MURUGAN AUTO WORKS</h1>
-                <h2>NON-GST INVOICE</h2>
-                <p>Invoice: ${invoice.invoiceNumber}</p>
-              </div>
-              <div class="invoice-details">
-                <p><strong>Customer:</strong> ${customer?.name || 'Unknown Customer'}</p>
-                <p><strong>Phone:</strong> ${customer?.phone || 'N/A'}</p>
-                <p><strong>Vehicle:</strong> ${vehicle ? `${vehicle.make} ${vehicle.model} (${vehicle.vehicleNumber})` : 'Unknown Vehicle'}</p>
-                <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
-                ${invoice.kilometers ? `<p><strong>Kilometers:</strong> ${invoice.kilometers.toLocaleString()}</p>` : ''}
-              </div>
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Description</th>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${invoice.items.map(item => `
-                    <tr>
-                      <td>${item.name}</td>
-                      <td>${item.quantity}</td>
-                      <td>₹${item.unitPrice.toFixed(2)}</td>
-                      <td>₹${item.total.toFixed(2)}</td>
-                    </tr>
-                  `).join('')}
-                  ${invoice.laborCharges > 0 ? `
-                    <tr>
-                      <td>Labor Charges</td>
-                      <td>1</td>
-                      <td>₹${invoice.laborCharges.toFixed(2)}</td>
-                      <td>₹${invoice.laborCharges.toFixed(2)}</td>
-                    </tr>
-                  ` : ''}
-                </tbody>
-              </table>
-              <div class="total">
-                <p>Subtotal: ₹${invoice.subtotal.toFixed(2)}</p>
-                ${invoice.discount > 0 ? `<p>Discount: -₹${invoice.discount.toFixed(2)}</p>` : ''}
-                <p><strong>Total: ₹${invoice.total.toFixed(2)}</strong></p>
-              </div>
-              <div class="no-print" style="margin-top: 20px;">
-                <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Print Invoice</button>
-                <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Close</button>
-              </div>
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (window.confirm("Are you sure you want to delete this invoice?")) {
+      try {
+        await deleteInvoiceMutation.mutateAsync(invoiceId);
+        toast.success("Invoice deleted successfully");
+      } catch (error) {
+        console.error("Error deleting invoice:", error);
+        toast.error("Failed to delete invoice");
       }
-    } else {
-      toast.error("Unable to find invoice details for printing");
     }
   };
 
-  const handleCreateFirst = () => {
-    setShowCreateForm(true);
+  const handleSaveInvoice = async (invoiceData: Invoice) => {
+    try {
+      // Handle saving logic here
+      toast.success(editingInvoice ? "Invoice updated successfully!" : "Invoice created successfully!");
+      setShowCreateForm(false);
+      setEditingInvoice(null);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      toast.error("Failed to save invoice");
+    }
   };
 
   const handleCancel = () => {
     setShowCreateForm(false);
-    setSelectedInvoice(null);
+    setEditingInvoice(null);
   };
 
-  const handleBack = () => {
-    setShowCreateForm(false);
-    setSelectedInvoice(null);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
   if (showCreateForm) {
     return (
-      <div className="space-y-4 md:space-y-6">
-        <NonGSTInvoiceFormHeader 
-          selectedInvoice={selectedInvoice}
-          onBack={handleBack}
-        />
-        
-        <NonGSTInvoiceForm 
-          onSave={handleSaveInvoice} 
-          onCancel={handleCancel} 
-          existingInvoice={selectedInvoice || undefined} 
-        />
-      </div>
+      <NonGSTInvoiceForm
+        onSave={handleSaveInvoice}
+        onCancel={handleCancel}
+        existingInvoice={editingInvoice}
+      />
     );
   }
 
@@ -207,48 +103,128 @@ const NonGSTInvoiceManagement = () => {
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading Non-GST invoices...</p>
+          <p>Loading invoices...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading invoices</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <NonGSTInvoiceHeader onCreateInvoice={() => setShowCreateForm(true)} />
-      
-      <NonGSTInvoiceContent
-        invoices={filteredInvoices}
-        customers={customers}
-        vehicles={vehicles}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        dateFilter={dateFilter}
-        onSearchChange={setSearchTerm}
-        onStatusFilterChange={setStatusFilter}
-        onDateFilterChange={setDateFilter}
-        onView={handleViewInvoice}
-        onEdit={handleEditInvoice}
-        onDelete={handleDeleteInvoice}
-        onPrint={handlePrintInvoice}
-        onCreateFirst={handleCreateFirst}
-      />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Non-GST Invoices</h2>
+          <p className="text-gray-600">Manage your non-GST invoices</p>
+        </div>
+        <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="h-4 w-4 mr-2" />
+          New Invoice
+        </Button>
+      </div>
 
-      {/* View Invoice Modal */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center space-x-2 mb-6">
+            <Search className="h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search by invoice number, customer name, or vehicle number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+
+          {filteredInvoices.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm ? "No invoices match your search criteria." : "Get started by creating your first invoice."}
+              </p>
+              {!searchTerm && (
+                <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Invoice
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredInvoices.map((invoice) => (
+                <div key={invoice.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg">{invoice.invoiceNumber}</h3>
+                        <Badge className={getStatusColor(invoice.status)}>
+                          {invoice.status}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div>
+                          <p><span className="font-medium">Customer:</span> {invoice.customer?.name || "Unknown"}</p>
+                          <p><span className="font-medium">Vehicle:</span> {invoice.vehicle?.vehicleNumber || "Unknown"}</p>
+                        </div>
+                        <div>
+                          <p><span className="font-medium">Date:</span> {new Date(invoice.createdAt).toLocaleDateString()}</p>
+                          <p><span className="font-medium">Due:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                        </div>
+                        <div>
+                          <p><span className="font-medium">Amount:</span> ₹{invoice.total.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewInvoice(invoice)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditInvoice(invoice)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteInvoice(invoice.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {showViewModal && selectedInvoice && (
         <InvoiceViewModal
           invoice={selectedInvoice}
-          customer={customers.find(c => c.id === selectedInvoice.customerId)}
-          vehicle={vehicles.find(v => v.id === selectedInvoice.vehicleId)}
+          isOpen={showViewModal}
           onClose={() => {
             setShowViewModal(false);
             setSelectedInvoice(null);
           }}
-          onEdit={() => {
-            setShowViewModal(false);
-            setShowCreateForm(true);
-          }}
-          onPrint={() => handlePrintInvoice(selectedInvoice)}
         />
       )}
     </div>

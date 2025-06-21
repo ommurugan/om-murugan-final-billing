@@ -105,7 +105,7 @@ const ServicesPartsSelection = ({
             ) : (
               <div className="space-y-3">
                 {invoiceItems.map(item => (
-                  <div key={item.id} className="p-4 border rounded-lg">
+                  <div key={item.id} className="p-4 border rounded-lg bg-gray-50">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
