@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +15,7 @@ const NonGSTInvoiceManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
   // Get all invoices and filter for non-GST ones
@@ -48,7 +47,7 @@ const NonGSTInvoiceManagement = () => {
     setShowCreateForm(true);
   };
 
-  const handleViewInvoice = (invoice: Invoice) => {
+  const handleViewInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setShowViewModal(true);
   };
