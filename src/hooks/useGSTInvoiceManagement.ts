@@ -22,31 +22,17 @@ export const useGSTInvoiceManagement = () => {
   const { data: customers = [] } = useCustomers();
   const { data: dbVehicles = [] } = useVehicles();
 
-  // Filter for GST invoices only
-  const gstInvoices = invoicesData.filter(invoice => invoice.invoiceType === 'gst');
-
-  // Transform database vehicles to match TypeScript interface
-  const vehicles = dbVehicles.map(v => ({
-    id: v.id,
-    customerId: v.customer_id,
-    make: v.make,
-    model: v.model,
-    year: v.year,
-    vehicleNumber: v.vehicle_number,
-    vehicleType: v.vehicle_type as 'car' | 'bike' | 'scooter',
-    engineNumber: v.engine_number,
-    chassisNumber: v.chassis_number,
-    color: v.color,
-    createdAt: v.created_at
-  }));
-
   // Transform the invoice data to include customer and vehicle details
-  const invoices: InvoiceWithDetails[] = gstInvoices.map((invoice: any) => ({
-    ...invoice,
-    customerName: invoice.customer?.name || "Unknown Customer",
-    customerGST: invoice.customer?.gstNumber || "",
-    vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : "Unknown Vehicle"
-  }));
+  const gstInvoices: InvoiceWithDetails[] = invoicesData
+    .filter(invoice => invoice.invoiceType === 'gst')
+    .map((invoice: any): InvoiceWithDetails => ({
+      ...invoice,
+      customer: invoice.customer,
+      vehicle: invoice.vehicle,
+      customerName: invoice.customer?.name || "Unknown Customer",
+      customerGST: invoice.customer?.gstNumber || "",
+      vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : "Unknown Vehicle"
+    }));
 
   const getCustomerName = (invoice: InvoiceWithDetails) => {
     return invoice.customerName || "Unknown Customer";
@@ -61,14 +47,14 @@ export const useGSTInvoiceManagement = () => {
   };
 
   const filteredInvoices = useInvoiceFilters({
-    invoices,
+    invoices: gstInvoices,
     customers: [],
     searchTerm,
     statusFilter,
     dateFilter
   });
 
-  const invoiceStats = useInvoiceStats(invoices);
+  const invoiceStats = useInvoiceStats(gstInvoices);
 
   const handleSaveInvoice = async (invoice: Invoice) => {
     console.log("GST Invoice saved:", invoice);
@@ -118,7 +104,6 @@ export const useGSTInvoiceManagement = () => {
   };
 
   return {
-    // State
     showCreateForm,
     selectedInvoice,
     showViewModal,
@@ -127,18 +112,12 @@ export const useGSTInvoiceManagement = () => {
     statusFilter,
     dateFilter,
     isLoading,
-    
-    // Data
     filteredInvoices,
     invoiceStats,
-    
-    // Setters
     setShowCreateForm,
     setSearchTerm,
     setStatusFilter,
     setDateFilter,
-    
-    // Handlers
     handleSaveInvoice,
     handleViewInvoice,
     handleEditInvoice,
@@ -148,8 +127,6 @@ export const useGSTInvoiceManagement = () => {
     handleCloseCreateForm,
     handleCloseViewModal,
     handleClosePrintPreview,
-    
-    // Helper functions
     getCustomerName,
     getCustomerGST,
     getVehicleInfo

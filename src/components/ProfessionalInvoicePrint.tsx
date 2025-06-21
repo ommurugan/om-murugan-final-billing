@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -17,6 +16,8 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN');
   };
+
+  console.log("ProfessionalInvoicePrint - Invoice items:", invoice.items);
 
   return (
     <div className="fixed inset-0 bg-white z-50 overflow-auto">
@@ -112,19 +113,27 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
               </tr>
             </thead>
             <tbody>
-              {invoice.items.map((item, index) => (
-                <tr key={index} className="print:border-none">
-                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">
-                    {item.name}
-                    <div className="text-sm text-gray-600 capitalize">({item.type})</div>
+              {invoice.items && invoice.items.length > 0 ? (
+                invoice.items.map((item, index) => (
+                  <tr key={index} className="print:border-none">
+                    <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">
+                      {item.name}
+                      <div className="text-sm text-gray-600 capitalize">({item.type})</div>
+                    </td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.hsnCode || 'N/A'}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.total.toFixed(2)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="print:border-none">
+                  <td colSpan={6} className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">
+                    No items found
                   </td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.hsnCode || 'N/A'}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.total.toFixed(2)}</td>
                 </tr>
-              ))}
+              )}
               {invoice.laborCharges > 0 && (
                 <tr className="print:border-none">
                   <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">Labor Charges</td>
