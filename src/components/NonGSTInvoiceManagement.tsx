@@ -9,7 +9,7 @@ import { Invoice } from "@/types/billing";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
 import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import NonGSTInvoiceForm from "./NonGSTInvoiceForm";
-import { useInvoices } from "@/hooks/useInvoices";
+import { useDeleteInvoice } from "@/hooks/useInvoices";
 
 const NonGSTInvoiceManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,7 +28,6 @@ const NonGSTInvoiceManagement = () => {
   // Filter for non-GST invoices
   const invoices = allInvoices.filter(invoice => invoice.invoiceType === 'non-gst');
 
-  const { useDeleteInvoice } = useInvoices();
   const deleteInvoiceMutation = useDeleteInvoice();
 
   const filteredInvoices = invoices.filter(invoice =>

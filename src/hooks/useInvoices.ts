@@ -141,3 +141,45 @@ export const useCreateInvoice = () => {
     },
   });
 };
+
+export const useDeleteInvoice = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async (invoiceId: string) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      console.log("Deleting invoice with ID:", invoiceId);
+      
+      // First delete invoice items
+      const { error: itemsError } = await supabase
+        .from("invoice_items")
+        .delete()
+        .eq("invoice_id", invoiceId);
+
+      if (itemsError) {
+        console.error("Error deleting invoice items:", itemsError);
+        throw itemsError;
+      }
+
+      // Then delete the invoice
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("id", invoiceId);
+      
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+      
+      console.log("Invoice deleted successfully");
+      return invoiceId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-with-details"] });
+    },
+  });
+};
