@@ -2,35 +2,76 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomLineChart } from "./Chart";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
-import { useState } from "react";
+import { useCustomers } from "@/hooks/useCustomers";
+import { useState, useMemo } from "react";
 import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
+import { useInvoiceStats } from "@/hooks/useInvoiceStats";
 
 const Dashboard = () => {
   const { data: recentInvoices = [] } = useInvoicesWithDetails();
+  const { data: customers = [] } = useCustomers();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
-  // Mock data for dashboard cards
-  const stats = {
-    totalRevenue: 125000,
-    activeCustomers: 45,
-    vehiclesServiced: 78,
-    pendingInvoices: 12
-  };
+  // Calculate real statistics from data
+  const stats = useMemo(() => {
+    const totalRevenue = recentInvoices
+      .filter(invoice => invoice.status === 'paid')
+      .reduce((sum, invoice) => sum + invoice.total, 0);
+    
+    const activeCustomers = customers.length;
+    
+    const vehiclesServiced = recentInvoices.length;
+    
+    const pendingInvoices = recentInvoices
+      .filter(invoice => invoice.status === 'pending' || invoice.status === 'draft')
+      .length;
 
-  const chartData = [
-    { name: 'Jan', revenue: 25000 },
-    { name: 'Feb', revenue: 30000 },
-    { name: 'Mar', revenue: 28000 },
-    { name: 'Apr', revenue: 32000 },
-    { name: 'May', revenue: 35000 },
-    { name: 'Jun', revenue: 40000 },
-  ];
+    return {
+      totalRevenue,
+      activeCustomers,
+      vehiclesServiced,
+      pendingInvoices
+    };
+  }, [recentInvoices, customers]);
+
+  // Generate chart data from real invoice data
+  const chartData = useMemo(() => {
+    const monthlyRevenue = new Map();
+    
+    recentInvoices
+      .filter(invoice => invoice.status === 'paid')
+      .forEach(invoice => {
+        const date = new Date(invoice.createdAt);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = date.toLocaleDateString('en-US', { month: 'short' });
+        
+        if (!monthlyRevenue.has(monthKey)) {
+          monthlyRevenue.set(monthKey, { name: monthName, revenue: 0 });
+        }
+        
+        const current = monthlyRevenue.get(monthKey);
+        current.revenue += invoice.total;
+      });
+
+    // Get last 6 months of data
+    const sortedData = Array.from(monthlyRevenue.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([, data]) => data);
+
+    // If no data, return empty chart
+    if (sortedData.length === 0) {
+      return [{ name: 'No Data', revenue: 0 }];
+    }
+
+    return sortedData;
+  }, [recentInvoices]);
 
   const handleInvoiceClick = (invoice: any) => {
     console.log("Invoice clicked:", invoice);
@@ -69,7 +110,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <p className="text-xs text-muted-foreground">From paid invoices</p>
           </CardContent>
         </Card>
 
@@ -79,7 +120,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeCustomers}</div>
-            <p className="text-xs text-muted-foreground">+5 new this month</p>
+            <p className="text-xs text-muted-foreground">Total registered</p>
           </CardContent>
         </Card>
 
@@ -89,7 +130,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.vehiclesServiced}</div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-xs text-muted-foreground">Total invoices created</p>
           </CardContent>
         </Card>
 
