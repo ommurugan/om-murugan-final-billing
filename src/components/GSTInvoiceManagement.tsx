@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
-import { Invoice } from "@/types/billing";
+import { Invoice, Customer, Vehicle } from "@/types/billing";
 import GSTInvoiceForm from "./GSTInvoiceForm";
 import GSTInvoiceHeader from "./gst-invoice/GSTInvoiceHeader";
 import GSTInvoiceStats from "./gst-invoice/GSTInvoiceStats";
@@ -14,9 +15,18 @@ import { useInvoiceFilters } from "@/hooks/useInvoiceFilters";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 
+// Extended Invoice type with customer and vehicle data
+type InvoiceWithDetails = Invoice & {
+  customer: Customer | null;
+  vehicle: Vehicle | null;
+  customerName: string;
+  customerGST: string;
+  vehicleInfo: string;
+};
+
 const GSTInvoiceManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceWithDetails | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,22 +56,22 @@ const GSTInvoiceManagement = () => {
   }));
 
   // Transform the invoice data to include customer and vehicle details
-  const invoices = gstInvoices.map((invoice: any) => ({
+  const invoices: InvoiceWithDetails[] = gstInvoices.map((invoice: any) => ({
     ...invoice,
     customerName: invoice.customer?.name || "Unknown Customer",
     customerGST: invoice.customer?.gstNumber || "",
     vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model}` : "Unknown Vehicle"
   }));
 
-  const getCustomerName = (invoice: any) => {
+  const getCustomerName = (invoice: InvoiceWithDetails) => {
     return invoice.customerName || "Unknown Customer";
   };
 
-  const getCustomerGST = (invoice: any) => {
+  const getCustomerGST = (invoice: InvoiceWithDetails) => {
     return invoice.customerGST || "";
   };
 
-  const getVehicleInfo = (invoice: any) => {
+  const getVehicleInfo = (invoice: InvoiceWithDetails) => {
     return invoice.vehicleInfo || "Unknown Vehicle";
   };
 
@@ -83,12 +93,12 @@ const GSTInvoiceManagement = () => {
     setSelectedInvoice(null);
   };
 
-  const handleViewInvoice = (invoice: Invoice) => {
+  const handleViewInvoice = (invoice: InvoiceWithDetails) => {
     setSelectedInvoice(invoice);
     setShowViewModal(true);
   };
 
-  const handleEditInvoice = (invoice: Invoice) => {
+  const handleEditInvoice = (invoice: InvoiceWithDetails) => {
     setSelectedInvoice(invoice);
     setShowCreateForm(true);
   };
@@ -98,7 +108,7 @@ const GSTInvoiceManagement = () => {
     // TODO: Implement actual delete functionality
   };
 
-  const handlePrintInvoice = (invoice: Invoice) => {
+  const handlePrintInvoice = (invoice: InvoiceWithDetails) => {
     setSelectedInvoice(invoice);
     setShowPrintPreview(true);
   };
