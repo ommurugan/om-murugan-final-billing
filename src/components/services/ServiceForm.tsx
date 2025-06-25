@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -111,96 +112,104 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="serviceName">Service Name *</Label>
-            <Input 
-              id="serviceName"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder="Enter service name"
-            />
-          </div>
-          <div>
-            <Label htmlFor="serviceDescription">Description</Label>
-            <Textarea 
-              id="serviceDescription"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Describe the service"
-              rows={3}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+      <DialogContent className="max-w-md max-h-[90vh] p-0">
+        <div className="p-6 border-b">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+        </div>
+        
+        <ScrollArea className="flex-1 px-6">
+          <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="servicePrice">Price (₹) *</Label>
+              <Label htmlFor="serviceName">Service Name *</Label>
               <Input 
-                id="servicePrice"
-                type="number"
-                value={formData.base_price}
-                onChange={(e) => setFormData({...formData, base_price: e.target.value})}
-                placeholder="0"
+                id="serviceName"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="Enter service name"
               />
             </div>
             <div>
-              <Label htmlFor="laborCharges">Labor Charges (₹)</Label>
+              <Label htmlFor="serviceDescription">Description</Label>
+              <Textarea 
+                id="serviceDescription"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Describe the service"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="servicePrice">Price (₹) *</Label>
+                <Input 
+                  id="servicePrice"
+                  type="number"
+                  value={formData.base_price}
+                  onChange={(e) => setFormData({...formData, base_price: e.target.value})}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="laborCharges">Labor Charges (₹)</Label>
+                <Input 
+                  id="laborCharges"
+                  type="number"
+                  value={formData.labor_charges}
+                  onChange={(e) => setFormData({...formData, labor_charges: e.target.value})}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="serviceCategory">Category</Label>
               <Input 
-                id="laborCharges"
+                id="serviceCategory"
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                placeholder="e.g., Maintenance, Repair"
+              />
+            </div>
+            <div>
+              <Label htmlFor="hsnCode">HSN Code</Label>
+              <Input 
+                id="hsnCode"
+                value={formData.hsn_code}
+                onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
+                placeholder="e.g., 998314"
+              />
+            </div>
+            <div>
+              <Label htmlFor="durationFormat">Duration Format</Label>
+              <Select value={durationFormat} onValueChange={handleDurationFormatChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select duration format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="days">Days</SelectItem>
+                  <SelectItem value="months">Months</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="serviceDuration">
+                Duration ({durationFormat === "minutes" ? "minutes" : durationFormat === "days" ? "days" : "months"})
+              </Label>
+              <Input 
+                id="serviceDuration"
                 type="number"
-                value={formData.labor_charges}
-                onChange={(e) => setFormData({...formData, labor_charges: e.target.value})}
-                placeholder="0"
+                value={formData.estimated_time}
+                onChange={(e) => setFormData({...formData, estimated_time: e.target.value})}
+                placeholder={durationFormat === "minutes" ? "60" : durationFormat === "days" ? "1" : "1"}
               />
             </div>
           </div>
-          <div>
-            <Label htmlFor="serviceCategory">Category</Label>
-            <Input 
-              id="serviceCategory"
-              value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
-              placeholder="e.g., Maintenance, Repair"
-            />
-          </div>
-          <div>
-            <Label htmlFor="hsnCode">HSN Code</Label>
-            <Input 
-              id="hsnCode"
-              value={formData.hsn_code}
-              onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
-              placeholder="e.g., 998314"
-            />
-          </div>
-          <div>
-            <Label htmlFor="durationFormat">Duration Format</Label>
-            <Select value={durationFormat} onValueChange={handleDurationFormatChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select duration format" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="minutes">Minutes</SelectItem>
-                <SelectItem value="days">Days</SelectItem>
-                <SelectItem value="months">Months</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="serviceDuration">
-              Duration ({durationFormat === "minutes" ? "minutes" : durationFormat === "days" ? "days" : "months"})
-            </Label>
-            <Input 
-              id="serviceDuration"
-              type="number"
-              value={formData.estimated_time}
-              onChange={(e) => setFormData({...formData, estimated_time: e.target.value})}
-              placeholder={durationFormat === "minutes" ? "60" : durationFormat === "days" ? "1" : "1"}
-            />
-          </div>
+        </ScrollArea>
+        
+        <div className="p-6 border-t">
           <Button 
             onClick={handleSubmit} 
             className="w-full bg-blue-600 hover:bg-blue-700"
