@@ -112,8 +112,8 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md max-h-[90vh] p-0">
-        <div className="p-6 border-b">
+      <DialogContent className="max-w-md h-[90vh] flex flex-col p-0">
+        <div className="flex-shrink-0 p-6 border-b">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
@@ -209,7 +209,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
           </div>
         </ScrollArea>
         
-        <div className="p-6 border-t">
+        <div className="flex-shrink-0 p-6 border-t">
           <Button 
             onClick={handleSubmit} 
             className="w-full bg-blue-600 hover:bg-blue-700"

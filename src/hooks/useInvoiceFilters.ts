@@ -1,9 +1,10 @@
 
 import { useMemo } from "react";
 import { Invoice, Customer } from "@/types/billing";
+import { InvoiceWithDetails } from "@/types/invoiceWithDetails";
 
 interface UseInvoiceFiltersProps {
-  invoices: Invoice[];
+  invoices: InvoiceWithDetails[];
   customers: Customer[];
   searchTerm: string;
   statusFilter: string;
@@ -23,8 +24,9 @@ export const useInvoiceFilters = ({
 
   return useMemo(() => {
     return invoices.filter(invoice => {
+      const customerName = invoice.customerName || getCustomerName(invoice.customerId);
       const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           getCustomerName(invoice.customerId).toLowerCase().includes(searchTerm.toLowerCase());
+                           customerName.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
       
