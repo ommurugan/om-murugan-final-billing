@@ -3,12 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
+import { InvoiceWithDetails } from "@/types/invoiceWithDetails";
 import MobileInvoiceCard from "../MobileInvoiceCard";
 import InvoiceStatsCards from "./InvoiceStatsCards";
 import InvoiceFilters from "./InvoiceFilters";
 import InvoiceList from "./InvoiceList";
 import { useInvoiceStats } from "@/hooks/useInvoiceStats";
 import { useInvoiceFilters } from "@/hooks/useInvoiceFilters";
+import { useMemo } from "react";
 
 interface NonGSTInvoiceContentProps {
   invoices: Invoice[];
@@ -44,8 +46,26 @@ const NonGSTInvoiceContent = ({
   onCreateFirst
 }: NonGSTInvoiceContentProps) => {
   const invoiceStats = useInvoiceStats(invoices);
+
+  // Transform Invoice[] to InvoiceWithDetails[] for the filter hook
+  const invoicesWithDetails: InvoiceWithDetails[] = useMemo(() => {
+    return invoices.map((invoice): InvoiceWithDetails => {
+      const customer = customers.find(c => c.id === invoice.customerId) || null;
+      const vehicle = vehicles.find(v => v.id === invoice.vehicleId) || null;
+      
+      return {
+        ...invoice,
+        customer,
+        vehicle,
+        customerName: customer?.name || "Unknown Customer",
+        customerGST: customer?.gstNumber || "",
+        vehicleInfo: vehicle ? `${vehicle.make} ${vehicle.model}` : "Unknown Vehicle"
+      };
+    });
+  }, [invoices, customers, vehicles]);
+
   const filteredInvoices = useInvoiceFilters({
-    invoices,
+    invoices: invoicesWithDetails,
     customers,
     searchTerm,
     statusFilter,
