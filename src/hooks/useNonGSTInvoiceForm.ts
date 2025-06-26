@@ -32,20 +32,16 @@ export const useNonGSTInvoiceForm = ({
   const [laborCharges, setLaborCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
-  const [extraCharges, setExtraCharges] = useState<Array<{
-    name: string;
-    amount: number;
-  }>>([]);
   const [notes, setNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<Payment['method']>('cash');
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
 
-  // Use custom hook for calculations
+  // Use custom hook for calculations (without extra charges for non-GST invoices)
   const { subtotal, total } = useInvoiceCalculations({
     invoiceItems,
     laborCharges,
-    extraCharges,
+    extraCharges: [], // Remove extra charges for non-GST invoices
     discount,
     taxRate
   });
@@ -160,7 +156,7 @@ export const useNonGSTInvoiceForm = ({
       discount,
       taxRate,
       taxAmount: 0,
-      extraCharges,
+      extraCharges: [], // Remove extra charges for non-GST invoices
       total,
       status: payment && payment.amount >= total ? 'paid' : status,
       createdAt: existingInvoice?.createdAt || new Date().toISOString(),
@@ -191,7 +187,7 @@ export const useNonGSTInvoiceForm = ({
     laborCharges,
     discount,
     taxRate,
-    extraCharges,
+    extraCharges: [], // Remove extra charges for non-GST invoices
     notes,
     paymentMethod,
     paymentAmount,
@@ -206,7 +202,7 @@ export const useNonGSTInvoiceForm = ({
     setLaborCharges,
     setDiscount,
     setTaxRate,
-    setExtraCharges,
+    setExtraCharges: () => {}, // No-op for non-GST invoices
     setNotes,
     setPaymentMethod,
     setPaymentAmount,

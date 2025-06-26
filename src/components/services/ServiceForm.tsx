@@ -58,26 +58,35 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
   };
 
   const handleSubmit = () => {
+    // Validate required fields
+    if (!formData.name.trim()) {
+      return; // Don't submit if name is empty
+    }
+    
+    if (!formData.base_price || parseFloat(formData.base_price) <= 0) {
+      return; // Don't submit if price is not valid
+    }
+
     if (editingService) {
       onSubmit({
         id: editingService.id,
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         base_price: parseFloat(formData.base_price),
         labor_charges: parseFloat(formData.labor_charges) || 0,
         estimated_time: convertToMinutes(formData.estimated_time, durationFormat),
-        category: formData.category,
-        hsn_code: formData.hsn_code
+        category: formData.category.trim(),
+        hsn_code: formData.hsn_code.trim()
       });
     } else {
       onSubmit({
-        name: formData.name,
-        description: formData.description || undefined,
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
         base_price: parseFloat(formData.base_price),
         labor_charges: parseFloat(formData.labor_charges) || 0,
         estimated_time: convertToMinutes(formData.estimated_time, durationFormat) || 60,
-        category: formData.category,
-        hsn_code: formData.hsn_code,
+        category: formData.category.trim(),
+        hsn_code: formData.hsn_code.trim(),
         is_active: true
       });
     }
@@ -181,9 +190,9 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
                 />
               </div>
               <div>
-                <Label htmlFor="hsnCode" className="text-base font-medium">HSN Code</Label>
+                <Label htmlFor="sacCode" className="text-base font-medium">SAC Code</Label>
                 <Input 
-                  id="hsnCode"
+                  id="sacCode"
                   value={formData.hsn_code}
                   onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
                   placeholder="e.g., 998314"
@@ -227,7 +236,7 @@ const ServiceForm = ({ isOpen, onClose, onSubmit, isLoading, editingService, tit
           <Button 
             onClick={handleSubmit} 
             className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-base font-medium"
-            disabled={isLoading}
+            disabled={isLoading || !formData.name.trim() || !formData.base_price || parseFloat(formData.base_price) <= 0}
           >
             {isLoading ? (editingService ? "Updating..." : "Adding...") : (editingService ? "Update Service" : "Add Service")}
           </Button>

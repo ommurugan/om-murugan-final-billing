@@ -1,12 +1,11 @@
-
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart3, 
-  DollarSign, 
   Users, 
-  TrendingUp
+  TrendingUp,
+  IndianRupee
 } from "lucide-react";
 import StandardLayout from "@/components/StandardLayout";
 import VehicleSearch from "@/components/VehicleSearch";
@@ -110,7 +109,7 @@ const Reports = () => {
                       <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                       <p className="text-2xl font-bold">₹{metrics.totalRevenue.toLocaleString()}</p>
                     </div>
-                    <DollarSign className="h-8 w-8 text-green-600" />
+                    <IndianRupee className="h-8 w-8 text-green-600" />
                   </div>
                 </CardContent>
               </Card>

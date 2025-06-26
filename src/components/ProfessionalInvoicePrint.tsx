@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -105,7 +106,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             <thead>
               <tr className="bg-gray-100">
                 <th className="border-2 border-black p-3 text-left font-bold">Description</th>
-                <th className="border-2 border-black p-3 text-center font-bold">HSN Code</th>
+                <th className="border-2 border-black p-3 text-center font-bold">SAC Code</th>
                 <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Discount</th>

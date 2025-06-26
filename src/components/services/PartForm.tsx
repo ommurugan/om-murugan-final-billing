@@ -20,11 +20,9 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
   const [formData, setFormData] = useState({
     name: editingPart?.name || "",
     price: editingPart?.price?.toString() || "",
-    stock_quantity: editingPart?.stock_quantity?.toString() || "",
     category: editingPart?.category || "",
     supplier: editingPart?.supplier || "",
     part_number: editingPart?.part_number || "",
-    min_stock_level: editingPart?.min_stock_level?.toString() || "",
     hsn_code: editingPart?.hsn_code || ""
   });
 
@@ -35,8 +33,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
         name: formData.name,
         category: formData.category,
         price: parseFloat(formData.price),
-        stock_quantity: parseInt(formData.stock_quantity),
-        min_stock_level: parseInt(formData.min_stock_level),
+        stock_quantity: editingPart.stock_quantity, // Keep existing stock quantity
+        min_stock_level: editingPart.min_stock_level, // Keep existing min stock level
         supplier: formData.supplier,
         part_number: formData.part_number,
         hsn_code: formData.hsn_code
@@ -46,8 +44,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
         name: formData.name,
         category: formData.category,
         price: parseFloat(formData.price),
-        stock_quantity: parseInt(formData.stock_quantity) || 0,
-        min_stock_level: parseInt(formData.min_stock_level) || 0,
+        stock_quantity: 0, // Default value for new parts
+        min_stock_level: 0, // Default value for new parts
         supplier: formData.supplier || undefined,
         part_number: formData.part_number || undefined,
         hsn_code: formData.hsn_code || undefined,
@@ -60,11 +58,9 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
     setFormData({
       name: "",
       price: "",
-      stock_quantity: "",
       category: "",
       supplier: "",
       part_number: "",
-      min_stock_level: "",
       hsn_code: ""
     });
   };
@@ -105,18 +101,6 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
               />
             </div>
             <div>
-              <Label htmlFor="partStock">Stock Quantity</Label>
-              <Input 
-                id="partStock"
-                type="number"
-                value={formData.stock_quantity}
-                onChange={(e) => setFormData({...formData, stock_quantity: e.target.value})}
-                placeholder="0"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
               <Label htmlFor="partCategory">Category</Label>
               <Input 
                 id="partCategory"
@@ -125,6 +109,8 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
                 placeholder="e.g., Filters, Brake System"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="partSupplier">Supplier</Label>
               <Input 
@@ -134,8 +120,6 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
                 placeholder="Supplier name"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="partNumber">Part Number</Label>
               <Input 
@@ -145,21 +129,11 @@ const PartForm = ({ isOpen, onClose, onSubmit, isLoading, editingPart, title, de
                 placeholder="Part number"
               />
             </div>
-            <div>
-              <Label htmlFor="minStockLevel">Min Stock Level</Label>
-              <Input 
-                id="minStockLevel"
-                type="number"
-                value={formData.min_stock_level}
-                onChange={(e) => setFormData({...formData, min_stock_level: e.target.value})}
-                placeholder="5"
-              />
-            </div>
           </div>
           <div>
-            <Label htmlFor="hsnCode">HSN Code</Label>
+            <Label htmlFor="sacCode">SAC Code</Label>
             <Input 
-              id="hsnCode"
+              id="sacCode"
               value={formData.hsn_code}
               onChange={(e) => setFormData({...formData, hsn_code: e.target.value})}
               placeholder="e.g., 998313"

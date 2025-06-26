@@ -26,6 +26,7 @@ interface PaymentSectionProps {
   subtotal: number;
   total: number;
   isGST?: boolean;
+  hideExtraCharges?: boolean;
 }
 
 const PaymentSection = ({
@@ -45,7 +46,8 @@ const PaymentSection = ({
   onPaymentAmountChange,
   subtotal,
   total,
-  isGST = false
+  isGST = false,
+  hideExtraCharges = false
 }: PaymentSectionProps) => {
   const addExtraCharge = () => {
     onExtraChargesChange([...extraCharges, { name: "", amount: 0 }]);
@@ -82,37 +84,39 @@ const PaymentSection = ({
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label>Extra Charges</Label>
-              <Button size="sm" variant="outline" onClick={addExtraCharge}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
-            </div>
-            {extraCharges.map((charge, index) => (
-              <div key={index} className="flex gap-2">
-                <Input
-                  placeholder="Charge name"
-                  value={charge.name}
-                  onChange={(e) => updateExtraCharge(index, 'name', e.target.value)}
-                  className="flex-1"
-                />
-                <Input
-                  type="number"
-                  placeholder="Amount"
-                  value={charge.amount}
-                  onChange={(e) => updateExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
-                  className="w-24"
-                  min="0"
-                  step="0.01"
-                />
-                <Button size="sm" variant="ghost" onClick={() => removeExtraCharge(index)}>
-                  <Trash2 className="h-4 w-4" />
+          {!hideExtraCharges && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label>Extra Charges</Label>
+                <Button size="sm" variant="outline" onClick={addExtraCharge}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
                 </Button>
               </div>
-            ))}
-          </div>
+              {extraCharges.map((charge, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="Charge name"
+                    value={charge.name}
+                    onChange={(e) => updateExtraCharge(index, 'name', e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Amount"
+                    value={charge.amount}
+                    onChange={(e) => updateExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
+                    className="w-24"
+                    min="0"
+                    step="0.01"
+                  />
+                  <Button size="sm" variant="ghost" onClick={() => removeExtraCharge(index)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="discount">Discount (%)</Label>
