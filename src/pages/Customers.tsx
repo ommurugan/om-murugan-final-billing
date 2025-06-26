@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import StandardLayout from "@/components/StandardLayout";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -17,11 +16,18 @@ const Customers = () => {
   const updateCustomerMutation = useUpdateCustomer();
   const deleteCustomerMutation = useDeleteCustomer();
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm) ||
-    (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredCustomers = customers.filter(customer => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      customer.name.toLowerCase().includes(searchLower) ||
+      customer.phone.includes(searchTerm) ||
+      (customer.email && customer.email.toLowerCase().includes(searchLower)) ||
+      // Add vehicle number search
+      (customer.vehicles && customer.vehicles.some(vehicle => 
+        vehicle.vehicle_number && vehicle.vehicle_number.toLowerCase().includes(searchLower)
+      ))
+    );
+  });
 
   const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer({...customer});

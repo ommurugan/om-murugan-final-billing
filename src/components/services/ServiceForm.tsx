@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Service } from "@/hooks/useServices";
@@ -27,16 +27,44 @@ const ServiceForm = ({
   description 
 }: ServiceFormProps) => {
   const [formData, setFormData] = useState({
-    name: editingService?.name || "",
-    description: editingService?.description || "",
-    base_price: editingService?.base_price?.toString() || "",
-    labor_charges: editingService?.labor_charges?.toString() || "",
-    estimated_time: editingService?.estimated_time?.toString() || "",
-    category: editingService?.category || "",
-    hsn_code: editingService?.hsn_code || ""
+    name: "",
+    description: "",
+    base_price: "",
+    labor_charges: "",
+    estimated_time: "",
+    category: "",
+    hsn_code: ""
   });
 
   const [durationFormat, setDurationFormat] = useState("minutes");
+
+  // Reset form when editing service changes or dialog opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      if (editingService) {
+        setFormData({
+          name: editingService.name || "",
+          description: editingService.description || "",
+          base_price: editingService.base_price?.toString() || "",
+          labor_charges: editingService.labor_charges?.toString() || "",
+          estimated_time: editingService.estimated_time?.toString() || "",
+          category: editingService.category || "",
+          hsn_code: editingService.hsn_code || ""
+        });
+      } else {
+        // Reset to empty form for new service
+        setFormData({
+          name: "",
+          description: "",
+          base_price: "",
+          labor_charges: "",
+          estimated_time: "",
+          category: "",
+          hsn_code: ""
+        });
+      }
+    }
+  }, [isOpen, editingService]);
 
   const convertToMinutes = (value: string, format: string): number => {
     const numValue = parseInt(value) || 0;
@@ -66,56 +94,43 @@ const ServiceForm = ({
   const handleSubmit = () => {
     // Validate required fields
     if (!formData.name.trim()) {
-      return; // Don't submit if name is empty
+      console.log("Service name is required");
+      return;
+    }
+    
+    if (!formData.category.trim()) {
+      console.log("Category is required");
+      return;
     }
     
     if (!formData.base_price || parseFloat(formData.base_price) <= 0) {
-      return; // Don't submit if price is not valid
+      console.log("Valid base price is required");
+      return;
     }
+
+    const serviceData = {
+      name: formData.name.trim(),
+      description: formData.description.trim() || undefined,
+      base_price: parseFloat(formData.base_price),
+      labor_charges: parseFloat(formData.labor_charges) || 0,
+      estimated_time: convertToMinutes(formData.estimated_time, durationFormat) || 60,
+      category: formData.category.trim(),
+      hsn_code: formData.hsn_code.trim(),
+      is_active: true
+    };
 
     if (editingService) {
       onSubmit({
         id: editingService.id,
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        base_price: parseFloat(formData.base_price),
-        labor_charges: parseFloat(formData.labor_charges) || 0,
-        estimated_time: convertToMinutes(formData.estimated_time, durationFormat),
-        category: formData.category.trim(),
-        hsn_code: formData.hsn_code.trim()
+        ...serviceData
       });
     } else {
-      onSubmit({
-        name: formData.name.trim(),
-        description: formData.description.trim() || undefined,
-        base_price: parseFloat(formData.base_price),
-        labor_charges: parseFloat(formData.labor_charges) || 0,
-        estimated_time: convertToMinutes(formData.estimated_time, durationFormat) || 60,
-        category: formData.category.trim(),
-        hsn_code: formData.hsn_code.trim(),
-        is_active: true
-      });
+      onSubmit(serviceData);
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      base_price: "",
-      labor_charges: "",
-      estimated_time: "",
-      category: "",
-      hsn_code: ""
-    });
-    setDurationFormat("minutes");
   };
 
   const handleClose = () => {
     onClose();
-    if (!editingService) {
-      resetForm();
-    }
   };
 
   const handleDurationFormatChange = (newFormat: string) => {
@@ -125,7 +140,7 @@ const ServiceForm = ({
     setFormData({...formData, estimated_time: newValue});
   };
 
-  const isFormValid = formData.name.trim() && formData.base_price && parseFloat(formData.base_price) > 0;
+  const isFormValid = formData.name.trim() && formData.category.trim() && formData.base_price && parseFloat(formData.base_price) > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

@@ -110,6 +110,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             <thead>
               <tr className="bg-gray-100">
                 <th className="border-2 border-black p-3 text-left font-bold">Description</th>
+                <th className="border-2 border-black p-3 text-center font-bold">SAC Code</th>
                 <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Discount</th>
@@ -123,6 +124,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                     {item.name}
                     <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                   </td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.hsnCode || 'N/A'}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
@@ -132,6 +134,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
               {invoice.laborCharges > 0 && (
                 <tr className="print:border-none">
                   <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">Labor Charges</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">998314</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
@@ -141,6 +144,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
               {invoice.extraCharges?.map((charge, index) => (
                 <tr key={`extra-${index}`} className="print:border-none">
                   <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">{charge.name}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">N/A</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
@@ -150,7 +154,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             </tbody>
             <tfoot>
               <tr>
-                <td className="border-2 border-black p-3" colSpan={5}></td>
+                <td className="border-2 border-black p-3" colSpan={6}></td>
               </tr>
             </tfoot>
           </table>
