@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -57,7 +56,14 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
               <p className="text-lg mt-2 print:text-xl">Complete Auto Care Solutions</p>
             </div>
           </div>
-          <p className="text-sm print:text-base">Phone: +91 98765 43210 | Email: info@ommurugan.com</p>
+          <div className="text-sm print:text-base space-y-1">
+            <p>Door No.8, 4th Main Road, Manikandapuram, Thirumullaivoyal,</p>
+            <p>Chennai-600 062.</p>
+            <p><strong>GSTIN/UIN:</strong> 33AXNPG2146F1ZR</p>
+            <p><strong>State Name:</strong> Tamil Nadu, <strong>Code:</strong> 33</p>
+            <p><strong>E-Mail:</strong> gopalakrish.p86@gmail.com</p>
+            <p><strong>Phone:</strong> + 91 9884551560</p>
+          </div>
         </div>
 
         {/* Invoice Header */}
