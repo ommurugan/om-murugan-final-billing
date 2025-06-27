@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import StandardLayout from "@/components/StandardLayout";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -21,11 +22,7 @@ const Customers = () => {
     return (
       customer.name.toLowerCase().includes(searchLower) ||
       customer.phone.includes(searchTerm) ||
-      (customer.email && customer.email.toLowerCase().includes(searchLower)) ||
-      // Add vehicle number search
-      (customer.vehicles && customer.vehicles.some(vehicle => 
-        vehicle.vehicle_number && vehicle.vehicle_number.toLowerCase().includes(searchLower)
-      ))
+      (customer.email && customer.email.toLowerCase().includes(searchLower))
     );
   });
 
