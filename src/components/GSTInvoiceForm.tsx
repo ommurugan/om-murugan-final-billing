@@ -99,7 +99,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (service as any).base_price || 0,
         discount: 0,
         total: (service as any).base_price || 0,
-        hsnCode: (service as any).hsn_code || '998314'
+        hsnCode: (service as any).hsn_code || '998314',
+        gstRate: gstRate // Set default GST rate for services
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }

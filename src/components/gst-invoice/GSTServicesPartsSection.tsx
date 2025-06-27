@@ -190,7 +190,7 @@ const GSTServicesPartsSection = ({
                           />
                           <p className="text-xs text-gray-500">Discount</p>
                         </div>
-                        {item.type === 'part' && onItemGstRateChange && (
+                        {onItemGstRateChange && (
                           <div className="text-right">
                             <Select
                               value={(item.gstRate || gstRate).toString()}

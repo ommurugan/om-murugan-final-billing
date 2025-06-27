@@ -272,6 +272,7 @@ export type Database = {
           hsn_code: string | null
           id: string
           is_active: boolean
+          labor_charges: number
           name: string
           user_id: string
         }
@@ -284,6 +285,7 @@ export type Database = {
           hsn_code?: string | null
           id?: string
           is_active?: boolean
+          labor_charges?: number
           name: string
           user_id: string
         }
@@ -296,6 +298,7 @@ export type Database = {
           hsn_code?: string | null
           id?: string
           is_active?: boolean
+          labor_charges?: number
           name?: string
           user_id?: string
         }
