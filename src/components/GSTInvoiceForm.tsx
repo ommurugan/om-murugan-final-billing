@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,7 +117,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (part as any).price || 0,
         discount: 0,
         total: (part as any).price || 0,
-        hsnCode: (part as any).hsn_code || '998313'
+        hsnCode: (part as any).hsn_code || '998313',
+        gstRate: gstRate // Set default GST rate for parts
       };
       setInvoiceItems([...invoiceItems, newItem]);
     }
@@ -141,6 +143,15 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       if (item.id === id) {
         const newTotal = (item.unitPrice * item.quantity) - discount;
         return { ...item, discount, total: newTotal };
+      }
+      return item;
+    }));
+  };
+
+  const handleItemGstRateChange = (itemId, rate) => {
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === itemId) {
+        return { ...item, gstRate: rate };
       }
       return item;
     }));
@@ -267,6 +278,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         onUpdateDiscount={updateDiscount}
         onItemSelect={handleItemSelect}
         onUnitPriceChange={handleUnitPriceChange}
+        onItemGstRateChange={handleItemGstRateChange}
         gstRate={gstRate}
         onGstRateChange={(rate) => {
           setGstRate(rate);

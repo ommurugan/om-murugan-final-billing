@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -57,10 +58,14 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           <div className="text-sm print:text-base space-y-1">
             <p>Door No.8, 4th Main Road, Manikandapuram, Thirumullaivoyal,</p>
             <p>Chennai-600 062.</p>
-            <p><strong>GSTIN/UIN:</strong> 33AXNPG2146F1ZR</p>
-            <p><strong>State Name:</strong> Tamil Nadu, <strong>Code:</strong> 33</p>
-            <p><strong>E-Mail:</strong> gopalakrish.p86@gmail.com</p>
-            <p><strong>Phone:</strong> + 91 9884551560</p>
+            <div className="flex justify-center items-center gap-8 mt-3">
+              <p><strong>GSTIN/UIN:</strong> 33AXNPG2146F1ZR</p>
+              <p><strong>State Name:</strong> Tamil Nadu, <strong>Code:</strong> 33</p>
+            </div>
+            <div className="flex justify-center items-center gap-8 mt-2">
+              <p><strong>E-Mail:</strong> gopalakrish.p86@gmail.com</p>
+              <p><strong>Phone:</strong> + 91 9884551560</p>
+            </div>
           </div>
         </div>
 
@@ -110,7 +115,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             <thead>
               <tr className="bg-gray-100">
                 <th className="border-2 border-black p-3 text-left font-bold">Description</th>
-                <th className="border-2 border-black p-3 text-center font-bold">SAC Code</th>
+                <th className="border-2 border-black p-3 text-center font-bold">SAC/HSN Code</th>
                 <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Discount</th>

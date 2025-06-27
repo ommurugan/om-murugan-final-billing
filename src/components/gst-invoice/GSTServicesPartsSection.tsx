@@ -17,6 +17,7 @@ interface InvoiceItem {
   discount: number;
   total: number;
   hsnCode?: string;
+  gstRate?: number; // Added for individual GST rates
 }
 
 interface GSTServicesPartsSectionProps {
@@ -30,6 +31,7 @@ interface GSTServicesPartsSectionProps {
   onUpdateDiscount: (id: string, discount: number) => void;
   onItemSelect: (itemId: string, value: string) => void;
   onUnitPriceChange: (itemId: string, price: number) => void;
+  onItemGstRateChange?: (itemId: string, rate: number) => void;
   gstRate: number;
   onGstRateChange: (rate: number) => void;
 }
@@ -45,6 +47,7 @@ const GSTServicesPartsSection = ({
   onUpdateDiscount,
   onItemSelect,
   onUnitPriceChange,
+  onItemGstRateChange,
   gstRate,
   onGstRateChange
 }: GSTServicesPartsSectionProps) => {
@@ -54,7 +57,7 @@ const GSTServicesPartsSection = ({
         <CardTitle className="flex items-center justify-between">
           <span>Services & Parts</span>
           <div className="flex items-center gap-2">
-            <Label htmlFor="gst-rate" className="text-sm font-medium">GST Rate:</Label>
+            <Label htmlFor="gst-rate" className="text-sm font-medium">Default GST Rate:</Label>
             <Select value={gstRate.toString()} onValueChange={(value) => onGstRateChange(Number(value))}>
               <SelectTrigger className="w-24">
                 <SelectValue />
@@ -92,6 +95,7 @@ const GSTServicesPartsSection = ({
                         {service.labor_charges > 0 && (
                           <p className="text-sm text-green-600">Labor: ₹{service.labor_charges}</p>
                         )}
+                        <p className="text-xs text-gray-500">SAC: {service.hsn_code || '998314'}</p>
                       </div>
                       <Button 
                         size="sm" 
@@ -150,7 +154,7 @@ const GSTServicesPartsSection = ({
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600 capitalize">{item.type}</p>
                         {item.hsnCode && (
-                          <p className="text-xs text-gray-500">HSN: {item.hsnCode}</p>
+                          <p className="text-xs text-gray-500">{item.type === 'service' ? 'SAC' : 'HSN'}: {item.hsnCode}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -186,6 +190,23 @@ const GSTServicesPartsSection = ({
                           />
                           <p className="text-xs text-gray-500">Discount</p>
                         </div>
+                        {item.type === 'part' && onItemGstRateChange && (
+                          <div className="text-right">
+                            <Select
+                              value={(item.gstRate || gstRate).toString()}
+                              onValueChange={(value) => onItemGstRateChange(item.id, Number(value))}
+                            >
+                              <SelectTrigger className="w-20">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="18">18%</SelectItem>
+                                <SelectItem value="28">28%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500">GST%</p>
+                          </div>
+                        )}
                         <div className="text-right min-w-[80px]">
                           <p className="font-semibold">₹{item.total.toFixed(2)}</p>
                           <p className="text-xs text-gray-500">Total</p>
