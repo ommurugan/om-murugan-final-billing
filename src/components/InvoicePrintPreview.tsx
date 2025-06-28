@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -20,13 +19,17 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
 
   // Helper function to safely extract HSN/SAC code
   const getHsnCode = (item: any) => {
-    if (typeof item.hsnCode === 'string') {
+    // First check if hsnCode is directly available as a string
+    if (typeof item.hsnCode === 'string' && item.hsnCode.trim()) {
       return item.hsnCode;
     }
+    
+    // Check if hsnCode is an object with value property
     if (typeof item.hsnCode === 'object' && item.hsnCode?.value) {
       return item.hsnCode.value;
     }
-    // Default codes based on item type
+    
+    // If no HSN code is available, return default codes based on item type
     return item.type === 'service' ? '998314' : '998313';
   };
 
