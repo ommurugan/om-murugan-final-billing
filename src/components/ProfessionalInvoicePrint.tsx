@@ -18,6 +18,18 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
     return new Date(dateString).toLocaleDateString('en-IN');
   };
 
+  // Helper function to safely extract HSN/SAC code
+  const getHsnCode = (item: any) => {
+    if (typeof item.hsnCode === 'string') {
+      return item.hsnCode;
+    }
+    if (typeof item.hsnCode === 'object' && item.hsnCode?.value) {
+      return item.hsnCode.value;
+    }
+    // Default codes based on item type
+    return item.type === 'service' ? '998314' : '998313';
+  };
+
   console.log("ProfessionalInvoicePrint - Invoice items:", invoice.items);
 
   return (
@@ -132,7 +144,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                       {item.name}
                       <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                     </td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.hsnCode || 'N/A'}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{getHsnCode(item)}</td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
