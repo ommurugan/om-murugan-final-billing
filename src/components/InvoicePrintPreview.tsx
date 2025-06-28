@@ -19,17 +19,22 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
 
   // Helper function to safely extract HSN/SAC code
   const getHsnCode = (item: any) => {
-    // First check if hsnCode is directly available as a string
+    // Check if the item has a user-entered hsn_code from the database
+    if (item.hsn_code && typeof item.hsn_code === 'string' && item.hsn_code.trim()) {
+      return item.hsn_code;
+    }
+    
+    // Check if hsnCode is directly available as a string (legacy support)
     if (typeof item.hsnCode === 'string' && item.hsnCode.trim()) {
       return item.hsnCode;
     }
     
-    // Check if hsnCode is an object with value property
+    // Check if hsnCode is an object with value property (legacy support)
     if (typeof item.hsnCode === 'object' && item.hsnCode?.value) {
       return item.hsnCode.value;
     }
     
-    // If no HSN code is available, return default codes based on item type
+    // If no HSN/SAC code is available, return default codes based on item type
     return item.type === 'service' ? '998314' : '998313';
   };
 
