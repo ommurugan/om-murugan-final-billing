@@ -61,6 +61,7 @@ export interface InvoiceItem {
   discount: number;
   total: number;
   hsnCode?: string;
+  hsn_code?: string; // Added to ensure compatibility with database field
 }
 
 export interface Payment {

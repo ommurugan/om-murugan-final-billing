@@ -17,6 +17,7 @@ interface InvoiceItem {
   discount: number;
   total: number;
   hsnCode?: string;
+  hsn_code?: string; // Added to ensure compatibility
   gstRate?: number; // Added for individual GST rates
 }
 
@@ -153,8 +154,8 @@ const GSTServicesPartsSection = ({
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600 capitalize">{item.type}</p>
-                        {item.hsnCode && (
-                          <p className="text-xs text-gray-500">{item.type === 'service' ? 'SAC' : 'HSN'}: {item.hsnCode}</p>
+                        {(item.hsnCode || item.hsn_code) && (
+                          <p className="text-xs text-gray-500">{item.type === 'service' ? 'SAC' : 'HSN'}: {item.hsnCode || item.hsn_code}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
