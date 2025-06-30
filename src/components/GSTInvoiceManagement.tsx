@@ -10,28 +10,11 @@ const GSTInvoiceManagement = () => {
     selectedInvoice,
     showViewModal,
     showPrintPreview,
-    searchTerm,
-    statusFilter,
-    dateFilter,
     isLoading,
-    filteredInvoices,
-    invoiceStats,
-    setShowCreateForm,
-    setSearchTerm,
-    setStatusFilter,
-    setDateFilter,
     handleSaveInvoice,
-    handleViewInvoice,
-    handleEditInvoice,
-    handleDeleteInvoice,
-    handlePrintInvoice,
-    handleCreateFirst,
     handleCloseCreateForm,
     handleCloseViewModal,
     handleClosePrintPreview,
-    getCustomerName,
-    getCustomerGST,
-    getVehicleInfo
   } = useGSTInvoiceManagement();
 
   if (showCreateForm) {
@@ -57,25 +40,7 @@ const GSTInvoiceManagement = () => {
 
   return (
     <>
-      <GSTInvoiceManagementContent
-        filteredInvoices={filteredInvoices}
-        invoiceStats={invoiceStats}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        dateFilter={dateFilter}
-        onCreateInvoice={() => setShowCreateForm(true)}
-        onSearchChange={setSearchTerm}
-        onStatusFilterChange={setStatusFilter}
-        onDateFilterChange={setDateFilter}
-        onView={handleViewInvoice}
-        onEdit={handleEditInvoice}
-        onDelete={handleDeleteInvoice}
-        onPrint={handlePrintInvoice}
-        onCreateFirst={handleCreateFirst}
-        getCustomerName={getCustomerName}
-        getCustomerGST={getCustomerGST}
-        getVehicleInfo={getVehicleInfo}
-      />
+      <GSTInvoiceManagementContent />
 
       <GSTInvoiceModals
         showViewModal={showViewModal}
@@ -85,9 +50,8 @@ const GSTInvoiceManagement = () => {
         onClosePrintPreview={handleClosePrintPreview}
         onEditInvoice={() => {
           handleCloseViewModal();
-          setShowCreateForm(true);
         }}
-        onPrintInvoice={handlePrintInvoice}
+        onPrintInvoice={() => {}}
       />
     </>
   );

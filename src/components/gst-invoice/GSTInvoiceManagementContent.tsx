@@ -105,8 +105,12 @@ const GSTInvoiceManagementContent = () => {
 
   return (
     <div className="space-y-6">
-      <GSTInvoiceHeader onCreateNew={handleCreateNew} />
-      <GSTInvoiceStats invoices={invoices} />
+      <GSTInvoiceHeader 
+        onCreateNew={handleCreateNew}
+      />
+      <GSTInvoiceStats 
+        invoices={invoices}
+      />
       <GSTInvoiceFilters 
         filters={filters} 
         onFiltersChange={setFilters} 
@@ -114,6 +118,19 @@ const GSTInvoiceManagementContent = () => {
       <GSTInvoiceList 
         invoices={filteredInvoices}
         onView={handleViewInvoice}
+        onEdit={(invoice) => {
+          const params = new URLSearchParams();
+          params.set('edit', invoice.id);
+          params.set('type', 'gst');
+          window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+          window.location.reload();
+        }}
+        onDelete={() => {}} // Placeholder
+        onPrint={handlePrintFromView}
+        onCreateFirst={handleCreateNew}
+        getCustomerName={(invoice) => invoice.customer?.name || 'Unknown'}
+        getCustomerGST={(invoice) => invoice.customer?.gstNumber || ''}
+        getVehicleInfo={(invoice) => invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model} (${invoice.vehicle.vehicleNumber})` : 'Unknown'}
       />
       
       <GSTInvoiceModals

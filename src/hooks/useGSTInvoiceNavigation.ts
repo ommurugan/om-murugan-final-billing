@@ -17,7 +17,14 @@ export const useGSTInvoiceNavigation = () => {
     if (editId && type === 'gst') {
       const invoice = invoices.find(inv => inv.id === editId && inv.invoiceType === 'gst');
       if (invoice) {
-        setSelectedInvoice(invoice);
+        // Transform to proper InvoiceWithDetails format
+        const transformedInvoice: InvoiceWithDetails = {
+          ...invoice,
+          customerName: invoice.customer?.name || '',
+          customerGST: invoice.customer?.gstNumber || '',
+          vehicleInfo: invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model} (${invoice.vehicle.vehicleNumber})` : ''
+        };
+        setSelectedInvoice(transformedInvoice);
       }
     } else {
       setSelectedInvoice(null);

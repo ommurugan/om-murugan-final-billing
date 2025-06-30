@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -218,6 +217,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
     }
 
     const invoiceData = {
+      id: existingInvoice?.id || `temp-${Date.now()}`, // Add temporary ID
       invoiceNumber: existingInvoice?.invoiceNumber || `GST-${Date.now()}`,
       invoiceType: 'gst' as const,
       customerId: selectedCustomer.id,
@@ -230,6 +230,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       extraCharges: [],
       total,
       status: invoiceStatus, // Set status based on payment method
+      createdAt: existingInvoice?.createdAt || new Date().toISOString(), // Add createdAt
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       notes,
       laborCharges,
@@ -239,11 +240,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
 
     try {
       if (existingInvoice) {
-        onSave({ 
-          ...invoiceData, 
-          id: existingInvoice.id, 
-          createdAt: existingInvoice.createdAt 
-        });
+        onSave(invoiceData);
       } else {
         const result = await createInvoiceMutation.mutateAsync(invoiceData);
         onSave({ 
