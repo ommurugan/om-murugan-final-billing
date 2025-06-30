@@ -40,6 +40,15 @@ const GSTInvoiceManagementContent = () => {
     return matchesStatus && matchesSearch;
   });
 
+  // Calculate stats from invoices
+  const total = invoices.length;
+  const paid = invoices.filter(inv => inv.status === 'paid').length;
+  const pending = invoices.filter(inv => inv.status === 'pending').length;
+  const overdue = invoices.filter(inv => inv.status === 'overdue').length;
+  const totalRevenue = invoices
+    .filter(inv => inv.status === 'paid')
+    .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
   const handleCreateNew = () => {
     setShowCreateForm(true);
   };
@@ -106,14 +115,22 @@ const GSTInvoiceManagementContent = () => {
   return (
     <div className="space-y-6">
       <GSTInvoiceHeader 
-        onCreateNew={handleCreateNew}
+        onCreateInvoice={handleCreateNew}
       />
       <GSTInvoiceStats 
-        invoices={invoices}
+        total={total}
+        paid={paid}
+        pending={pending}
+        overdue={overdue}
+        totalRevenue={totalRevenue}
       />
       <GSTInvoiceFilters 
-        filters={filters} 
-        onFiltersChange={setFilters} 
+        searchTerm={filters.search}
+        statusFilter={filters.status}
+        dateFilter={filters.dateRange}
+        onSearchChange={(search) => setFilters(prev => ({ ...prev, search }))}
+        onStatusFilterChange={(status) => setFilters(prev => ({ ...prev, status }))}
+        onDateFilterChange={(dateRange) => setFilters(prev => ({ ...prev, dateRange }))}
       />
       <GSTInvoiceList 
         invoices={filteredInvoices}
