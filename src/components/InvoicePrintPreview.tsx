@@ -130,7 +130,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                     <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                   </td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center">
-                    {item.hsnCode || item.hsn_code || (item.type === 'service' ? '998314' : '998313')}
+                    {item.hsnCode || item.hsn_code || '-'}
                   </td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center">{item.quantity}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.unitPrice.toFixed(2)}</td>
@@ -226,7 +226,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
-            print-color-adjust: exact !important;
           }
           
           body {
@@ -234,45 +233,33 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             padding: 0 !important;
           }
           
-          body * {
-            visibility: hidden;
-          }
-          
-          .print-content, .print-content * {
-            visibility: visible;
-          }
-          
           .print-content {
-            position: absolute;
-            left: 0;
-            top: 0;
+            position: static !important;
             width: 100% !important;
             max-width: none !important;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 15mm !important;
+            box-sizing: border-box;
           }
 
           table {
             border-collapse: collapse !important;
             width: 100% !important;
-            page-break-inside: avoid;
-          }
-
-          tbody tr {
-            page-break-inside: avoid;
           }
 
           img {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            opacity: 1 !important;
-            visibility: visible !important;
           }
           
           @page {
-            margin: 0.5in;
+            margin: 10mm;
             size: A4;
+          }
+          
+          /* Prevent page breaks inside table rows */
+          tbody tr {
+            page-break-inside: avoid;
           }
         }
       `}</style>
