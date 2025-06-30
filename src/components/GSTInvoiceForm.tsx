@@ -89,7 +89,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
-      console.log("Adding service with HSN code:", service.hsn_code || '998314');
+      console.log("Adding service with HSN code:", service.hsn_code);
       const newItem = {
         id: `service-${Date.now()}`,
         type: 'service' as const,
@@ -99,8 +99,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (service as any).base_price || 0,
         discount: 0,
         total: (service as any).base_price || 0,
-        hsnCode: service.hsn_code || '998314', // Use the actual HSN code from the service
-        hsn_code: service.hsn_code || '998314', // Also set hsn_code for compatibility
+        hsnCode: service.hsn_code, // Use the actual HSN code from the service
+        hsn_code: service.hsn_code, // Also set hsn_code for compatibility
         gstRate: gstRate
       };
       setInvoiceItems([...invoiceItems, newItem]);
@@ -110,7 +110,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
   const addPart = (partId: string) => {
     const part = parts.find(p => p.id === partId);
     if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
-      console.log("Adding part with HSN code:", part.hsn_code || '998313');
+      console.log("Adding part with HSN code:", part.hsn_code);
       const newItem = {
         id: `part-${Date.now()}`,
         type: 'part' as const,
@@ -120,8 +120,8 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
         unitPrice: (part as any).price || 0,
         discount: 0,
         total: (part as any).price || 0,
-        hsnCode: part.hsn_code || '998313', // Use the actual HSN code from the part
-        hsn_code: part.hsn_code || '998313', // Also set hsn_code for compatibility
+        hsnCode: part.hsn_code, // Use the actual HSN code from the part
+        hsn_code: part.hsn_code, // Also set hsn_code for compatibility
         gstRate: gstRate
       };
       setInvoiceItems([...invoiceItems, newItem]);
@@ -173,7 +173,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
             ? (selectedItem as any).base_price 
             : (selectedItem as any).price;
           const newTotal = (unitPrice * item.quantity) - item.discount;
-          const hsnCode = (selectedItem as any).hsn_code || (item.type === 'service' ? '998314' : '998313');
+          const hsnCode = (selectedItem as any).hsn_code;
           return {
             ...item,
             itemId: value,

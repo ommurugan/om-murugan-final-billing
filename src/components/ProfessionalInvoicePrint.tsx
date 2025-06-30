@@ -115,6 +115,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             <thead>
               <tr className="bg-gray-100">
                 <th className="border-2 border-black p-3 text-left font-bold">Description</th>
+                <th className="border-2 border-black p-3 text-center font-bold">HSN/SAC Code</th>
                 <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Discount</th>
@@ -124,46 +125,51 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             <tbody>
               {invoice.items && invoice.items.length > 0 ? (
                 invoice.items.map((item, index) => (
-                  <tr key={index} className="print:border-none">
-                    <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">
+                  <tr key={index}>
+                    <td className="border-l-2 border-r-2 border-black p-3">
                       {item.name}
                       <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                     </td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.total.toFixed(2)}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-center">
+                      {item.hsnCode || item.hsn_code || (item.type === 'service' ? '998314' : '998313')}
+                    </td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-center">{item.quantity}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.unitPrice.toFixed(2)}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.discount.toFixed(2)}</td>
+                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.total.toFixed(2)}</td>
                   </tr>
                 ))
               ) : (
-                <tr className="print:border-none">
-                  <td colSpan={5} className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">
+                <tr>
+                  <td colSpan={6} className="border-l-2 border-r-2 border-black p-3 text-center">
                     No items found
                   </td>
                 </tr>
               )}
               {invoice.laborCharges > 0 && (
-                <tr className="print:border-none">
-                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">Labor Charges</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
+                <tr>
+                  <td className="border-l-2 border-r-2 border-black p-3">Labor Charges</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹0.00</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
                 </tr>
               )}
               {invoice.extraCharges?.map((charge, index) => (
-                <tr key={`extra-${index}`} className="print:border-none">
-                  <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">{charge.name}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
+                <tr key={`extra-${index}`}>
+                  <td className="border-l-2 border-r-2 border-black p-3">{charge.name}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{charge.amount.toFixed(2)}</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹0.00</td>
+                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{charge.amount.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr>
-                <td className="border-2 border-black p-3" colSpan={5}></td>
+                <td className="border-2 border-black p-3" colSpan={6}></td>
               </tr>
             </tfoot>
           </table>
@@ -235,6 +241,11 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             print-color-adjust: exact !important;
           }
           
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
           body * {
             visibility: hidden;
           }
@@ -247,26 +258,20 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
             position: absolute;
             left: 0;
             top: 0;
-            width: 100%;
-            padding: 20px;
+            width: 100% !important;
             max-width: none !important;
+            margin: 0 !important;
+            padding: 20px !important;
           }
 
           table {
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse !important;
+            width: 100% !important;
             page-break-inside: avoid;
           }
 
           tbody tr {
-            border-top: none !important;
-            border-bottom: none !important;
             page-break-inside: avoid;
-          }
-
-          tbody td {
-            border-top: none !important;
-            border-bottom: none !important;
           }
 
           img {
