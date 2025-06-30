@@ -78,6 +78,7 @@ const GSTPaymentSection = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="pending">Pending Payment</SelectItem>
               <SelectItem value="cash">Cash</SelectItem>
               <SelectItem value="card">Card</SelectItem>
               <SelectItem value="upi">UPI</SelectItem>
@@ -120,6 +121,16 @@ const GSTPaymentSection = ({
           <span>Total:</span>
           <span>₹{total.toFixed(2)}</span>
         </div>
+        {paymentMethod === 'pending' && (
+          <div className="text-orange-600 text-sm font-medium">
+            Invoice will be marked as PENDING
+          </div>
+        )}
+        {paymentMethod !== 'pending' && paymentMethod && (
+          <div className="text-green-600 text-sm font-medium">
+            Invoice will be marked as PAID
+          </div>
+        )}
       </div>
     </div>
   );

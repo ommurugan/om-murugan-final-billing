@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useVehicles } from "@/hooks/useVehicles";
 import { useServices } from "@/hooks/useServices";
 import { useParts } from "@/hooks/useParts";
-import { useCreateInvoice } from "@/hooks/useInvoices";
+import { useCreateInvoice } from "@/hooks/useCreateInvoice";
 import GSTCustomerSelection from "./gst-invoice/GSTCustomerSelection";
 import GSTServicesPartsSection from "./gst-invoice/GSTServicesPartsSection";
 import GSTPaymentSection from "./gst-invoice/GSTPaymentSection";
@@ -210,6 +211,12 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       return;
     }
 
+    // Determine invoice status based on payment method
+    let invoiceStatus: 'pending' | 'paid' = 'paid';
+    if (paymentMethod === 'pending' || paymentMethod === '' || !paymentMethod) {
+      invoiceStatus = 'pending';
+    }
+
     const invoiceData = {
       invoiceNumber: existingInvoice?.invoiceNumber || `GST-${Date.now()}`,
       invoiceType: 'gst' as const,
@@ -222,7 +229,7 @@ const GSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: GSTInvoiceFormPro
       taxAmount,
       extraCharges: [],
       total,
-      status: 'pending' as const,
+      status: invoiceStatus, // Set status based on payment method
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       notes,
       laborCharges,

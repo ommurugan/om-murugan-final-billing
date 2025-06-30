@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
 
@@ -15,27 +16,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN');
-  };
-
-  // Helper function to safely extract HSN/SAC code
-  const getHsnCode = (item: any) => {
-    // Check if the item has a user-entered hsn_code from the database
-    if (item.hsn_code && typeof item.hsn_code === 'string' && item.hsn_code.trim()) {
-      return item.hsn_code;
-    }
-    
-    // Check if hsnCode is directly available as a string (legacy support)
-    if (typeof item.hsnCode === 'string' && item.hsnCode.trim()) {
-      return item.hsnCode;
-    }
-    
-    // Check if hsnCode is an object with value property (legacy support)
-    if (typeof item.hsnCode === 'object' && item.hsnCode?.value) {
-      return item.hsnCode.value;
-    }
-    
-    // If no HSN/SAC code is available, return default codes based on item type
-    return item.type === 'service' ? '998314' : '998313';
   };
 
   return (
@@ -135,7 +115,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             <thead>
               <tr className="bg-gray-100">
                 <th className="border-2 border-black p-3 text-left font-bold">Description</th>
-                <th className="border-2 border-black p-3 text-center font-bold">SAC/HSN Code</th>
                 <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
                 <th className="border-2 border-black p-3 text-right font-bold">Discount</th>
@@ -149,7 +128,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
                     {item.name}
                     <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                   </td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{getHsnCode(item)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">{item.quantity}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.unitPrice.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{item.discount.toFixed(2)}</td>
@@ -159,7 +137,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
               {invoice.laborCharges > 0 && (
                 <tr className="print:border-none">
                   <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">Labor Charges</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">998314</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{invoice.laborCharges.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
@@ -169,7 +146,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
               {invoice.extraCharges?.map((charge, index) => (
                 <tr key={`extra-${index}`} className="print:border-none">
                   <td className="border-l-2 border-r-2 border-black p-3 print:border-b-0">{charge.name}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">N/A</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-center print:border-b-0">1</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹{charge.amount.toFixed(2)}</td>
                   <td className="border-l-2 border-r-2 border-black p-3 text-right print:border-b-0">₹0.00</td>
@@ -179,7 +155,7 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             </tbody>
             <tfoot>
               <tr>
-                <td className="border-2 border-black p-3" colSpan={6}></td>
+                <td className="border-2 border-black p-3" colSpan={5}></td>
               </tr>
             </tfoot>
           </table>
@@ -261,12 +237,19 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             top: 0;
             width: 100%;
             padding: 20px;
+            max-width: none !important;
           }
 
-          /* Remove horizontal lines between table rows in print */
+          table {
+            border-collapse: separate;
+            border-spacing: 0;
+            page-break-inside: avoid;
+          }
+
           tbody tr {
             border-top: none !important;
             border-bottom: none !important;
+            page-break-inside: avoid;
           }
 
           tbody td {
@@ -274,13 +257,6 @@ const InvoicePrintPreview = ({ invoice, customer, vehicle, onClose }: InvoicePri
             border-bottom: none !important;
           }
 
-          /* Keep only outer borders and column separators */
-          table {
-            border-collapse: separate;
-            border-spacing: 0;
-          }
-
-          /* Ensure logo is visible in print */
           img {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;

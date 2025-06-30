@@ -4,12 +4,13 @@ import { CustomLineChart } from "./Chart";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import ProfessionalInvoicePrint from "./ProfessionalInvoicePrint";
 import { Invoice, Customer, Vehicle } from "@/types/billing";
-import { useInvoiceStats } from "@/hooks/useInvoiceStats";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { data: recentInvoices = [] } = useInvoicesWithDetails();
   const { data: customers = [] } = useCustomers();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -79,6 +80,18 @@ const Dashboard = () => {
     setSelectedCustomer(invoice.customer);
     setSelectedVehicle(invoice.vehicle);
     setShowInvoiceModal(true);
+  };
+
+  const handleEditInvoice = () => {
+    if (selectedInvoice) {
+      // Navigate to the correct invoice edit page based on invoice type
+      if (selectedInvoice.invoiceType === 'gst') {
+        navigate(`/invoices?edit=${selectedInvoice.id}&type=gst`);
+      } else {
+        navigate(`/invoices?edit=${selectedInvoice.id}&type=non-gst`);
+      }
+      setShowInvoiceModal(false);
+    }
   };
 
   const handlePrintInvoice = () => {
@@ -208,10 +221,7 @@ const Dashboard = () => {
           customer={selectedCustomer}
           vehicle={selectedVehicle}
           onClose={() => setShowInvoiceModal(false)}
-          onEdit={() => {
-            // Navigate to edit page - implement this based on your routing
-            setShowInvoiceModal(false);
-          }}
+          onEdit={handleEditInvoice}
           onPrint={handlePrintInvoice}
         />
       )}

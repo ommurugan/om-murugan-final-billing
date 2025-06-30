@@ -1,80 +1,135 @@
 
+import { useState } from "react";
+import { toast } from "sonner";
+import { Invoice } from "@/types/billing";
+import { InvoiceWithDetails } from "@/types/invoiceWithDetails";
+import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
+import { useGSTInvoiceNavigation } from "@/hooks/useGSTInvoiceNavigation";
 import GSTInvoiceHeader from "./GSTInvoiceHeader";
 import GSTInvoiceStats from "./GSTInvoiceStats";
 import GSTInvoiceFilters from "./GSTInvoiceFilters";
 import GSTInvoiceList from "./GSTInvoiceList";
-import { InvoiceWithDetails } from "@/types/invoiceWithDetails";
+import GSTInvoiceModals from "./GSTInvoiceModals";
+import GSTInvoiceCreateForm from "./GSTInvoiceCreateForm";
 
-interface GSTInvoiceManagementContentProps {
-  filteredInvoices: InvoiceWithDetails[];
-  invoiceStats: {
-    total: number;
-    paid: number;
-    pending: number;
-    overdue: number;
-    totalRevenue: number;
+const GSTInvoiceManagementContent = () => {
+  const { data: allInvoices = [], refetch } = useInvoicesWithDetails();
+  const { selectedInvoice, isEditing, clearEdit } = useGSTInvoiceNavigation();
+  
+  // Filter for GST invoices only
+  const invoices = allInvoices.filter(invoice => invoice.invoiceType === 'gst');
+  
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [viewSelectedInvoice, setViewSelectedInvoice] = useState<InvoiceWithDetails | null>(null);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    search: '',
+    dateRange: 'this_month'
+  });
+
+  // Filter invoices based on current filters
+  const filteredInvoices = invoices.filter(invoice => {
+    const matchesStatus = filters.status === 'all' || invoice.status === filters.status;
+    const matchesSearch = !filters.search || 
+      invoice.invoiceNumber.toLowerCase().includes(filters.search.toLowerCase()) ||
+      invoice.customer?.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      invoice.vehicle?.vehicleNumber.toLowerCase().includes(filters.search.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
+  const handleCreateNew = () => {
+    setShowCreateForm(true);
   };
-  searchTerm: string;
-  statusFilter: string;
-  dateFilter: string;
-  onCreateInvoice: () => void;
-  onSearchChange: (value: string) => void;
-  onStatusFilterChange: (value: string) => void;
-  onDateFilterChange: (value: string) => void;
-  onView: (invoice: InvoiceWithDetails) => void;
-  onEdit: (invoice: InvoiceWithDetails) => void;
-  onDelete: (invoiceId: string) => void;
-  onPrint: (invoice: InvoiceWithDetails) => void;
-  onCreateFirst: () => void;
-  getCustomerName: (invoice: InvoiceWithDetails) => string;
-  getCustomerGST: (invoice: InvoiceWithDetails) => string;
-  getVehicleInfo: (invoice: InvoiceWithDetails) => string;
-}
 
-const GSTInvoiceManagementContent = ({
-  filteredInvoices,
-  invoiceStats,
-  searchTerm,
-  statusFilter,
-  dateFilter,
-  onCreateInvoice,
-  onSearchChange,
-  onStatusFilterChange,
-  onDateFilterChange,
-  onView,
-  onEdit,
-  onDelete,
-  onPrint,
-  onCreateFirst,
-  getCustomerName,
-  getCustomerGST,
-  getVehicleInfo
-}: GSTInvoiceManagementContentProps) => {
+  const handleSaveInvoice = async (invoiceData: Invoice) => {
+    try {
+      await refetch();
+      toast.success(selectedInvoice ? "Invoice updated successfully!" : "Invoice created successfully!");
+      
+      if (isEditing) {
+        clearEdit();
+      } else {
+        setShowCreateForm(false);
+      }
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      toast.error("Failed to save invoice");
+    }
+  };
+
+  const handleCancelCreate = () => {
+    if (isEditing) {
+      clearEdit();
+    } else {
+      setShowCreateForm(false);
+    }
+  };
+
+  const handleViewInvoice = (invoice: InvoiceWithDetails) => {
+    setViewSelectedInvoice(invoice);
+    setShowViewModal(true);
+  };
+
+  const handleEditFromView = () => {
+    if (viewSelectedInvoice) {
+      setShowViewModal(false);
+      clearEdit(); // Clear any existing edit state
+      // Set up the edit with the viewed invoice
+      const params = new URLSearchParams();
+      params.set('edit', viewSelectedInvoice.id);
+      params.set('type', 'gst');
+      window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+      window.location.reload(); // Force reload to pick up the new params
+    }
+  };
+
+  const handlePrintFromView = (invoice: InvoiceWithDetails) => {
+    setViewSelectedInvoice(invoice);
+    setShowViewModal(false);
+    setShowPrintPreview(true);
+  };
+
+  // Show create/edit form if creating new or editing existing
+  if (showCreateForm || isEditing) {
+    return (
+      <GSTInvoiceCreateForm
+        selectedInvoice={selectedInvoice}
+        onSave={handleSaveInvoice}
+        onCancel={handleCancelCreate}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-4 md:space-y-6">
-      <GSTInvoiceHeader onCreateInvoice={onCreateInvoice} />
-      
-      <GSTInvoiceStats {...invoiceStats} />
-      
-      <GSTInvoiceFilters
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        dateFilter={dateFilter}
-        onSearchChange={onSearchChange}
-        onStatusFilterChange={onStatusFilterChange}
-        onDateFilterChange={onDateFilterChange}
+    <div className="space-y-6">
+      <GSTInvoiceHeader onCreateNew={handleCreateNew} />
+      <GSTInvoiceStats invoices={invoices} />
+      <GSTInvoiceFilters 
+        filters={filters} 
+        onFiltersChange={setFilters} 
+      />
+      <GSTInvoiceList 
+        invoices={filteredInvoices}
+        onView={handleViewInvoice}
       />
       
-      <GSTInvoiceList
-        invoices={filteredInvoices}
-        onView={onView}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        onPrint={onPrint}
-        onCreateFirst={onCreateFirst}
-        getCustomerName={getCustomerName}
-        getCustomerGST={getCustomerGST}
-        getVehicleInfo={getVehicleInfo}
+      <GSTInvoiceModals
+        showViewModal={showViewModal}
+        showPrintPreview={showPrintPreview}
+        selectedInvoice={viewSelectedInvoice}
+        onCloseViewModal={() => {
+          setShowViewModal(false);
+          setViewSelectedInvoice(null);
+        }}
+        onClosePrintPreview={() => {
+          setShowPrintPreview(false);
+          setViewSelectedInvoice(null);
+        }}
+        onEditInvoice={handleEditFromView}
+        onPrintInvoice={handlePrintFromView}
       />
     </div>
   );
