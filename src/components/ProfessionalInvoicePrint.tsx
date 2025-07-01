@@ -18,6 +18,20 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
     return new Date(dateString).toLocaleDateString('en-IN');
   };
 
+  const getHsnSacCode = (item: any) => {
+    // Check various possible properties for HSN/SAC code
+    if (item.hsnCode && typeof item.hsnCode === 'string') {
+      return item.hsnCode;
+    }
+    if (item.hsn_code && typeof item.hsn_code === 'string') {
+      return item.hsn_code;
+    }
+    if (item.hsnCode && item.hsnCode.value) {
+      return item.hsnCode.value;
+    }
+    return '-'; // Return dash if no code found
+  };
+
   return (
     <div className="fixed inset-0 bg-white z-50 overflow-auto">
       {/* Screen controls - hidden when printing */}
@@ -131,7 +145,7 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
                       <div className="text-sm text-gray-600 capitalize">({item.type})</div>
                     </td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-center">
-                      {item.hsnCode || item.hsn_code || '-'}
+                      {getHsnSacCode(item)}
                     </td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-center">{item.quantity}</td>
                     <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.unitPrice.toFixed(2)}</td>
