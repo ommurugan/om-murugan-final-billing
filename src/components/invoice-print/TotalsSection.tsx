@@ -21,10 +21,23 @@ const TotalsSection = ({ invoice }: TotalsSectionProps) => {
             <span>-₹{((invoice.subtotal * invoice.discount) / 100).toFixed(2)}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span>{invoice.invoiceType === 'gst' ? `GST (${invoice.taxRate}%):` : 'Tax:'}</span>
-          <span>₹{invoice.taxAmount.toFixed(2)}</span>
-        </div>
+        {invoice.invoiceType === 'gst' ? (
+          <>
+            <div className="flex justify-between">
+              <span>CGST ({(invoice.taxRate / 2)}%):</span>
+              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>SGST ({(invoice.taxRate / 2)}%):</span>
+              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-between">
+            <span>Tax ({invoice.taxRate}%):</span>
+            <span>₹{invoice.taxAmount.toFixed(2)}</span>
+          </div>
+        )}
         <div className="border-t-2 border-black pt-2">
           <div className="flex justify-between font-bold text-lg">
             <span>Total Amount:</span>

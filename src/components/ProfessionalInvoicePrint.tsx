@@ -1,6 +1,14 @@
 
 import React from 'react';
 import { Invoice, Customer, Vehicle } from '@/types/billing';
+import PrintControls from './invoice-print/PrintControls';
+import PrintHeader from './invoice-print/PrintHeader';
+import InvoiceDetails from './invoice-print/InvoiceDetails';
+import VehicleDetails from './invoice-print/VehicleDetails';
+import ItemsTable from './invoice-print/ItemsTable';
+import TotalsSection from './invoice-print/TotalsSection';
+import TermsAndSignature from './invoice-print/TermsAndSignature';
+import PrintStyles from './invoice-print/PrintStyles';
 
 interface ProfessionalInvoicePrintProps {
   invoice: Invoice;
@@ -14,304 +22,21 @@ const ProfessionalInvoicePrint = ({ invoice, customer, vehicle, onClose }: Profe
     window.print();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN');
-  };
-
-  const getHsnSacCode = (item: any) => {
-    // Check various possible properties for HSN/SAC code
-    if (item.hsnCode && typeof item.hsnCode === 'string') {
-      return item.hsnCode;
-    }
-    if (item.hsn_code && typeof item.hsn_code === 'string') {
-      return item.hsn_code;
-    }
-    if (item.hsnCode && item.hsnCode.value) {
-      return item.hsnCode.value;
-    }
-    return '-'; // Return dash if no code found
-  };
-
   return (
     <div className="fixed inset-0 bg-white z-50 overflow-auto">
-      {/* Screen controls - hidden when printing */}
-      <div className="print:hidden p-4 border-b flex justify-between items-center bg-gray-50">
-        <h2 className="text-xl font-bold">Invoice Preview</h2>
-        <div className="flex gap-2">
-          <button 
-            onClick={handlePrint}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Print
-          </button>
-          <button 
-            onClick={onClose}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      <PrintControls onPrint={handlePrint} onClose={onClose} />
 
       {/* Invoice content - this will be printed */}
       <div className="print-content max-w-4xl mx-auto p-8 print:p-4 print:max-w-none print:mx-0">
-        {/* Header */}
-        <div className="text-center border-b-2 border-black pb-4 mb-6">
-          <div className="flex items-center justify-center mb-4">
-            <img 
-              src="/lovable-uploads/867f2348-4515-4cb0-8064-a7222ce3b23f.png" 
-              alt="OM MURUGAN AUTO WORKS" 
-              className="h-16 w-16 mr-4 print:h-20 print:w-20"
-              style={{ printColorAdjust: 'exact', colorAdjust: 'exact' }}
-            />
-            <div>
-              <h1 className="text-3xl font-bold print:text-4xl">OM MURUGAN AUTO WORKS</h1>
-              <p className="text-lg mt-2 print:text-xl">Complete Auto Care Solutions</p>
-            </div>
-          </div>
-          <div className="text-sm print:text-base space-y-1">
-            <p>Door No.8, 4th Main Road, Manikandapuram, Thirumullaivoyal,</p>
-            <p>Chennai-600 062.</p>
-            <div className="flex justify-center items-center gap-8 mt-3">
-              <p><strong>GSTIN/UIN:</strong> 33AXNPG2146F1ZR</p>
-              <p><strong>State Name:</strong> Tamil Nadu, <strong>Code:</strong> 33</p>
-            </div>
-            <div className="flex justify-center items-center gap-8 mt-2">
-              <p><strong>E-Mail:</strong> gopalakrish.p86@gmail.com</p>
-              <p><strong>Phone:</strong> + 91 9884551560</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Invoice Header */}
-        <div className="grid grid-cols-2 gap-8 mb-6">
-          <div>
-            <h2 className="text-xl font-bold mb-3">BILL TO:</h2>
-            <div className="space-y-1">
-              <p className="font-semibold">{customer.name}</p>
-              <p>{customer.phone}</p>
-              <p>{customer.email}</p>
-              {customer.gstNumber && (
-                <p><strong>GST No:</strong> {customer.gstNumber}</p>
-              )}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="space-y-2">
-              <p><strong>Invoice No:</strong> {invoice.invoiceNumber}</p>
-              <p><strong>Date:</strong> {formatDate(invoice.createdAt)}</p>
-              <p><strong>Due Date:</strong> {formatDate(invoice.dueDate)}</p>
-              <p><strong>Invoice Type:</strong> {invoice.invoiceType === 'gst' ? 'GST Invoice' : 'Non-GST Invoice'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Vehicle Information */}
-        <div className="bg-gray-50 print:bg-gray-100 p-4 rounded mb-6">
-          <h3 className="font-bold mb-2">VEHICLE DETAILS:</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p><strong>Vehicle:</strong> {vehicle.make} {vehicle.model}</p>
-              <p><strong>Registration:</strong> {vehicle.vehicleNumber}</p>
-            </div>
-            <div>
-              <p><strong>Type:</strong> {vehicle.vehicleType}</p>
-              {invoice.kilometers && (
-                <p><strong>Kilometers:</strong> {invoice.kilometers.toLocaleString()} km</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <div className="mb-6">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border-2 border-black p-3 text-left font-bold">Description</th>
-                <th className="border-2 border-black p-3 text-center font-bold">HSN/SAC Code</th>
-                <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
-                <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
-                <th className="border-2 border-black p-3 text-right font-bold">Discount</th>
-                <th className="border-2 border-black p-3 text-right font-bold">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoice.items && invoice.items.length > 0 ? (
-                invoice.items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="border-l-2 border-r-2 border-black p-3">
-                      {item.name}
-                      <div className="text-sm text-gray-600 capitalize">({item.type})</div>
-                    </td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-center">
-                      {getHsnSacCode(item)}
-                    </td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-center">{item.quantity}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.unitPrice.toFixed(2)}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.discount.toFixed(2)}</td>
-                    <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{item.total.toFixed(2)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="border-l-2 border-r-2 border-black p-3 text-center">
-                    No items found
-                  </td>
-                </tr>
-              )}
-              {invoice.laborCharges > 0 && (
-                <tr>
-                  <td className="border-l-2 border-r-2 border-black p-3">Labor Charges</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹0.00</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
-                </tr>
-              )}
-              {invoice.extraCharges?.map((charge, index) => (
-                <tr key={`extra-${index}`}>
-                  <td className="border-l-2 border-r-2 border-black p-3">{charge.name}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{charge.amount.toFixed(2)}</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹0.00</td>
-                  <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{charge.amount.toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td className="border-2 border-black p-3" colSpan={6}></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-
-        {/* Totals */}
-        <div className="grid grid-cols-2 gap-8 mb-8">
-          <div></div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>₹{invoice.subtotal.toFixed(2)}</span>
-            </div>
-            {invoice.discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Discount ({invoice.discount}%):</span>
-                <span>-₹{((invoice.subtotal * invoice.discount) / 100).toFixed(2)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span>CGST ({(invoice.taxRate / 2)}%):</span>
-              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>SGST ({(invoice.taxRate / 2)}%):</span>
-              <span>₹{(invoice.taxAmount / 2).toFixed(2)}</span>
-            </div>
-            <div className="border-t-2 border-black pt-2">
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total Amount:</span>
-                <span>₹{invoice.total.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Notes */}
-        {invoice.notes && (
-          <div className="mb-6">
-            <h3 className="font-bold mb-2">NOTES:</h3>
-            <p className="text-sm border p-3 rounded">{invoice.notes}</p>
-          </div>
-        )}
-
-        {/* Terms and Signature */}
-        <div className="grid grid-cols-2 gap-8 mt-12">
-          <div>
-            <h3 className="font-bold mb-2">TERMS & CONDITIONS:</h3>
-            <div className="text-sm space-y-1">
-              <p>• Payment is due within 30 days</p>
-              <p>• All services carry warranty as per terms</p>
-              <p>• Vehicle will be released only after payment</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="border-t border-black mt-16 pt-2">
-              <p className="font-bold">Authorized Signature</p>
-              <p className="text-sm">OM MURUGAN AUTO WORKS</p>
-            </div>
-          </div>
-        </div>
+        <PrintHeader />
+        <InvoiceDetails invoice={invoice} customer={customer} />
+        <VehicleDetails invoice={invoice} vehicle={vehicle} />
+        <ItemsTable invoice={invoice} />
+        <TotalsSection invoice={invoice} />
+        <TermsAndSignature invoice={invoice} />
       </div>
 
-      <style>{`
-        @media print {
-          * {
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-          
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          
-          /* Hide all elements except the print content */
-          body * {
-            visibility: hidden;
-          }
-          
-          .print-content, .print-content * {
-            visibility: visible;
-          }
-          
-          .print-content {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-            margin: 0 !important;
-            padding: 15mm !important;
-            box-sizing: border-box;
-          }
-
-          /* Hide mobile navigation and other UI elements */
-          nav, .mobile-nav, .bottom-nav, [class*="bottom"], [class*="navigation"] {
-            display: none !important;
-            visibility: hidden !important;
-          }
-
-          table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-          }
-
-          img {
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-          
-          @page {
-            margin: 10mm;
-            size: A4;
-          }
-          
-          /* Prevent page breaks inside table rows */
-          tbody tr {
-            page-break-inside: avoid;
-          }
-          
-          /* Ensure only one page prints */
-          html, body {
-            height: auto !important;
-            overflow: visible !important;
-          }
-        }
-      `}</style>
+      <PrintStyles />
     </div>
   );
 };
