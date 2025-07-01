@@ -17,8 +17,8 @@ interface InvoiceItem {
   discount: number;
   total: number;
   hsnCode?: string;
-  hsn_code?: string; // Added to ensure compatibility
-  gstRate?: number; // Added for individual GST rates
+  hsn_code?: string;
+  gstRate?: number;
 }
 
 interface GSTServicesPartsSectionProps {
@@ -96,7 +96,9 @@ const GSTServicesPartsSection = ({
                         {service.labor_charges > 0 && (
                           <p className="text-sm text-green-600">Labor: ₹{service.labor_charges}</p>
                         )}
-                        <p className="text-xs text-gray-500">SAC: {service.hsn_code || '998314'}</p>
+                        {service.hsn_code && (
+                          <p className="text-xs text-gray-500 font-medium">SAC: {service.hsn_code}</p>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
@@ -127,7 +129,9 @@ const GSTServicesPartsSection = ({
                         <p className="text-sm text-gray-600">{part.category}</p>
                         <p className="text-lg font-semibold text-green-600">₹{part.price}</p>
                         <p className="text-xs text-gray-500">Stock: {part.stock_quantity}</p>
-                        <p className="text-xs text-gray-500">HSN: {part.hsn_code || part.part_number || '998313'}</p>
+                        {part.hsn_code && (
+                          <p className="text-xs text-gray-500 font-medium">HSN: {part.hsn_code}</p>
+                        )}
                       </div>
                       <Button 
                         size="sm" 
@@ -155,7 +159,9 @@ const GSTServicesPartsSection = ({
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-gray-600 capitalize">{item.type}</p>
                         {(item.hsnCode || item.hsn_code) && (
-                          <p className="text-xs text-gray-500">{item.type === 'service' ? 'SAC' : 'HSN'}: {item.hsnCode || item.hsn_code}</p>
+                          <p className="text-xs text-gray-500 font-medium">
+                            {item.type === 'service' ? 'SAC' : 'HSN'}: {item.hsnCode || item.hsn_code}
+                          </p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">

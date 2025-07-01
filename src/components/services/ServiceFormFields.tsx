@@ -102,7 +102,7 @@ const ServiceFormFields = ({ formData, onFormDataChange }: ServiceFormFieldsProp
 
       <div className="space-y-2">
         <Label htmlFor="hsn_code" className="text-sm font-medium">
-          SAC Code
+          SAC Code <span className="text-red-500">*</span>
         </Label>
         <Input
           id="hsn_code"
