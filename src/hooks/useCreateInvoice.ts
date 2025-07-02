@@ -51,7 +51,8 @@ export const useCreateInvoice = () => {
               quantity: item.quantity,
               unit_price: item.unitPrice,
               discount: item.discount,
-              total: item.total
+              total: item.total,
+              hsn_code: item.hsnCode
             }))
           );
 

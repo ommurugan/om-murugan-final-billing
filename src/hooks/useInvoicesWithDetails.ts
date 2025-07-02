@@ -79,10 +79,6 @@ export const useInvoicesWithDetails = () => {
         customerId: invoice.customer_id,
         vehicleId: invoice.vehicle_id,
         items: invoiceItems?.filter(item => item.invoice_id === invoice.id).map(item => {
-          const itemData = item.item_type === 'service' 
-            ? servicesMap.get(item.item_id)
-            : partsMap.get(item.item_id);
-          
           return {
             id: item.id,
             type: item.item_type as 'service' | 'part',
@@ -92,7 +88,7 @@ export const useInvoicesWithDetails = () => {
             unitPrice: Number(item.unit_price),
             discount: Number(item.discount),
             total: Number(item.total),
-            hsnCode: itemData?.hsn_code || undefined
+            hsnCode: item.hsn_code || undefined
           };
         }) || [],
         subtotal: invoice.subtotal,
