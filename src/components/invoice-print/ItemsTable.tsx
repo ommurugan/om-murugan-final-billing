@@ -8,18 +8,10 @@ interface ItemsTableProps {
 
 const ItemsTable = ({ invoice }: ItemsTableProps) => {
   const getHsnSacCode = (item: any) => {
-    console.log("Item data:", item); // Debug log to see what data we have
+    console.log("Item data for HSN/SAC:", item); // Debug log to see what data we have
     
-    // Try multiple possible field names for HSN/SAC codes
-    if (item.hsnCode) return item.hsnCode;
-    if (item.hsn_code) return item.hsn_code;
-    if (item.hsnSacCode) return item.hsnSacCode;
-    
-    // Default codes based on item type
-    if (item.type === 'service') return '998314';
-    if (item.type === 'part') return '998313';
-    
-    return '-';
+    // Only return the actual codes entered by users, no fallbacks
+    return item.hsnCode || item.hsn_code || '';
   };
 
   return (

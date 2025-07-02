@@ -7,7 +7,7 @@ export const useInvoiceOperations = () => {
 
   const addService = (service: Service) => {
     if (!invoiceItems.find(item => item.itemId === service.id && item.type === 'service')) {
-      console.log("Adding service with HSN code:", service.hsnCode || '998314');
+      console.log("Adding service:", service.name, "HSN code:", service.hsnCode);
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'service',
@@ -17,8 +17,8 @@ export const useInvoiceOperations = () => {
         unitPrice: service.basePrice,
         discount: 0,
         total: service.basePrice,
-        hsnCode: service.hsnCode || '998314', // Use the actual HSN code from the service
-        hsn_code: service.hsnCode || '998314' // Also set hsn_code for compatibility
+        hsnCode: service.hsnCode, // Use the actual HSN code from the service
+        hsn_code: service.hsnCode // Also set hsn_code for compatibility
       };
       setInvoiceItems(prev => [...prev, newItem]);
     }
@@ -26,7 +26,7 @@ export const useInvoiceOperations = () => {
 
   const addPart = (part: Part) => {
     if (!invoiceItems.find(item => item.itemId === part.id && item.type === 'part')) {
-      console.log("Adding part with HSN code:", part.hsnCode || '998313');
+      console.log("Adding part:", part.name, "HSN code:", part.hsnCode);
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'part',
@@ -36,8 +36,8 @@ export const useInvoiceOperations = () => {
         unitPrice: part.price,
         discount: 0,
         total: part.price,
-        hsnCode: part.hsnCode || '998313', // Use the actual HSN code from the part
-        hsn_code: part.hsnCode || '998313' // Also set hsn_code for compatibility
+        hsnCode: part.hsnCode, // Use the actual HSN code from the part
+        hsn_code: part.hsnCode // Also set hsn_code for compatibility
       };
       setInvoiceItems(prev => [...prev, newItem]);
     }
