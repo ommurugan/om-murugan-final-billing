@@ -10,8 +10,9 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
   const getHsnSacCode = (item: any) => {
     console.log("Item data for HSN/SAC:", item); // Debug log to see what data we have
     
-    // Only return the actual codes entered by users, no fallbacks
-    return item.hsnCode || item.hsn_code || '';
+    // Return the actual HSN/SAC code entered by the user, or empty string if not available
+    const code = item.hsnCode || item.hsn_code;
+    return code || '';
   };
 
   return (

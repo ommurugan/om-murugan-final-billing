@@ -37,7 +37,8 @@ export const useDataTransformations = ({
       basePrice: Number(s.base_price),
       estimatedTime: s.estimated_time,
       description: s.description,
-      isActive: s.is_active
+      isActive: s.is_active,
+      hsnCode: s.hsn_code // Add HSN code mapping for services
     })), [servicesData]
   );
 
@@ -51,7 +52,8 @@ export const useDataTransformations = ({
       minStockLevel: p.min_stock_level,
       supplier: p.supplier,
       partNumber: p.part_number,
-      isActive: p.is_active
+      isActive: p.is_active,
+      hsnCode: p.hsn_code // Add HSN code mapping for parts
     })), [partsData]
   );
 

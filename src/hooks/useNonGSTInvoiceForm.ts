@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Invoice, InvoiceItem, Payment } from "@/types/billing";
@@ -54,7 +53,8 @@ export const useNonGSTInvoiceForm = ({
     basePrice: Number(s.base_price),
     estimatedTime: s.estimated_time,
     description: s.description,
-    isActive: s.is_active
+    isActive: s.is_active,
+    hsnCode: s.hsn_code // Include HSN code in transformation
   }));
 
   // Transform database parts to match our interface
@@ -67,12 +67,14 @@ export const useNonGSTInvoiceForm = ({
     minStockLevel: p.min_stock_level,
     supplier: p.supplier,
     partNumber: p.part_number,
-    isActive: p.is_active
+    isActive: p.is_active,
+    hsnCode: p.hsn_code // Include HSN code in transformation
   }));
 
   const addService = (serviceId: string) => {
     const service = transformedServices.find(s => s.id === serviceId);
     if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
+      console.log("Adding service with HSN code:", service.hsnCode);
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'service',
@@ -81,7 +83,8 @@ export const useNonGSTInvoiceForm = ({
         quantity: 1,
         unitPrice: service.basePrice,
         discount: 0,
-        total: service.basePrice
+        total: service.basePrice,
+        hsnCode: service.hsnCode // Use actual HSN code from service
       };
       setInvoiceItems([...invoiceItems, newItem]);
       console.log("Added service:", newItem);
@@ -91,6 +94,7 @@ export const useNonGSTInvoiceForm = ({
   const addPart = (partId: string) => {
     const part = transformedParts.find(p => p.id === partId);
     if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
+      console.log("Adding part with HSN code:", part.hsnCode);
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'part',
@@ -99,7 +103,8 @@ export const useNonGSTInvoiceForm = ({
         quantity: 1,
         unitPrice: part.price,
         discount: 0,
-        total: part.price
+        total: part.price,
+        hsnCode: part.hsnCode // Use actual HSN code from part
       };
       setInvoiceItems([...invoiceItems, newItem]);
       console.log("Added part:", newItem);
