@@ -11,10 +11,13 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  X
+  X,
+  Check
 } from "lucide-react";
 import { Invoice } from "@/types/billing";
 import MobileInvoiceCard from "../MobileInvoiceCard";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface GSTInvoiceListProps {
   invoices: any[];
@@ -26,6 +29,7 @@ interface GSTInvoiceListProps {
   getCustomerName: (invoice: any) => string;
   getCustomerGST: (invoice: any) => string;
   getVehicleInfo: (invoice: any) => string;
+  onRefresh?: () => void;
 }
 
 const GSTInvoiceList = ({
@@ -37,7 +41,8 @@ const GSTInvoiceList = ({
   onCreateFirst,
   getCustomerName,
   getCustomerGST,
-  getVehicleInfo
+  getVehicleInfo,
+  onRefresh
 }: GSTInvoiceListProps) => {
   const getStatusColor = (status: Invoice['status']) => {
     switch (status) {
@@ -58,6 +63,28 @@ const GSTInvoiceList = ({
       case 'draft': return <Edit className="h-4 w-4" />;
       case 'cancelled': return <X className="h-4 w-4" />;
       default: return <Receipt className="h-4 w-4" />;
+    }
+  };
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      if (onRefresh) {
+        onRefresh();
+      }
+      toast.success("Invoice marked as paid!");
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      toast.error("Failed to mark invoice as paid");
     }
   };
 
@@ -114,6 +141,17 @@ const GSTInvoiceList = ({
                       </Badge>
                     </div>
                     <div className="flex gap-1">
+                      {invoice.status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => handleMarkAsPaid(invoice.id)} 
+                          title="Mark as Paid"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => onView(invoice)} title="View Invoice">
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -175,6 +213,7 @@ const GSTInvoiceList = ({
                 onDelete={onDelete}
                 onPrint={onPrint}
                 showEmailButton={false}
+                onMarkAsPaid={invoice.status === 'pending' ? () => handleMarkAsPaid(invoice.id) : undefined}
               />
             ))}
           </div>

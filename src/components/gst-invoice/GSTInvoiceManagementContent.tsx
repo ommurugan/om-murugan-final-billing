@@ -145,6 +145,7 @@ const GSTInvoiceManagementContent = () => {
         onDelete={() => {}} // Placeholder
         onPrint={handlePrintFromView}
         onCreateFirst={handleCreateNew}
+        onRefresh={refetch}
         getCustomerName={(invoice) => invoice.customer?.name || 'Unknown'}
         getCustomerGST={(invoice) => invoice.customer?.gstNumber || ''}
         getVehicleInfo={(invoice) => invoice.vehicle ? `${invoice.vehicle.make} ${invoice.vehicle.model} (${invoice.vehicle.vehicleNumber})` : 'Unknown'}

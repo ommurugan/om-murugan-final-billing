@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Eye, Edit, Trash2, FileText, Printer } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Eye, Edit, Trash2, FileText, Printer, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Invoice } from "@/types/billing";
 import { useInvoicesWithDetails } from "@/hooks/useInvoicesWithDetails";
@@ -12,9 +13,11 @@ import InvoiceViewModal from "./invoice/InvoiceViewModal";
 import NonGSTInvoiceForm from "./NonGSTInvoiceForm";
 import { useDeleteInvoice } from "@/hooks/useInvoices";
 import InvoicePrintPreview from "./InvoicePrintPreview";
+import { supabase } from "@/integrations/supabase/client";
 
 const NonGSTInvoiceManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
@@ -25,7 +28,8 @@ const NonGSTInvoiceManagement = () => {
   const { 
     data: allInvoices = [], 
     isLoading, 
-    error 
+    error,
+    refetch 
   } = useInvoicesWithDetails();
 
   // Filter for non-GST invoices
@@ -33,11 +37,15 @@ const NonGSTInvoiceManagement = () => {
 
   const deleteInvoiceMutation = useDeleteInvoice();
 
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.vehicle?.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter(invoice => {
+    const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.vehicle?.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const handleCreateInvoice = () => {
     setEditingInvoice(null);
@@ -68,6 +76,26 @@ const NonGSTInvoiceManagement = () => {
         console.error("Error deleting invoice:", error);
         toast.error("Failed to delete invoice");
       }
+    }
+  };
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          status: 'paid',
+          paid_at: new Date().toISOString()
+        })
+        .eq('id', invoiceId);
+
+      if (error) throw error;
+
+      await refetch();
+      toast.success("Invoice marked as paid!");
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      toast.error("Failed to mark invoice as paid");
     }
   };
 
@@ -145,14 +173,28 @@ const NonGSTInvoiceManagement = () => {
 
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <Search className="h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search by invoice number, customer name, or vehicle number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-6">
+            <div className="flex items-center space-x-2 flex-1 w-full">
+              <Search className="h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by invoice number, customer name, or vehicle number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {filteredInvoices.length === 0 ? (
@@ -160,9 +202,9 @@ const NonGSTInvoiceManagement = () => {
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
               <p className="text-gray-500 mb-4">
-                {searchTerm ? "No invoices match your search criteria." : "Get started by creating your first invoice."}
+                {searchTerm || statusFilter !== "all" ? "No invoices match your search criteria." : "Get started by creating your first invoice."}
               </p>
-              {!searchTerm && (
+              {!searchTerm && statusFilter === "all" && (
                 <Button onClick={handleCreateInvoice} className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Invoice
@@ -196,6 +238,17 @@ const NonGSTInvoiceManagement = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {invoice.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkAsPaid(invoice.id)}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          title="Mark as Paid"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
