@@ -38,22 +38,36 @@ export const useCreateInvoice = () => {
 
       if (invoiceError) throw invoiceError;
 
-      // Create invoice items
+      // Create invoice items with proper HSN code handling
       if (invoice.items.length > 0) {
         const { error: itemsError } = await supabase
           .from('invoice_items')
           .insert(
-            invoice.items.map(item => ({
-              invoice_id: invoice.id,
-              item_id: item.itemId,
-              item_type: item.type,
-              name: item.name,
-              quantity: item.quantity,
-              unit_price: item.unitPrice,
-              discount: item.discount,
-              total: item.total,
-              hsn_code: item.hsnCode
-            }))
+            invoice.items.map(item => {
+              // Ensure HSN code is properly handled as a string
+              let hsnCode = '';
+              if (item.hsnCode) {
+                if (typeof item.hsnCode === 'string') {
+                  hsnCode = item.hsnCode;
+                } else if (typeof item.hsnCode === 'object' && item.hsnCode.value) {
+                  hsnCode = item.hsnCode.value;
+                }
+              }
+              
+              console.log("Saving item with HSN code:", hsnCode, "Original:", item.hsnCode);
+              
+              return {
+                invoice_id: invoice.id,
+                item_id: item.itemId,
+                item_type: item.type,
+                name: item.name,
+                quantity: item.quantity,
+                unit_price: item.unitPrice,
+                discount: item.discount,
+                total: item.total,
+                hsn_code: hsnCode || null // Ensure we save string or null, not undefined
+              };
+            })
           );
 
         if (itemsError) throw itemsError;

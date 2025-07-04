@@ -75,6 +75,10 @@ export const useNonGSTInvoiceForm = ({
     const service = transformedServices.find(s => s.id === serviceId);
     if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
       console.log("Adding service with HSN code:", service.hsnCode);
+      
+      // Ensure HSN code is a string, not an object
+      const hsnCode = typeof service.hsnCode === 'string' ? service.hsnCode : (service.hsnCode || '');
+      
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'service',
@@ -84,10 +88,10 @@ export const useNonGSTInvoiceForm = ({
         unitPrice: service.basePrice,
         discount: 0,
         total: service.basePrice,
-        hsnCode: service.hsnCode // Use actual HSN code from service
+        hsnCode: hsnCode // Use cleaned HSN code as string
       };
       setInvoiceItems([...invoiceItems, newItem]);
-      console.log("Added service:", newItem);
+      console.log("Added service with HSN code:", hsnCode);
     }
   };
 
@@ -95,6 +99,10 @@ export const useNonGSTInvoiceForm = ({
     const part = transformedParts.find(p => p.id === partId);
     if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
       console.log("Adding part with HSN code:", part.hsnCode);
+      
+      // Ensure HSN code is a string, not an object
+      const hsnCode = typeof part.hsnCode === 'string' ? part.hsnCode : (part.hsnCode || '');
+      
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
         type: 'part',
@@ -104,10 +112,10 @@ export const useNonGSTInvoiceForm = ({
         unitPrice: part.price,
         discount: 0,
         total: part.price,
-        hsnCode: part.hsnCode // Use actual HSN code from part
+        hsnCode: hsnCode // Use cleaned HSN code as string
       };
       setInvoiceItems([...invoiceItems, newItem]);
-      console.log("Added part:", newItem);
+      console.log("Added part with HSN code:", hsnCode);
     }
   };
 

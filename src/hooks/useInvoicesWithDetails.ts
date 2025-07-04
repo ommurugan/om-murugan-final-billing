@@ -79,6 +79,10 @@ export const useInvoicesWithDetails = () => {
         customerId: invoice.customer_id,
         vehicleId: invoice.vehicle_id,
         items: invoiceItems?.filter(item => item.invoice_id === invoice.id).map(item => {
+          // Properly handle HSN code retrieval - ensure it's a string
+          const hsnCode = item.hsn_code || '';
+          console.log("Retrieved HSN code from DB:", hsnCode, "for item:", item.name);
+          
           return {
             id: item.id,
             type: item.item_type as 'service' | 'part',
@@ -88,7 +92,7 @@ export const useInvoicesWithDetails = () => {
             unitPrice: Number(item.unit_price),
             discount: Number(item.discount),
             total: Number(item.total),
-            hsnCode: item.hsn_code || undefined
+            hsnCode: hsnCode // This should now be the actual string from DB
           };
         }) || [],
         subtotal: invoice.subtotal,
