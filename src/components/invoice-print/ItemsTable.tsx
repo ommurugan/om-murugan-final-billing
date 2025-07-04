@@ -10,9 +10,24 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
   const getHsnSacCode = (item: any) => {
     console.log("Item data for HSN/SAC:", item); // Debug log to see what data we have
     
-    // Return the actual HSN/SAC code entered by the user, or empty string if not available
-    const code = item.hsnCode || item.hsn_code;
-    return code || '';
+    // Handle different possible structures of HSN code data
+    let code = '';
+    
+    if (item.hsnCode) {
+      if (typeof item.hsnCode === 'string') {
+        code = item.hsnCode;
+      } else if (typeof item.hsnCode === 'object' && item.hsnCode.value) {
+        code = item.hsnCode.value;
+      }
+    }
+    
+    // Fallback to hsn_code field
+    if (!code && item.hsn_code) {
+      code = item.hsn_code;
+    }
+    
+    // If still no code, return empty string (don't show undefined)
+    return code === 'undefined' || !code ? '' : code;
   };
 
   return (
