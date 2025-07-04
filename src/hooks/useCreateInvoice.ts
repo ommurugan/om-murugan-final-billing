@@ -44,13 +44,14 @@ export const useCreateInvoice = () => {
           .from('invoice_items')
           .insert(
             invoice.items.map(item => {
-              // Ensure HSN code is properly handled as a string
-              let hsnCode = '';
+              // Properly handle HSN code - ensure it's a string or null
+              let hsnCode: string | null = null;
+              
               if (item.hsnCode) {
                 if (typeof item.hsnCode === 'string') {
                   hsnCode = item.hsnCode;
-                } else if (typeof item.hsnCode === 'object' && item.hsnCode.value) {
-                  hsnCode = item.hsnCode.value;
+                } else if (typeof item.hsnCode === 'object' && item.hsnCode !== null && 'value' in item.hsnCode) {
+                  hsnCode = (item.hsnCode as any).value || null;
                 }
               }
               
@@ -65,7 +66,7 @@ export const useCreateInvoice = () => {
                 unit_price: item.unitPrice,
                 discount: item.discount,
                 total: item.total,
-                hsn_code: hsnCode || null // Ensure we save string or null, not undefined
+                hsn_code: hsnCode
               };
             })
           );
