@@ -47,31 +47,6 @@ export const useInvoicesWithDetails = () => {
         throw itemsError;
       }
 
-      // Get unique service and part IDs
-      const serviceIds = invoiceItems?.filter(item => item.item_type === 'service').map(item => item.item_id) || [];
-      const partIds = invoiceItems?.filter(item => item.item_type === 'part').map(item => item.item_id) || [];
-
-      // Fetch services and parts data
-      const [servicesResponse, partsResponse] = await Promise.all([
-        serviceIds.length > 0 
-          ? supabase.from("services").select("id, name, category").in("id", serviceIds)
-          : Promise.resolve({ data: [], error: null }),
-        partIds.length > 0
-          ? supabase.from("parts").select("id, name, category, part_number").in("id", partIds)
-          : Promise.resolve({ data: [], error: null })
-      ]);
-
-      if (servicesResponse.error) {
-        console.error("Error fetching services:", servicesResponse.error);
-      }
-
-      if (partsResponse.error) {
-        console.error("Error fetching parts:", partsResponse.error);
-      }
-
-      const servicesMap = new Map((servicesResponse.data || []).map(s => [s.id, s]));
-      const partsMap = new Map((partsResponse.data || []).map(p => [p.id, p]));
-
       return invoices?.map(invoice => ({
         id: invoice.id,
         invoiceNumber: invoice.invoice_number,
@@ -79,9 +54,7 @@ export const useInvoicesWithDetails = () => {
         customerId: invoice.customer_id,
         vehicleId: invoice.vehicle_id,
         items: invoiceItems?.filter(item => item.invoice_id === invoice.id).map(item => {
-          // Properly handle HSN code retrieval - ensure it's a string
-          const hsnCode = item.hsn_code || '';
-          console.log("Retrieved HSN code from DB:", hsnCode, "for item:", item.name);
+          console.log("Retrieved item:", item.name, "with HSN code:", item.hsn_code);
           
           return {
             id: item.id,
@@ -92,14 +65,14 @@ export const useInvoicesWithDetails = () => {
             unitPrice: Number(item.unit_price),
             discount: Number(item.discount),
             total: Number(item.total),
-            hsnCode: hsnCode // This should now be the actual string from DB
+            hsnCode: item.hsn_code || '' // Use the saved HSN code directly
           };
         }) || [],
         subtotal: invoice.subtotal,
         discount: invoice.discount,
         taxRate: invoice.tax_rate,
         taxAmount: invoice.tax_amount,
-        extraCharges: [], // We'll need to handle this separately if needed
+        extraCharges: [],
         total: invoice.total,
         status: invoice.status as any,
         createdAt: invoice.created_at,

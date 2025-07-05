@@ -83,40 +83,40 @@ const NonGSTInvoiceForm = ({ onSave, onCancel, existingInvoice }: NonGSTInvoiceF
   const addService = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service) {
-      console.log("Adding service with HSN code:", service.hsn_code);
+      console.log("Adding service:", service.name, "with HSN code:", service.hsn_code);
       const newItem = {
         id: `service-${Date.now()}`,
         type: 'service' as const,
         itemId: serviceId,
         name: service.name,
         quantity: 1,
-        unitPrice: (service as any).base_price || 0,
+        unitPrice: Number(service.base_price) || 0,
         discount: 0,
-        total: (service as any).base_price || 0,
-        hsnCode: service.hsn_code, // Use actual HSN code from service
-        hsn_code: service.hsn_code // Also set hsn_code for compatibility
+        total: Number(service.base_price) || 0,
+        hsnCode: service.hsn_code || '', // Use the actual HSN code from database
       };
       setInvoiceItems([...invoiceItems, newItem]);
+      console.log("Service added with HSN code:", service.hsn_code);
     }
   };
 
   const addPart = (partId: string) => {
     const part = parts.find(p => p.id === partId);
     if (part) {
-      console.log("Adding part with HSN code:", part.hsn_code);
+      console.log("Adding part:", part.name, "with HSN code:", part.hsn_code);
       const newItem = {
         id: `part-${Date.now()}`,
         type: 'part' as const,
         itemId: partId,
         name: part.name,
         quantity: 1,
-        unitPrice: (part as any).price || 0,
+        unitPrice: Number(part.price) || 0,
         discount: 0,
-        total: (part as any).price || 0,
-        hsnCode: part.hsn_code, // Use actual HSN code from part
-        hsn_code: part.hsn_code // Also set hsn_code for compatibility
+        total: Number(part.price) || 0,
+        hsnCode: part.hsn_code || '', // Use the actual HSN code from database
       };
       setInvoiceItems([...invoiceItems, newItem]);
+      console.log("Part added with HSN code:", part.hsn_code);
     }
   };
 

@@ -40,36 +40,27 @@ export const useCreateInvoice = () => {
 
       // Create invoice items with proper HSN code handling
       if (invoice.items.length > 0) {
+        const itemsToInsert = invoice.items.map(item => {
+          console.log("Saving item:", item.name, "with HSN code:", item.hsnCode);
+          
+          return {
+            invoice_id: invoice.id,
+            item_id: item.itemId,
+            item_type: item.type,
+            name: item.name,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            discount: item.discount,
+            total: item.total,
+            hsn_code: item.hsnCode || null // Save the HSN code directly
+          };
+        });
+
+        console.log("Items to insert:", itemsToInsert);
+
         const { error: itemsError } = await supabase
           .from('invoice_items')
-          .insert(
-            invoice.items.map(item => {
-              // Properly handle HSN code - ensure it's a string or null
-              let hsnCode: string | null = null;
-              
-              if (item.hsnCode) {
-                if (typeof item.hsnCode === 'string') {
-                  hsnCode = item.hsnCode;
-                } else if (typeof item.hsnCode === 'object' && item.hsnCode !== null && 'value' in item.hsnCode) {
-                  hsnCode = (item.hsnCode as any).value || null;
-                }
-              }
-              
-              console.log("Saving item with HSN code:", hsnCode, "Original:", item.hsnCode);
-              
-              return {
-                invoice_id: invoice.id,
-                item_id: item.itemId,
-                item_type: item.type,
-                name: item.name,
-                quantity: item.quantity,
-                unit_price: item.unitPrice,
-                discount: item.discount,
-                total: item.total,
-                hsn_code: hsnCode
-              };
-            })
-          );
+          .insert(itemsToInsert);
 
         if (itemsError) throw itemsError;
       }

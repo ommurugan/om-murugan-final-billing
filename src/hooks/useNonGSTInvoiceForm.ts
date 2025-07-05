@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Customer, Vehicle, Invoice, InvoiceItem, Payment } from "@/types/billing";
@@ -40,44 +41,15 @@ export const useNonGSTInvoiceForm = ({
   const { subtotal, total } = useInvoiceCalculations({
     invoiceItems,
     laborCharges,
-    extraCharges: [], // Remove extra charges for non-GST invoices
+    extraCharges: [],
     discount,
     taxRate
   });
 
-  // Transform database services to match our interface
-  const transformedServices = servicesData.map(s => ({
-    id: s.id,
-    name: s.name,
-    category: s.category,
-    basePrice: Number(s.base_price),
-    estimatedTime: s.estimated_time,
-    description: s.description,
-    isActive: s.is_active,
-    hsnCode: s.hsn_code // Include HSN code in transformation
-  }));
-
-  // Transform database parts to match our interface
-  const transformedParts = partsData.map(p => ({
-    id: p.id,
-    name: p.name,
-    category: p.category,
-    price: Number(p.price),
-    stockQuantity: p.stock_quantity,
-    minStockLevel: p.min_stock_level,
-    supplier: p.supplier,
-    partNumber: p.part_number,
-    isActive: p.is_active,
-    hsnCode: p.hsn_code // Include HSN code in transformation
-  }));
-
   const addService = (serviceId: string) => {
-    const service = transformedServices.find(s => s.id === serviceId);
+    const service = servicesData.find(s => s.id === serviceId);
     if (service && !invoiceItems.find(item => item.itemId === serviceId && item.type === 'service')) {
-      console.log("Adding service with HSN code:", service.hsnCode);
-      
-      // Ensure HSN code is a string, not an object
-      const hsnCode = typeof service.hsnCode === 'string' ? service.hsnCode : (service.hsnCode || '');
+      console.log("Adding service:", service.name, "with HSN code:", service.hsn_code);
       
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
@@ -85,23 +57,20 @@ export const useNonGSTInvoiceForm = ({
         itemId: service.id,
         name: service.name,
         quantity: 1,
-        unitPrice: service.basePrice,
+        unitPrice: Number(service.base_price),
         discount: 0,
-        total: service.basePrice,
-        hsnCode: hsnCode // Use cleaned HSN code as string
+        total: Number(service.base_price),
+        hsnCode: service.hsn_code || '' // Direct string assignment from database
       };
       setInvoiceItems([...invoiceItems, newItem]);
-      console.log("Added service with HSN code:", hsnCode);
+      console.log("Service added with HSN code:", service.hsn_code);
     }
   };
 
   const addPart = (partId: string) => {
-    const part = transformedParts.find(p => p.id === partId);
+    const part = partsData.find(p => p.id === partId);
     if (part && !invoiceItems.find(item => item.itemId === partId && item.type === 'part')) {
-      console.log("Adding part with HSN code:", part.hsnCode);
-      
-      // Ensure HSN code is a string, not an object
-      const hsnCode = typeof part.hsnCode === 'string' ? part.hsnCode : (part.hsnCode || '');
+      console.log("Adding part:", part.name, "with HSN code:", part.hsn_code);
       
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
@@ -109,13 +78,13 @@ export const useNonGSTInvoiceForm = ({
         itemId: part.id,
         name: part.name,
         quantity: 1,
-        unitPrice: part.price,
+        unitPrice: Number(part.price),
         discount: 0,
-        total: part.price,
-        hsnCode: hsnCode // Use cleaned HSN code as string
+        total: Number(part.price),
+        hsnCode: part.hsn_code || '' // Direct string assignment from database
       };
       setInvoiceItems([...invoiceItems, newItem]);
-      console.log("Added part with HSN code:", hsnCode);
+      console.log("Part added with HSN code:", part.hsn_code);
     }
   };
 
@@ -169,7 +138,7 @@ export const useNonGSTInvoiceForm = ({
       discount,
       taxRate,
       taxAmount: 0,
-      extraCharges: [], // Remove extra charges for non-GST invoices
+      extraCharges: [],
       total,
       status: payment && payment.amount >= total ? 'paid' : status,
       createdAt: existingInvoice?.createdAt || new Date().toISOString(),
@@ -200,7 +169,7 @@ export const useNonGSTInvoiceForm = ({
     laborCharges,
     discount,
     taxRate,
-    extraCharges: [], // Remove extra charges for non-GST invoices
+    extraCharges: [],
     notes,
     paymentMethod,
     paymentAmount,
@@ -215,7 +184,7 @@ export const useNonGSTInvoiceForm = ({
     setLaborCharges,
     setDiscount,
     setTaxRate,
-    setExtraCharges: () => {}, // No-op for non-GST invoices
+    setExtraCharges: () => {},
     setNotes,
     setPaymentMethod,
     setPaymentAmount,
