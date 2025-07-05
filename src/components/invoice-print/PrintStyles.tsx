@@ -13,15 +13,16 @@ const PrintStyles = () => {
         body {
           margin: 0 !important;
           padding: 0 !important;
+          overflow: hidden !important;
         }
         
         /* Hide all elements except the print content */
         body * {
-          visibility: hidden;
+          visibility: hidden !important;
         }
         
         .print-content, .print-content * {
-          visibility: visible;
+          visibility: visible !important;
         }
         
         .print-content {
@@ -32,39 +33,59 @@ const PrintStyles = () => {
           max-width: none !important;
           margin: 0 !important;
           padding: 15mm !important;
-          box-sizing: border-box;
+          box-sizing: border-box !important;
+          page-break-after: avoid !important;
         }
 
-        /* Hide mobile navigation and other UI elements */
-        nav, .mobile-nav, .bottom-nav, [class*="bottom"], [class*="navigation"] {
+        /* Hide all UI elements that shouldn't print */
+        nav, .mobile-nav, .bottom-nav, [class*="bottom"], [class*="navigation"], 
+        button, .print-controls, .no-print {
           display: none !important;
           visibility: hidden !important;
         }
 
+        /* Ensure table formatting */
         table {
           border-collapse: collapse !important;
           width: 100% !important;
+          page-break-inside: avoid !important;
         }
 
+        /* Prevent page breaks in critical sections */
+        tbody tr {
+          page-break-inside: avoid !important;
+        }
+        
+        thead {
+          display: table-header-group !important;
+        }
+        
+        tfoot {
+          display: table-footer-group !important;
+        }
+
+        /* Ensure images print correctly */
         img {
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
+          max-width: 100% !important;
         }
         
         @page {
-          margin: 10mm;
-          size: A4;
+          margin: 10mm !important;
+          size: A4 !important;
         }
         
-        /* Prevent page breaks inside table rows */
-        tbody tr {
-          page-break-inside: avoid;
-        }
-        
-        /* Ensure only one page prints */
+        /* Force single page layout */
         html, body {
           height: auto !important;
           overflow: visible !important;
+          page-break-after: avoid !important;
+        }
+        
+        /* Prevent duplicate content */
+        .print-content ~ * {
+          display: none !important;
         }
       }
     `}</style>

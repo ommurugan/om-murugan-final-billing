@@ -137,7 +137,11 @@ export const useCreateInvoice = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidate all invoice-related queries
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", "gst"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", "non-gst"] });
     },
   });
 };
@@ -178,8 +182,11 @@ export const useDeleteInvoice = () => {
       return invoiceId;
     },
     onSuccess: () => {
+      // Invalidate all invoice-related queries
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoices-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", "gst"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", "non-gst"] });
     },
   });
 };

@@ -88,7 +88,11 @@ export const useCreateInvoice = () => {
       return invoiceData;
     },
     onSuccess: () => {
+      // Invalidate all invoice-related queries to ensure lists update
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices-with-details'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices', 'gst'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices', 'non-gst'] });
     }
   });
 };
