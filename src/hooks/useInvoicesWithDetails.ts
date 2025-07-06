@@ -47,6 +47,25 @@ export const useInvoicesWithDetails = () => {
         throw itemsError;
       }
 
+      // Fetch services and parts to get the actual HSN codes
+      const { data: services, error: servicesError } = await supabase
+        .from("services")
+        .select("id, hsn_code");
+
+      if (servicesError) {
+        console.error("Error fetching services:", servicesError);
+        throw servicesError;
+      }
+
+      const { data: parts, error: partsError } = await supabase
+        .from("parts")
+        .select("id, hsn_code");
+
+      if (partsError) {
+        console.error("Error fetching parts:", partsError);
+        throw partsError;
+      }
+
       return invoices?.map(invoice => ({
         id: invoice.id,
         invoiceNumber: invoice.invoice_number,
@@ -54,7 +73,21 @@ export const useInvoicesWithDetails = () => {
         customerId: invoice.customer_id,
         vehicleId: invoice.vehicle_id,
         items: invoiceItems?.filter(item => item.invoice_id === invoice.id).map(item => {
-          console.log("Retrieved item:", item.name, "with HSN code:", item.hsn_code);
+          // Find the actual HSN code from services or parts based on item_id and type
+          let actualHsnCode = '';
+          
+          if (item.item_type === 'service') {
+            const service = services?.find(s => s.id === item.item_id);
+            actualHsnCode = service?.hsn_code || '';
+          } else if (item.item_type === 'part') {
+            const part = parts?.find(p => p.id === item.item_id);
+            actualHsnCode = part?.hsn_code || '';
+          }
+
+          // Use the actual HSN code from the service/part, fallback to stored hsn_code, then empty string
+          const hsnCode = actualHsnCode || item.hsn_code || '';
+          
+          console.log("Retrieved item:", item.name, "with actual HSN code:", hsnCode, "from", item.item_type);
           
           return {
             id: item.id,
@@ -65,7 +98,7 @@ export const useInvoicesWithDetails = () => {
             unitPrice: Number(item.unit_price),
             discount: Number(item.discount),
             total: Number(item.total),
-            hsnCode: item.hsn_code || '' // Use the saved HSN code directly
+            hsnCode: hsnCode // Use the actual HSN code from the master data
           };
         }) || [],
         subtotal: invoice.subtotal,

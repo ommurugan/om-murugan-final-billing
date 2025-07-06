@@ -40,8 +40,44 @@ export const useCreateInvoice = () => {
 
       // Create invoice items with proper HSN code handling
       if (invoice.items.length > 0) {
+        // Fetch the actual HSN codes from services and parts tables
+        const serviceIds = invoice.items.filter(item => item.type === 'service').map(item => item.itemId);
+        const partIds = invoice.items.filter(item => item.type === 'part').map(item => item.itemId);
+
+        let services = [];
+        let parts = [];
+
+        if (serviceIds.length > 0) {
+          const { data: servicesData } = await supabase
+            .from('services')
+            .select('id, hsn_code')
+            .in('id', serviceIds);
+          services = servicesData || [];
+        }
+
+        if (partIds.length > 0) {
+          const { data: partsData } = await supabase
+            .from('parts')
+            .select('id, hsn_code')
+            .in('id', partIds);
+          parts = partsData || [];
+        }
+
         const itemsToInsert = invoice.items.map(item => {
-          console.log("Saving item:", item.name, "with HSN code:", item.hsnCode);
+          // Get the actual HSN code from the master data
+          let actualHsnCode = '';
+          
+          if (item.type === 'service') {
+            const service = services.find(s => s.id === item.itemId);
+            actualHsnCode = service?.hsn_code || '';
+          } else if (item.type === 'part') {
+            const part = parts.find(p => p.id === item.itemId);
+            actualHsnCode = part?.hsn_code || '';
+          }
+
+          const hsnCodeToSave = actualHsnCode || item.hsnCode || '';
+          
+          console.log("Saving item:", item.name, "with HSN code:", hsnCodeToSave, "from", item.type);
           
           return {
             invoice_id: invoice.id,
@@ -52,11 +88,11 @@ export const useCreateInvoice = () => {
             unit_price: item.unitPrice,
             discount: item.discount,
             total: item.total,
-            hsn_code: item.hsnCode || null // Save the HSN code directly
+            hsn_code: hsnCodeToSave // Save the actual HSN code from master data
           };
         });
 
-        console.log("Items to insert:", itemsToInsert);
+        console.log("Items to insert with HSN codes:", itemsToInsert);
 
         const { error: itemsError } = await supabase
           .from('invoice_items')
