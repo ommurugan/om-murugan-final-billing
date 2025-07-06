@@ -8,7 +8,6 @@ interface ItemsTableProps {
 
 const ItemsTable = ({ invoice }: ItemsTableProps) => {
   const getHsnSacCode = (item: any) => {
-    // Return the HSN code directly from the item data
     const code = item.hsnCode || '';
     console.log("Displaying HSN/SAC code:", code, "for item:", item.name, "type:", item.type);
     return code || 'N/A';
