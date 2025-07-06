@@ -7,19 +7,11 @@ interface ItemsTableProps {
 }
 
 const ItemsTable = ({ invoice }: ItemsTableProps) => {
-  const getHsnSacCode = (item: any) => {
-    // Return the HSN code directly from the item
-    const code = item.hsnCode || '';
-    console.log("Displaying HSN/SAC code:", code, "for item:", item.name);
-    return code;
-  };
-
   return (
     <div className="mb-6">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border-2 border-black p-3 text-center font-bold">HSN/SAC Code</th>
             <th className="border-2 border-black p-3 text-left font-bold">Description</th>
             <th className="border-2 border-black p-3 text-center font-bold">Qty</th>
             <th className="border-2 border-black p-3 text-right font-bold">Rate</th>
@@ -30,9 +22,6 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
         <tbody>
           {invoice.items.map((item, index) => (
             <tr key={index}>
-              <td className="border-l-2 border-r-2 border-black p-3 text-center">
-                {getHsnSacCode(item)}
-              </td>
               <td className="border-l-2 border-r-2 border-black p-3">
                 {item.name}
                 <div className="text-sm text-gray-600 capitalize">({item.type})</div>
@@ -45,7 +34,6 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
           ))}
           {invoice.laborCharges > 0 && (
             <tr>
-              <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
               <td className="border-l-2 border-r-2 border-black p-3">Labor Charges</td>
               <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
               <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{invoice.laborCharges.toFixed(2)}</td>
@@ -55,7 +43,6 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
           )}
           {invoice.extraCharges?.map((charge, index) => (
             <tr key={`extra-${index}`}>
-              <td className="border-l-2 border-r-2 border-black p-3 text-center">998314</td>
               <td className="border-l-2 border-r-2 border-black p-3">{charge.name}</td>
               <td className="border-l-2 border-r-2 border-black p-3 text-center">1</td>
               <td className="border-l-2 border-r-2 border-black p-3 text-right">₹{charge.amount.toFixed(2)}</td>
@@ -66,7 +53,7 @@ const ItemsTable = ({ invoice }: ItemsTableProps) => {
         </tbody>
         <tfoot>
           <tr>
-            <td className="border-2 border-black p-3" colSpan={6}></td>
+            <td className="border-2 border-black p-3" colSpan={5}></td>
           </tr>
         </tfoot>
       </table>
